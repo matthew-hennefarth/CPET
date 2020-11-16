@@ -9,6 +9,7 @@
 #include <vector>
 #include <memory>
 #include <iostream>
+#include <filesystem>
 
 #include "spdlog/spdlog.h"
 #include "Eigen/Dense"
@@ -26,6 +27,11 @@ struct PointCharge{
     double charge;
 };
 
+struct PathSample{
+    double distance;
+    double curvature;
+};
+
 class System{
     public:
         System(const std::string_view &proteinFile, const std::string_view &optionsFile);
@@ -38,37 +44,49 @@ class System{
         void _loadPDB(const std::string_view& proteinFile);
         void _loadOptions(const std::string_view& optionsFile);
 
+        [[nodiscard]] inline PathSample _sample(){
+            Eigen::Vector3d initialPosition = _region->randomPoint();
+            Eigen::Vector3d finalPosition = initialPosition;
+            int steps = 0, maxSteps = 10;
+            while(_region->isInside(finalPosition) && steps < maxSteps){
+                finalPosition = _next(finalPosition);
+                steps++;
+            }
+
+            return {(finalPosition - initialPosition).norm(),
+                    (_curvature(finalPosition) + _curvature(initialPosition))/2.0};
+
+        }
+
         inline void _applyToPC(const std::function<void(PointCharge&)>& func) {
-            for (auto& pc: *(_pointCharges)){
+            for (auto& pc: _pointCharges){
                 func(pc);
             }
         }
 
         inline void _translate(const Eigen::Vector3d& position){
-
-            static const Eigen::Vector3d* staticCastPtr = &position;
-            _applyToPC([] (PointCharge& pc){ pc.coordinate -= *(staticCastPtr); });
+            _applyToPC([position] (PointCharge& pc){ pc.coordinate -= position; });
         }
 
         inline void _translateToCenter() {
             SPDLOG_INFO("Translating to the center");
-            _translate(*(_center));
+            _translate(_center);
         }
 
         inline void _translateToOrigin(){
             SPDLOG_INFO("Translating to the Origin");
-            _translate(-1*(*(_center)));
+            _translate(-1*(_center));
         }
 
         inline void  _toUserBasis(){
             SPDLOG_INFO("Translating to user basis");
-            static Eigen::Matrix3d inverse = _basisMatrix->inverse();
-            _applyToPC([] (PointCharge& pc){ pc.coordinate = inverse*pc.coordinate; });
+            Eigen::Matrix3d inverse = _basisMatrix.inverse();
+            _applyToPC([inverse] (PointCharge& pc){ pc.coordinate = inverse*pc.coordinate; });
         }
 
         inline void _toDefaultBasis() {
             SPDLOG_INFO("Translating to default basis");
-            _applyToPC([this] (PointCharge& pc){ pc.coordinate = *(_basisMatrix)*pc.coordinate; });
+            _applyToPC([this] (PointCharge& pc){ pc.coordinate = _basisMatrix*pc.coordinate; });
         }
 
         [[nodiscard]] Eigen::Vector3d _next(const Eigen::Vector3d& pos) const {
@@ -97,17 +115,21 @@ class System{
 
         }
 
-        std::unique_ptr<std::vector<PointCharge>> _pointCharges;
-        std::unique_ptr<Eigen::Vector3d> _center;
-        std::unique_ptr<Eigen::Matrix3d> _basisMatrix;
+        std::vector<PointCharge> _pointCharges;
+        Eigen::Vector3d _center;
+        Eigen::Matrix3d _basisMatrix;
         std::unique_ptr<Volume> _region;
-
 };
 
 System::System(const std::string_view &proteinFile, const std::string_view &optionsFile)
-    : _pointCharges(nullptr), _center(nullptr), _basisMatrix(nullptr), _region(nullptr){
+    : _pointCharges(), _center(), _basisMatrix(Eigen::Matrix3d::Identity()), _region(nullptr){
     _loadPDB(proteinFile);
     _loadOptions(optionsFile);
+
+    if(_region == nullptr){
+        throw std::exception();
+    }
+
     _translateToCenter();
     _toUserBasis();
     calculateTopology(10);
@@ -116,7 +138,7 @@ System::System(const std::string_view &proteinFile, const std::string_view &opti
 Eigen::Vector3d System::electricField (const Eigen::Vector3d &position) const {
     Eigen::Vector3d result(0,0,0);
 
-    for (const auto &pc : *(_pointCharges)) {
+    for (const auto &pc : _pointCharges) {
         Eigen::Vector3d d = (position - pc.coordinate);
         double dNorm = d.norm();
         result += ((pc.charge * d) / (dNorm * dNorm * dNorm));
@@ -129,74 +151,56 @@ void System::calculateTopology (const int &nIter) {
 
     SPDLOG_INFO("Calculating Topology");
     for(int i = 0; i < nIter; i++){
-        auto initialPosition = _region->randomPoint();
-        Eigen::Vector3d finalPosition = initialPosition;
-        int steps = 0;
-        while(_region->isInside(finalPosition) && steps < 10){
-            finalPosition = _next(finalPosition);
-            steps++;
-        }
-
-        double distance = (finalPosition - initialPosition).norm();
-        double meanCurvature = (_curvature(finalPosition) + _curvature(initialPosition))/2.0;
-
-        SPDLOG_INFO("Distance {}, Curvature {}", distance, meanCurvature);
+        auto sampleData = _sample();
+        SPDLOG_INFO("Distance {}, Curvature {}", sampleData.distance, sampleData.curvature);
     }
 }
 
 void System::_loadPDB(const std::string_view& proteinFile){
     SPDLOG_INFO("Loading in the PDB file");
 
-    static std::unique_ptr<std::vector<PointCharge>> temp = std::make_unique<std::vector<PointCharge>>();
-    extractFromFile(proteinFile, [] (const std::string &line) {
+    std::uintmax_t fileSize = std::filesystem::file_size(proteinFile);
+    _pointCharges.reserve(fileSize/69);
+
+    extractFromFile(proteinFile, [this] (const std::string &line) {
         if(line.substr(0, 4) == "ATOM" || line.substr(0, 6) == "HETATM"){
             PointCharge pc = {{std::stod(line.substr(31, 8)),
                                std::stod(line.substr(39,8)),
                                std::stod(line.substr(47, 8))},
                               std::stod(line.substr(55,8))};
-            temp->emplace_back(pc);
+            this->_pointCharges.emplace_back(pc);
         }
     });
-    _pointCharges = std::move(temp);
 }
 
 void System::_loadOptions(const std::string_view& optionsFile){
     SPDLOG_INFO("Loading in the options file");
 
-    static std::unique_ptr<Eigen::Vector3d> center = std::make_unique<Eigen::Vector3d>(0,0,0);
-    static std::unique_ptr<Eigen::Matrix3d> basisMatrix = std::make_unique<Eigen::Matrix3d>();
-    *(basisMatrix) = basisMatrix->Identity();
-
-    static std::unique_ptr<Volume> region = nullptr;
-
-    extractFromFile(optionsFile, [] (const std::string &line){
+    extractFromFile(optionsFile, [this] (const std::string &line){
         if (line.substr(0,6) == "center"){
-            auto info = split(line.substr(6), ' ');
-            *(center) = {stod(info[0]), stod(info[1]), stod(info[2])};
+            std::vector<std::string> info = split(line.substr(6), ' ');
+            this->_center = {stod(info[0]), stod(info[1]), stod(info[2])};
         }
         else if (line.substr(0,2) == "v1"){
-            auto info = split(line.substr(2), ' ');
+            std::vector<std::string> info = split(line.substr(2), ' ');
             Eigen::Vector3d v1(stod(info[0]), stod(info[1]), stod(info[2]));
-            basisMatrix->block(0,0,3,1) = v1;
+            this->_basisMatrix.block(0,0,3,1) = v1;
         }
         else if (line.substr(0,2) == "v2"){
-            auto info = split(line.substr(2), ' ');
+            std::vector<std::string> info = split(line.substr(2), ' ');
             Eigen::Vector3d v2(stod(info[0]), stod(info[1]), stod(info[2]));
-            basisMatrix->block(0,1,3,1) = v2;
+            this->_basisMatrix.block(0,1,3,1) = v2;
         }
         else if(line.substr(0,6) == "volume"){
-            auto info = split(line.substr(6), ' ');
+            std::vector<std::string> info = split(line.substr(6), ' ');
             if (info[0] == "box"){
                 std::array<double, 3> dims = {std::stod(info[1]),std::stod(info[2]),std::stod(info[3])};
-                region = std::make_unique<Box>(dims);
+                this->_region = std::make_unique<Box>(dims);
             }
         }
     });
 
-    _center = std::move(center);
-    _basisMatrix = std::move(basisMatrix);
-    _basisMatrix->block(0,2,3,1) = _basisMatrix->col(0).cross(_basisMatrix->col(1));
-    _region = std::move(region);
+    _basisMatrix.block(0,2,3,1) = _basisMatrix.col(0).cross(_basisMatrix.col(1));
 }
 
 #endif //SYSTEM_H
