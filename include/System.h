@@ -47,19 +47,19 @@ class System{
         ~System() = default;
 
         [[nodiscard]] Eigen::Vector3d electricField (const Eigen::Vector3d& position) const;
-        void calculateTopology(const int& procs);
+        void calculateTopology(const size_t& procs);
 
     private:
         void _loadPDB();
         void _loadOptions(const std::string_view& optionsFile);
         // TODO change the name of this
-        void _b (PathSample* shared_array, const std::vector<size_t>& values) noexcept(true) {
+        void _b (std::vector<PathSample>& shared_array, const std::vector<size_t>& values) noexcept(true) {
             for (const auto& i : values){
                 _sample(shared_array, i);
             }
         };
 
-        void _sample(PathSample* output, size_t i) noexcept(true);
+        void _sample(std::vector<PathSample>& output, size_t i) noexcept(true);
 
         inline void _applyToPC(const std::function<void(PointCharge&)>& func) {
             for (auto& pc: _pointCharges){
@@ -125,7 +125,7 @@ class System{
         std::shared_ptr<Volume> _region;
         std::string _name;
         std::mt19937 _gen;
-        int _numberOfSamples;
+        size_t _numberOfSamples{};
         std::uniform_int_distribution<int> _distribution;
         std::mutex _mutex;
 

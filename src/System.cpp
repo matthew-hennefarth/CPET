@@ -8,7 +8,7 @@
 
 System::System(const std::string_view &proteinFile, const std::string_view &optionsFile)
     :  _pointCharges(), _center(), _basisMatrix(Eigen::Matrix3d::Identity()), _region(nullptr),
-    _name(proteinFile), _gen(std::random_device()()){
+    _name(proteinFile), _gen(std::random_device()()), _numberOfSamples(0){
 
     _loadPDB();
 
@@ -40,15 +40,16 @@ Eigen::Vector3d System::electricField (const Eigen::Vector3d &position) const {
     return result;
 }
 
-void System::calculateTopology (const int& procs) {
+void System::calculateTopology (const size_t& procs) {
 
     SPDLOG_INFO("Calculating Topology");
-    auto* shared_array = new PathSample[static_cast<size_t>(_numberOfSamples)];
+    //auto* const shared_array = new PathSample[_numberOfSamples];
+    std::vector<PathSample> shared_array(_numberOfSamples);
 
     if (procs == 1){
-        std::vector<size_t> values(static_cast<size_t>(_numberOfSamples));
+        std::vector<size_t> values(_numberOfSamples);
 
-        for(size_t i = 0; i < static_cast<size_t>(_numberOfSamples); i++){
+        for(size_t i = 0; i < _numberOfSamples; i++){
             values[i] = i;
         }
 
@@ -57,15 +58,15 @@ void System::calculateTopology (const int& procs) {
     }
     else{
         // TODO Make this a function in Utilities
-        std::vector<size_t> elementsToCompute(static_cast<size_t>(procs),
-                                              static_cast<const size_t>(_numberOfSamples / procs));
-        for(int i = 0; i < _numberOfSamples%procs; i++){
-            elementsToCompute[static_cast<size_t>(i)]++;
+        std::vector<size_t> elementsToCompute(procs,
+                                              _numberOfSamples / procs);
+        for(size_t i = 0; i < _numberOfSamples%procs; i++){
+            elementsToCompute[i]++;
         }
 
-        std::vector<std::vector<size_t>> chunks(static_cast<size_t>(procs));
+        std::vector<std::vector<size_t>> chunks(procs);
         size_t index = 0;
-        for(size_t i = 0 ; i < static_cast<size_t>(procs); i++){
+        for(size_t i = 0 ; i < procs; i++){
             for(size_t j = 0; j < elementsToCompute[i]; j++, index++){
                 chunks[i].push_back(index);
             }
@@ -74,9 +75,10 @@ void System::calculateTopology (const int& procs) {
 
         SPDLOG_INFO("Initializing threads");
         std::vector<std::thread> threads;
-        threads.reserve(static_cast<size_t>(procs));
-        for(size_t i = 0; i < static_cast<size_t>(procs); i++){
-            threads.emplace_back(std::thread(&System::_b, this, shared_array, std::ref(chunks[i])));
+        threads.reserve(procs);
+
+        for(size_t i = 0; i < procs; i++){
+            threads.emplace_back(std::thread(&System::_b, this, std::ref(shared_array), std::ref(chunks[i])));
         }
         for(auto& t : threads){
             t.join();
@@ -84,11 +86,10 @@ void System::calculateTopology (const int& procs) {
 
     }
 
-    for(int i = 0; i < _numberOfSamples; i++){
+    for(size_t i = 0; i < _numberOfSamples; i++){
         SPDLOG_INFO("{}, {}", shared_array[i].distance, shared_array[i].curvature);
     }
 
-    delete[] shared_array;
 }
 
 void System::_loadPDB(){
@@ -136,14 +137,14 @@ void System::_loadOptions(const std::string_view& optionsFile){
         }
         else if(line.substr(0,6) == "sample"){
             std::vector<std::string> info = split(line.substr(6), ' ');
-            this->_numberOfSamples = std::stoi(info[0]);
+            this->_numberOfSamples = static_cast<size_t>(std::stoi(info[0]));
         }
     });
 
     _basisMatrix.block(0,2,3,1) = _basisMatrix.col(0).cross(_basisMatrix.col(1));
 }
 
-void System::_sample(PathSample* output, size_t i) noexcept(true) {
+void System::_sample(std::vector<PathSample>& output, size_t i) noexcept(true) {
     _mutex.lock();
     Eigen::Vector3d initialPosition = _region->randomPoint();
     const int maxSteps = _distribution(_gen);
@@ -158,7 +159,7 @@ void System::_sample(PathSample* output, size_t i) noexcept(true) {
         steps++;
     }
 
-    output[i] ={(finalPosition - initialPosition).norm(),
+    output[i] = {(finalPosition - initialPosition).norm(),
     (_curvature(finalPosition) + _curvature(initialPosition))/2.0};
 
 }
