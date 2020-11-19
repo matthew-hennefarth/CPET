@@ -12,9 +12,21 @@
 
 class Box : public Volume{
     public:
-        Box(const std::array<double, 3>& sides);
+        inline Box(const std::array<double, 3>& sides) : _sides(sides){
+            for(const auto& val : _sides){
+                assert(val >0);
+            }
+
+            _initializeDistributions();
+        }
+
         ~Box() override = default;
-        [[nodiscard]] inline bool isInside(const Eigen::Vector3d& position) const override{
+
+        [[nodiscard]] constexpr const double& maxDim() const noexcept(true) override {
+            return *std::max_element(_sides.begin(), _sides.end());
+        }
+
+        [[nodiscard]] inline bool isInside(const Eigen::Vector3d& position) const noexcept(true) override {
             for(size_t i = 0; i < 3; i++){
                 if (abs(position[static_cast<long>(i)]) >= _sides[i])
                     return false;
@@ -33,7 +45,7 @@ class Box : public Volume{
             return result;
         }
 
-        inline void _initializeDistributions() override{
+        constexpr void _initializeDistributions() noexcept(true) override{
             for(std::array<std::uniform_real_distribution<double>, 3>::size_type i = 0; i < _distributions.size(); i++){
                 _distributions[i] = std::uniform_real_distribution<double>(-1*_sides[i], _sides[i]);
             }
@@ -43,15 +55,5 @@ class Box : public Volume{
         std::array<double, 3> _sides;
 
 };
-
-Box::Box (const std::array<double, 3>& sides) : _sides(sides){
-    for(const auto& val : _sides){
-        assert(val >0);
-    }
-
-    _initializeDistributions();
-}
-
-
 
 #endif //BOX_H

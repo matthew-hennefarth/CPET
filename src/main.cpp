@@ -12,5 +12,6 @@ int main() {
 
     System a("full.pqr", "options");
 
+    a.calculateTopology(2);
     return 0;
 }

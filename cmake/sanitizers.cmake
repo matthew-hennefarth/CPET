@@ -19,7 +19,7 @@ function(enable_sanitizers project_name)
             list(APPEND SANITIZERS "address")
         endif()
 
-        option(ENABLE_SANITIZER_MEMORY "Enable memory sanitizer" FALSE)
+        option(ENABLE_SANITIZER_MEMORY "Enable memory sanitizer" TRUE)
         if(ENABLE_SANITIZER_MEMORY)
             list(APPEND SANITIZERS "memory")
         endif()
