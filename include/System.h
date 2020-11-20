@@ -54,9 +54,12 @@ class System{
         void _loadOptions(const std::string_view& optionsFile);
         // TODO change the name of this
         void _b (std::vector<PathSample>& shared_array, const std::vector<size_t>& values) noexcept(true) {
+            auto logger = spdlog::get("Thread");
+            logger->info("Computing {} points", values.size());
             for (const auto& i : values){
                 _sample(shared_array, i);
             }
+            logger->info("Finished");
         };
 
         void _sample(std::vector<PathSample>& output, size_t i) noexcept(true);

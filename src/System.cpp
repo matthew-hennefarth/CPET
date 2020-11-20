@@ -4,6 +4,8 @@
 
 #include <thread>
 
+#include "spdlog/sinks/stdout_sinks.h"
+
 #include "System.h"
 
 System::System(const std::string_view &proteinFile, const std::string_view &optionsFile)
@@ -42,9 +44,17 @@ Eigen::Vector3d System::electricField (const Eigen::Vector3d &position) const {
 
 void System::calculateTopology (const size_t& procs) {
 
-    SPDLOG_INFO("Calculating Topology");
+    SPDLOG_INFO("======[Sampling topology]======");
+    SPDLOG_INFO("[Npoints] ==>> {}", _numberOfSamples);
+    SPDLOG_INFO("[Threads] ==>> {}", procs);
     //auto* const shared_array = new PathSample[_numberOfSamples];
     std::vector<PathSample> shared_array(_numberOfSamples);
+
+    std::shared_ptr<spdlog::logger> thread_logger;
+
+    if(! (thread_logger = spdlog::get("Thread"))){
+        thread_logger = spdlog::stdout_logger_mt("Thread");
+    }
 
     if (procs == 1){
         std::vector<size_t> values(_numberOfSamples);
@@ -57,6 +67,11 @@ void System::calculateTopology (const size_t& procs) {
 
     }
     else{
+#if SPDLOG_ACTIVE_LEVEL == SPDLOG_LEVEL_DEBUG
+        thread_logger->set_pattern("[Thread: %t] [%l] %v");
+#else
+        thread_logger->set_pattern("[Thread: %t] ==>> %v");
+#endif
         // TODO Make this a function in Utilities
         std::vector<size_t> elementsToCompute(procs,
                                               _numberOfSamples / procs);
@@ -73,7 +88,7 @@ void System::calculateTopology (const size_t& procs) {
         }
         //Now chunks contains the indexes for each proc to use
 
-        SPDLOG_INFO("Initializing threads");
+        SPDLOG_INFO("====[Initializing threads]====");
         std::vector<std::thread> threads;
         threads.reserve(procs);
 
@@ -86,15 +101,13 @@ void System::calculateTopology (const size_t& procs) {
 
     }
 
-    for(size_t i = 0; i < _numberOfSamples; i++){
-        SPDLOG_INFO("{}, {}", shared_array[i].distance, shared_array[i].curvature);
-    }
+//    for(size_t i = 0; i < _numberOfSamples; i++){
+//        SPDLOG_INFO("{}, {}", shared_array[i].distance, shared_array[i].curvature);
+//    }
 
 }
 
 void System::_loadPDB(){
-    SPDLOG_INFO("Loading in the PDB file");
-
     std::uintmax_t fileSize = std::filesystem::file_size(_name);
     _pointCharges.reserve(fileSize/69);
 
@@ -107,11 +120,11 @@ void System::_loadPDB(){
             );
         }
     });
+
+    SPDLOG_INFO("Loaded in {} point charges from file {}", _pointCharges.size(), _name);
 }
 
 void System::_loadOptions(const std::string_view& optionsFile){
-    SPDLOG_INFO("Loading in the options file");
-
     // TODO somehow place some checks here...
     extractFromFile(optionsFile, [this] (const std::string &line){
         if (line.substr(0,6) == "center"){
@@ -154,9 +167,8 @@ void System::_sample(std::vector<PathSample>& output, size_t i) noexcept(true) {
 
     int steps = 0;
 
-    while(_region->isInside(finalPosition) && steps < maxSteps){
+    while(_region->isInside(finalPosition) && ++steps < maxSteps){
         finalPosition = _next(finalPosition);
-        steps++;
     }
 
     output[i] = {(finalPosition - initialPosition).norm(),
