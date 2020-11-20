@@ -15,7 +15,7 @@ class Volume{
         virtual ~Volume() = default;
 
         [[nodiscard]] virtual bool isInside(const Eigen::Vector3d& position) const = 0;
-        [[nodiscard]] constexpr virtual const double& maxDim() const noexcept(true) = 0;
+        [[nodiscard]] virtual const double& maxDim() const noexcept(true) = 0;
         [[nodiscard]] virtual Eigen::Vector3d randomPoint() = 0;
         [[nodiscard]] inline std::mt19937& randomNumberGenerator() {
             return _gen;
