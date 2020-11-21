@@ -5,6 +5,7 @@
 #include <thread>
 
 #include "spdlog/sinks/stdout_sinks.h"
+#include "spdlog/fmt/ostr.h"
 
 #include "System.h"
 
@@ -12,15 +13,13 @@ System::System(const std::string_view &proteinFile, const std::string_view &opti
     :  _pointCharges(), _center(), _basisMatrix(Eigen::Matrix3d::Identity()), _region(nullptr),
     _name(proteinFile), _gen(std::random_device()()), _numberOfSamples(0){
 
-    _loadPDB();
-
-    if(_pointCharges.empty()){
+    _loadOptions(optionsFile);
+    if(_region == nullptr){
         throw std::exception();
     }
 
-    _loadOptions(optionsFile);
-
-    if(_region == nullptr){
+    _loadPDB();
+    if(_pointCharges.empty()){
         throw std::exception();
     }
 
@@ -47,7 +46,6 @@ void System::calculateTopology (const size_t& procs) {
     SPDLOG_INFO("======[Sampling topology]======");
     SPDLOG_INFO("[Npoints] ==>> {}", _numberOfSamples);
     SPDLOG_INFO("[Threads] ==>> {}", procs);
-    //auto* const shared_array = new PathSample[_numberOfSamples];
     std::vector<PathSample> shared_array(_numberOfSamples);
 
     std::shared_ptr<spdlog::logger> thread_logger;
@@ -58,13 +56,8 @@ void System::calculateTopology (const size_t& procs) {
 
     if (procs == 1){
         std::vector<size_t> values(_numberOfSamples);
-
-        for(size_t i = 0; i < _numberOfSamples; i++){
-            values[i] = i;
-        }
-
-        _b(shared_array, values);
-
+        std::iota(std::begin(values), std::end(values), 0);
+        _sampleLoop(shared_array, values);
     }
     else{
 #if SPDLOG_ACTIVE_LEVEL == SPDLOG_LEVEL_DEBUG
@@ -72,39 +65,24 @@ void System::calculateTopology (const size_t& procs) {
 #else
         thread_logger->set_pattern("[Thread: %t] ==>> %v");
 #endif
-        // TODO Make this a function in Utilities
-        std::vector<size_t> elementsToCompute(procs,
-                                              _numberOfSamples / procs);
-        for(size_t i = 0; i < _numberOfSamples%procs; i++){
-            elementsToCompute[i]++;
-        }
 
-        std::vector<std::vector<size_t>> chunks(procs);
-        size_t index = 0;
-        for(size_t i = 0 ; i < procs; i++){
-            for(size_t j = 0; j < elementsToCompute[i]; j++, index++){
-                chunks[i].push_back(index);
-            }
-        }
-        //Now chunks contains the indexes for each proc to use
+        auto chunks = chunkIndex(procs, _numberOfSamples);
 
         SPDLOG_INFO("====[Initializing threads]====");
-        std::vector<std::thread> threads;
-        threads.reserve(procs);
+        std::vector<std::thread> workers;
+        workers.reserve(procs);
 
         for(size_t i = 0; i < procs; i++){
-            threads.emplace_back(std::thread(&System::_b, this, std::ref(shared_array), std::ref(chunks[i])));
+            workers.emplace_back(std::thread(&System::_sampleLoop, this, std::ref(shared_array), std::ref(chunks[i])));
         }
-        for(auto& t : threads){
-            t.join();
+        for(auto& thread : workers){
+            thread.join();
         }
 
     }
-
 //    for(size_t i = 0; i < _numberOfSamples; i++){
 //        SPDLOG_INFO("{}, {}", shared_array[i].distance, shared_array[i].curvature);
 //    }
-
 }
 
 void System::_loadPDB(){
@@ -155,6 +133,13 @@ void System::_loadOptions(const std::string_view& optionsFile){
     });
 
     _basisMatrix.block(0,2,3,1) = _basisMatrix.col(0).cross(_basisMatrix.col(1));
+
+    SPDLOG_INFO("=====[Options | {}]=====", optionsFile);
+    SPDLOG_INFO("[V1]     ==>> [ {} ]", _basisMatrix.block(0,0,3,1).transpose());
+    SPDLOG_INFO("[V2]     ==>> [ {} ]", _basisMatrix.block(0,1,3,1).transpose());
+    SPDLOG_INFO("[V3]     ==>> [ {} ]", _basisMatrix.block(0,2,3,1).transpose());
+    SPDLOG_INFO("[Center] ==>> [ {} ]", _center.transpose());
+    SPDLOG_INFO("[Region] ==>> {}", _region->description());
 }
 
 void System::_sample(std::vector<PathSample>& output, size_t i) noexcept(true) {

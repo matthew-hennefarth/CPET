@@ -14,12 +14,13 @@ class Volume{
         Volume() : _rd(), _gen(_rd()){};
         virtual ~Volume() = default;
 
-        [[nodiscard]] virtual bool isInside(const Eigen::Vector3d& position) const = 0;
+        [[nodiscard]] virtual bool isInside(const Eigen::Vector3d& position) const noexcept(true) = 0;
         [[nodiscard]] virtual const double& maxDim() const noexcept(true) = 0;
         [[nodiscard]] virtual Eigen::Vector3d randomPoint() = 0;
         [[nodiscard]] inline std::mt19937& randomNumberGenerator() {
             return _gen;
         }
+        [[nodiscard]] virtual std::string_view description() const noexcept(true) = 0;
 
     protected:
         virtual constexpr void _initializeDistributions() = 0;

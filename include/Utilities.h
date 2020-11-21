@@ -13,6 +13,8 @@ void extractFromFile(const std::string_view& file, const std::function<void(cons
 
 std::vector<std::string> split(const std::string_view &str, char delim);
 
+std::vector<std::vector<size_t>> chunkIndex(const size_t& procs, const size_t& n);
+
 template<class T>
 void filter(std::vector<T>& list, const T& remove=T()) noexcept(true) {
     for (typename std::vector<T>::size_type i = 0; i < list.size(); i++){

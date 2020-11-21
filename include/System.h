@@ -53,7 +53,7 @@ class System{
         void _loadPDB();
         void _loadOptions(const std::string_view& optionsFile);
         // TODO change the name of this
-        void _b (std::vector<PathSample>& shared_array, const std::vector<size_t>& values) noexcept(true) {
+        void _sampleLoop (std::vector<PathSample>& shared_array, const std::vector<size_t>& values) noexcept(true) {
             auto logger = spdlog::get("Thread");
             logger->info("Computing {} points", values.size());
             for (const auto& i : values){
@@ -75,12 +75,12 @@ class System{
         }
 
         inline void _translateToCenter() {
-            SPDLOG_INFO("Translating to the center");
+            SPDLOG_DEBUG("Translating to the center");
             _translate(_center);
         }
 
         inline void _translateToOrigin(){
-            SPDLOG_INFO("Translating to the Origin");
+            SPDLOG_DEBUG("Translating to the Origin");
             _translate(-1*(_center));
         }
 

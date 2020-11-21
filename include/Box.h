@@ -45,13 +45,21 @@ class Box : public Volume{
             return result;
         }
 
+        [[nodiscard]] inline std::string_view description() const noexcept(true) override {
+            std::string result = "Box:";
+            for(const auto& dim : _sides){
+                result += (" " + std::to_string(dim));
+            }
+            return result;
+        }
+
+    private:
         constexpr void _initializeDistributions() noexcept(true) override{
             for(std::array<std::uniform_real_distribution<double>, 3>::size_type i = 0; i < _distributions.size(); i++){
                 _distributions[i] = std::uniform_real_distribution<double>(-1*_sides[i], _sides[i]);
             }
         }
 
-    private:
         std::array<double, 3> _sides;
 
 };

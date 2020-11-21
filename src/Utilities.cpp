@@ -1,7 +1,15 @@
 //
 // Created by Matthew Hennefarth on 11/12/20.
 //
+
+#if __cplusplus <= 199711L
+#include <algorithm>
+#else
+#include <numeric>
+#endif
+
 #include <fstream>
+
 
 #include "spdlog/spdlog.h"
 #include "Utilities.h"
@@ -39,5 +47,24 @@ std::vector<std::string> split(const std::string_view &str, char delim) {
     filter<std::string>(result, "");
 
     return result;
-
 }
+
+std::vector<std::vector<size_t>> chunkIndex(const size_t& procs, const size_t& n){
+    std::vector<size_t> elementsToCompute(procs,n / procs);
+    for(size_t i = 0; i < n%procs; i++){
+        elementsToCompute[i]++;
+    }
+
+    std::vector<std::vector<size_t>> chunks(procs);
+    size_t index = 0;
+    for(size_t i = 0 ; i < procs; i++){
+        chunks[i].resize(elementsToCompute[i]);
+        std::iota(std::begin(chunks[i]), std::end(chunks[i]), index);
+        index += elementsToCompute[i];
+//        for(size_t j = 0; j < elementsToCompute[i]; j++, index++){
+//            chunks[i].push_back(index);
+//        }
+    }
+    return chunks;
+}
+

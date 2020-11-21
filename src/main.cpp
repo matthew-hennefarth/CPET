@@ -30,7 +30,7 @@ int main() {
     {
         logger->info("[Iteration] ==>> {}", 10-i);
         Timer t(logger, [&](const float f){timer_results.emplace_back(f);});
-        a.calculateTopology(2);
+        a.calculateTopology(1);
     }
     float ave = 0;
     for(const auto& r : timer_results){
