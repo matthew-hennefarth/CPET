@@ -36,9 +36,11 @@ if(ENABLE_IPO)
     endif()
 endif()
 
+# General compiler commands depending
 if(MSVC)
     set(CMAKE_CXX_FLAGS_DEBUG "/O0")
 else()
+    message("Here")
     set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
     set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 endif()

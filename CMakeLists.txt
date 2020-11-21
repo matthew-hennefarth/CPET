@@ -3,7 +3,7 @@ project(CPET)
 
 if( NOT CMAKE_BUILD_TYPE )
     message("Setting to Release")
-    set( CMAKE_BUILD_TYPE Release ... FORCE )
+    set(CMAKE_BUILD_TYPE Release)
 endif()
 
 set(CMAKE_CXX_STANDARD 20)

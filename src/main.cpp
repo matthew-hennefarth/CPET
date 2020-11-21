@@ -17,7 +17,6 @@ int main() {
 
     //TODO read in input with cxxopts
 
-
     System a("full.pqr", "options");
 
     auto logger = spdlog::stdout_logger_mt("Timer");

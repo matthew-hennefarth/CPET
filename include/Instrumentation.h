@@ -41,7 +41,7 @@ class Timer{
             _func(sec);
         }
 
-        constexpr void Start() {
+        void Start() noexcept(true) {
             _start = std::chrono::steady_clock::now();
         }
 
