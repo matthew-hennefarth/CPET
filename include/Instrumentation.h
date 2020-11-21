@@ -27,7 +27,7 @@ class Timer{
         }
 
         ~Timer(){
-            _end = std::chrono::high_resolution_clock::now();
+            _end = std::chrono::steady_clock::now();
             _duration = _end - _start;
 
             const float sec = _duration.count();
@@ -42,7 +42,7 @@ class Timer{
         }
 
         constexpr void Start() {
-            _start = std::chrono::high_resolution_clock::now();
+            _start = std::chrono::steady_clock::now();
         }
 
     private:
