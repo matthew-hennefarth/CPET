@@ -51,7 +51,8 @@ std::vector<PathSample> System::calculateTopology(const size_t &procs) {
     SPDLOG_INFO("[Npoints] ==>> {}", _numberOfSamples);
     SPDLOG_INFO("[Threads] ==>> {}", procs);
 
-    std::vector<PathSample> sampleResults(_numberOfSamples);
+    std::vector<PathSample> sampleResults;
+    sampleResults.reserve(_numberOfSamples);
 
     std::shared_ptr<spdlog::logger> thread_logger;
     if (!(thread_logger = spdlog::get("Thread"))) {
@@ -61,7 +62,7 @@ std::vector<PathSample> System::calculateTopology(const size_t &procs) {
     if (procs == 1) {
         size_t samples = _numberOfSamples;
         while(samples-- > 0){
-            sampleResults.push_back(_sample());
+            sampleResults.emplace_back(_sample());
         }
     }
     else {
@@ -95,10 +96,8 @@ std::vector<PathSample> System::calculateTopology(const size_t &procs) {
         for (auto &thread : workers) {
             thread.join();
         }
-        {
-            auto vector_handle = shared_vector.lock();
-            sampleResults = *(vector_handle);
-        }
+
+        sampleResults = *(shared_vector.lock());
     }
     return sampleResults;
 }

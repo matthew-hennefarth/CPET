@@ -52,6 +52,7 @@ int main (int argc, char** argv) {
         ("p,protein", "PDB", cxxopts::value<std::string>())
         ("o,options", "Option file", cxxopts::value<std::string>())
         ("t,threads", "Number of threads", cxxopts::value<int>()->default_value("1"))
+        ("O,out", "Output file", cxxopts::value<std::string>()->default_value(""))
         ("h,help", "Print usage")
         ("v,verbose", "Verbose output", cxxopts::value<bool>()->default_value("false"))
         ;
@@ -121,6 +122,8 @@ int main (int argc, char** argv) {
     {
         Timer t(logger);
         sampleData = system.calculateTopology(numberOfThreads.value());
+        std::string outputFile = result["out"].as<std::string>().empty() ? proteinFile.value() + ".dat" : result["out"].as<std::string>();
+        writeToFile(outputFile, sampleData);
     }
 
 

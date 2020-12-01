@@ -39,6 +39,12 @@ struct PointCharge {
 struct PathSample {
     double distance;
     double curvature;
+
+    friend std::ostream& operator<<(std::ostream& os, const PathSample& ps)
+    {
+        os << ps.distance << ',' << ps.curvature;
+        return os;
+    }
 };
 
 class System {

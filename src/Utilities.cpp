@@ -3,9 +3,6 @@
 #else
 #include <numeric>
 #endif
-#include <fstream>
-
-#include "spdlog/spdlog.h"
 
 #include "Utilities.h"
 
