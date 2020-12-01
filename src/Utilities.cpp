@@ -42,21 +42,3 @@ std::vector<std::string> split(const std::string_view &str, char delim) {
 
     return result;
 }
-
-std::vector<std::vector<size_t>> chunkIndex(const size_t& procs, const size_t& n){
-    std::vector<size_t> elementsToCompute(procs,n / procs);
-    for(size_t i = 0; i < n%procs; i++){
-        elementsToCompute[i]++;
-    }
-
-    std::vector<std::vector<size_t>> chunks(procs);
-    size_t index = 0;
-    for(size_t i = 0 ; i < procs; i++){
-        chunks[i].resize(elementsToCompute[i]);
-        std::iota(std::begin(chunks[i]), std::end(chunks[i]), index);
-        index += elementsToCompute[i];
-    }
-    
-    return chunks;
-}
-

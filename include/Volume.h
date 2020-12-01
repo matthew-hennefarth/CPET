@@ -5,13 +5,11 @@
 #ifndef VOLUME_H
 #define VOLUME_H
 
-#include <random>
-
 #include "Eigen/Dense"
 
 class Volume {
     public:
-        Volume() : _gen(std::random_device()()) {};
+        Volume() = default;
 
         Volume(const Volume &) = default;
 
@@ -25,17 +23,8 @@ class Volume {
 
         [[nodiscard]] virtual Eigen::Vector3d randomPoint() const = 0;
 
-        [[nodiscard]] inline std::mt19937 &randomNumberGenerator() const { return _gen; }
-
         [[nodiscard]] virtual std::string_view description() const noexcept(true) = 0;
 
-    protected:
-        virtual constexpr void _initializeDistributions() = 0;
-
-        mutable std::array<std::uniform_real_distribution<double>, 3> _distributions;
-
-    private:
-        mutable std::mt19937 _gen;
 };
 
 #endif //VOLUME_H

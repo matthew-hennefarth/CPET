@@ -8,7 +8,7 @@
  * EXTERNAL LIBRARY HEADER FILES
  */
 #include "spdlog/sinks/stdout_sinks.h"
-#include "Guarded.h"
+#include "cs_libguarded/cs_plain_guarded.h"
 
 /*
  * CPET HEADER FILES
@@ -80,9 +80,10 @@ std::vector<PathSample> System::calculateTopology(const size_t &procs) {
 
         for(size_t i = 0; i < procs; i++){
             workers.emplace_back(std::thread([&samples, &shared_vector, this](){
-//                auto thread_logger = spdlog::get("Thread");
-//                thread_logger->info("Starting");
+                auto thread_logger = spdlog::get("Thread");
+                thread_logger->info("Starting");
                 while(samples-- > 0){
+                    thread_logger->info("Computing sample {}", samples+1);
                     auto s = _sample();
                     auto vector_handler = shared_vector.lock();
                     vector_handler->push_back(s);
@@ -161,16 +162,9 @@ void System::_loadOptions(const std::string_view &optionsFile) {
 //    SPDLOG_INFO("[Region] ==>> {}", _region->description());
 }
 
-PathSample System::_sample() noexcept(true) {
-    Eigen::Vector3d initialPosition;
+PathSample System::_sample() const noexcept(true) {
+    Eigen::Vector3d initialPosition = _region->randomPoint();
     const int maxSteps = _randomDistance();
-
-    // TODO can we come up with something with either guarded or not...
-    // The issue is that the distributions and gen will both be modified...
-    {
-        std::unique_lock<std::mutex> lock(_mutex_volume);
-        initialPosition = _region->randomPoint();
-    }
 
     Eigen::Vector3d finalPosition = initialPosition;
 

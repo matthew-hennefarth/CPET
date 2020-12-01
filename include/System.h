@@ -58,7 +58,7 @@ class System {
 
         [[nodiscard]] double _curvature(const Eigen::Vector3d& alpha_0) const noexcept(true);
 
-        PathSample _sample() noexcept(true);
+        PathSample _sample() const noexcept(true);
 
         inline void _forEachPC(const std::function<void(PointCharge &)> &func) {
             std::for_each(begin(_pointCharges), end(_pointCharges), func);
@@ -99,20 +99,15 @@ class System {
             return (pos + (1.0 / 6.0) * (u1 + 4 * u2 + u3));
         }
 
-        [[nodiscard]] inline int _randomDistance(){
-            static thread_local std::unique_ptr<std::mt19937> generator = nullptr;
-            if (generator == nullptr){
-                generator = std::make_unique<std::mt19937>(std::random_device()());
-            }
+        [[nodiscard]] inline int _randomDistance() const {
             std::uniform_int_distribution<int> distribution(1, static_cast<int>(_region->maxDim() / STEP_SIZE));
-            return distribution(*generator);
+            return distribution(*randomNumberGenerator());
         }
 
         std::vector<PointCharge> _pointCharges;
         Eigen::Vector3d _center;
         Eigen::Matrix3d _basisMatrix;
         std::unique_ptr<Volume> _region;
-        std::mutex _mutex_volume;
         size_t _numberOfSamples{};
 };
 
