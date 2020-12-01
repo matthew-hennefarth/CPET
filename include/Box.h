@@ -34,7 +34,7 @@ class Box : public Volume{
             return true;
         }
 
-        [[nodiscard]] inline Eigen::Vector3d randomPoint() override{
+        [[nodiscard]] inline Eigen::Vector3d randomPoint() const override{
             Eigen::Vector3d result;
 
             int i = 0;

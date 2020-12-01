@@ -1,15 +1,14 @@
-//
-// Created by Matthew Hennefarth on 11/12/20.
-//
-
 #ifndef UTILITIES_H
 #define UTILITIES_H
 
+/*
+ * C++ STL HEADER FILES
+ */
 #include <vector>
 #include <string>
 #include <functional>
 
-void extractFromFile(const std::string_view& file, const std::function<void(const std::string&)>& func);
+void forEachLineIn(const std::string_view& file, const std::function<void(const std::string&)>& func);
 
 std::vector<std::string> split(const std::string_view &str, char delim);
 

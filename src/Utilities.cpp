@@ -1,27 +1,21 @@
-//
-// Created by Matthew Hennefarth on 11/12/20.
-//
-
 #if __cplusplus <= 199711L
 #include <algorithm>
 #else
 #include <numeric>
 #endif
-
 #include <fstream>
 
-
 #include "spdlog/spdlog.h"
+
 #include "Utilities.h"
 
-void extractFromFile(const std::string_view& file, const std::function<void(const std::string&)>& func){
+void forEachLineIn(const std::string_view& file, const std::function<void(const std::string&)>& func){
     std::fstream inFile(std::string(file).c_str());
     std::string line;
     if(inFile.is_open()){
         while(std::getline(inFile, line)){
             func(line);
         }
-        inFile.close();
     }
     else{
         SPDLOG_ERROR("Could not open file {}", file);
@@ -61,10 +55,8 @@ std::vector<std::vector<size_t>> chunkIndex(const size_t& procs, const size_t& n
         chunks[i].resize(elementsToCompute[i]);
         std::iota(std::begin(chunks[i]), std::end(chunks[i]), index);
         index += elementsToCompute[i];
-//        for(size_t j = 0; j < elementsToCompute[i]; j++, index++){
-//            chunks[i].push_back(index);
-//        }
     }
+    
     return chunks;
 }
 

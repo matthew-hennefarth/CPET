@@ -3,7 +3,7 @@ include_directories( ${PROJECT_SOURCE_DIR}/include )
 
 # Include any 3rd Party Header Files
 include_directories(SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/libs/include)
-
+ 
 # Include spdlog
 find_library(SPDLOG spdlog "${CMAKE_SOURCE_DIR}/libs/lib")
 
