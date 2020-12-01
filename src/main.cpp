@@ -17,7 +17,7 @@
 #include "System.h"
 #include "Instrumentation.h"
 
-std::optional<std::string> validPDBFile(const cxxopts::ParseResult& result){
+std::optional<std::string> validPDBFile(const cxxopts::ParseResult& result) noexcept{
     if (result.count("protein")){
         if(std::filesystem::exists(result["protein"].as<std::string>())){
             return result["protein"].as<std::string>();
@@ -26,7 +26,7 @@ std::optional<std::string> validPDBFile(const cxxopts::ParseResult& result){
     return std::nullopt;
 }
 
-std::optional<std::string> validOptionFile(const cxxopts::ParseResult& result){
+std::optional<std::string> validOptionFile(const cxxopts::ParseResult& result) noexcept{
     if (result.count("options")){
         if(std::filesystem::exists(result["options"].as<std::string>())){
             return result["options"].as<std::string>();
@@ -35,7 +35,7 @@ std::optional<std::string> validOptionFile(const cxxopts::ParseResult& result){
     return std::nullopt;
 }
 
-std::optional<size_t> validThreads(const cxxopts::ParseResult& result){
+std::optional<size_t> validThreads(const cxxopts::ParseResult& result) noexcept{
     if(result["threads"].as<int>() > 0){
         return result["threads"].as<int>();
     }
@@ -113,35 +113,16 @@ int main (int argc, char** argv) {
         return 1;
     }
 
+    /* Begin the actual program here */
     System system(proteinFile.value(), optionFile.value());
-
-    auto logger = spdlog::stdout_logger_mt("Timer");
-    logger->set_pattern("%v");
 
     std::vector<PathSample> sampleData;
     {
-        Timer t(logger);
+        Timer t;
         sampleData = system.calculateTopology(numberOfThreads.value());
         std::string outputFile = result["out"].as<std::string>().empty() ? proteinFile.value() + ".dat" : result["out"].as<std::string>();
         writeToFile(outputFile, sampleData);
     }
-
-
-//    int i = 10;
-//    std::vector<float> timer_results;
-//    timer_results.reserve(10);
-//    while(i --> 0)
-//    {
-//        logger->info("[Iteration] ==>> {}", 10-i);
-//        Timer t(logger, [&](const float f){timer_results.emplace_back(f);});
-//        system.calculateTopology(2);
-//    }
-//    float ave = 0;
-//    for(const auto& r : timer_results){
-//        ave += r;
-//    }
-//    ave /= timer_results.size();
-//    logger->info("[Average Time] ==>> {} sec", ave);
 
     return 0;
 }

@@ -53,7 +53,7 @@ class System {
 
         ~System() = default;
 
-        [[nodiscard]] Eigen::Vector3d electricField(const Eigen::Vector3d &position) const noexcept(true);
+        [[nodiscard]] Eigen::Vector3d electricField(const Eigen::Vector3d &position) const noexcept;
 
         std::vector<PathSample> calculateTopology(const size_t &procs);
 
@@ -62,24 +62,24 @@ class System {
 
         void _loadOptions(const std::string_view&);
 
-        [[nodiscard]] double _curvature(const Eigen::Vector3d& alpha_0) const noexcept(true);
+        [[nodiscard]] double _curvature(const Eigen::Vector3d& alpha_0) const noexcept;
 
-        PathSample _sample() const noexcept(true);
+        PathSample _sample() const noexcept;
 
         inline void _forEachPC(const std::function<void(PointCharge &)> &func) {
             std::for_each(begin(_pointCharges), end(_pointCharges), func);
         }
 
-        inline void _translate(const Eigen::Vector3d &position) noexcept(true) {
+        inline void _translate(const Eigen::Vector3d &position) noexcept {
             _forEachPC([&position](PointCharge &pc) { pc.coordinate -= position; });
         }
 
-        inline void _translateToCenter() noexcept(true) {
+        inline void _translateToCenter() noexcept {
             SPDLOG_DEBUG("Translating to the center");
             _translate(_center);
         }
 
-        inline void _translateToOrigin() noexcept(true) {
+        inline void _translateToOrigin() noexcept {
             SPDLOG_DEBUG("Translating to the Origin");
             _translate(-1 * (_center));
         }
@@ -91,21 +91,20 @@ class System {
             _forEachPC([&inverse](PointCharge &pc) { pc.coordinate = inverse * pc.coordinate; });
         }
 
-        inline void _toDefaultBasis() noexcept(true) {
+        inline void _toDefaultBasis() noexcept {
             SPDLOG_INFO("Translating to default basis");
             _forEachPC([this](PointCharge &pc) { pc.coordinate = _basisMatrix * pc.coordinate; });
         }
 
-        [[nodiscard]] inline Eigen::Vector3d _next(const Eigen::Vector3d &pos) const noexcept(true) {
-            // Runge Kutta Order 4
+        [[nodiscard]] inline Eigen::Vector3d _next(const Eigen::Vector3d &pos) const noexcept {
+            /* Runge Kutta Order 4 */
             Eigen::Vector3d u1 = STEP_SIZE * electricField(pos);
             Eigen::Vector3d u2 = STEP_SIZE * electricField(pos + (0.5 * u1));
             Eigen::Vector3d u3 = STEP_SIZE * electricField(pos + 2 * u2 - u1);
-            //return (pos + 0.5*(u1+u2));
             return (pos + (1.0 / 6.0) * (u1 + 4 * u2 + u3));
         }
 
-        [[nodiscard]] inline int _randomDistance() const {
+        [[nodiscard]] inline int _randomDistance() const noexcept {
             std::uniform_int_distribution<int> distribution(1, static_cast<int>(_region->maxDim() / STEP_SIZE));
             return distribution(*randomNumberGenerator());
         }

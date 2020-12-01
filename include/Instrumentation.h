@@ -58,5 +58,4 @@ class Timer{
         
         std::function<void(const float)> _func;
 };
-
 #endif //INSTRUMENTATION_H

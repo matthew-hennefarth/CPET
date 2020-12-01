@@ -35,7 +35,7 @@ std::vector<std::string> split(const std::string_view &str, char delim) {
 
     result.emplace_back(str.substr(start, str.size()));
 
-    filter<std::string>(result, "");
+    filter(result);
 
     return result;
 }

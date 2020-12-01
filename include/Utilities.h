@@ -12,7 +12,7 @@
 
 #include "spdlog/spdlog.h"
 
-[[nodiscard]] inline std::unique_ptr<std::mt19937> &randomNumberGenerator() {
+[[nodiscard]] inline std::unique_ptr<std::mt19937> &randomNumberGenerator() noexcept {
     static thread_local std::unique_ptr<std::mt19937> generator = nullptr;
     if (generator == nullptr){
         generator = std::make_unique<std::mt19937>(std::random_device()());
@@ -25,7 +25,7 @@ void forEachLineIn(const std::string_view& file, const std::function<void(const 
 std::vector<std::string> split(const std::string_view &str, char delim);
 
 template<class T>
-void filter(std::vector<T>& list, const T& remove=T()) noexcept(true) {
+void filter(std::vector<T>& list, const T& remove= T()) noexcept(true) {
     for (typename std::vector<T>::size_type i = 0; i < list.size(); i++){
         if(list[i] == remove){
             list.erase(list.begin() + static_cast<long>(i));
@@ -33,7 +33,8 @@ void filter(std::vector<T>& list, const T& remove=T()) noexcept(true) {
         }
     }
 }
-template<typename T>
+
+template<class T>
 void writeToFile(const std::string& file, const std::vector<T>& out){
     std::ofstream outFile(file, std::ios::out);
     if(outFile.is_open()){

@@ -14,6 +14,8 @@
  * CPET HEADER FILES
  */
 #include "System.h"
+#include "Instrumentation.h"
+#include "RAIIThread.h"
 
 #define PERM_SPACE 0.0055263495
 
@@ -61,40 +63,45 @@ std::vector<PathSample> System::calculateTopology(const size_t &procs) {
 
     if (procs == 1) {
         size_t samples = _numberOfSamples;
-        while(samples-- > 0){
+        while(samples-- > 0)
             sampleResults.emplace_back(_sample());
-        }
+
+        SPDLOG_INFO("{} Points calculated", _numberOfSamples);
     }
     else {
+
 #if SPDLOG_ACTIVE_LEVEL == SPDLOG_LEVEL_DEBUG
         thread_logger->set_pattern("[Thread: %t] [%l] %v");
 #else
         thread_logger->set_pattern("[Thread: %t] ==>> %v");
 #endif
 
-        std::atomic_int samples = _numberOfSamples;
+        /* Initialize thread-safe data types */
+        std::atomic_int samples = static_cast<int>(_numberOfSamples);
         libguarded::plain_guarded<std::vector<PathSample>> shared_vector(_numberOfSamples);
 
         SPDLOG_INFO("====[Initializing threads]====");
-        std::vector<std::thread> workers;
-        workers.reserve(procs);
+        {
+            std::vector<RAIIThread> workers;
+            workers.reserve(procs);
 
-        for(size_t i = 0; i < procs; i++){
-            workers.emplace_back(std::thread([&samples, &shared_vector, this](){
-                auto thread_logger = spdlog::get("Thread");
-                thread_logger->info("Starting");
-                while(samples-- > 0){
-                    thread_logger->info("Computing sample {}", samples+1);
-                    auto s = _sample();
-                    auto vector_handler = shared_vector.lock();
-                    vector_handler->push_back(s);
-                }
+            for (size_t i = 0; i < procs; i++) {
+                workers.emplace_back([&samples, &shared_vector, this]() {
+                    auto thread_logger = spdlog::get("Thread");
+                    thread_logger->info("Starting");
+                    int completed = 0;
+                    while (samples-- > 0) {
+                        thread_logger->info("Computing sample {}", samples + 1);
+                        auto s = _sample();
+                        {
+                            auto vector_handler = shared_vector.lock();
+                            vector_handler->push_back(s);
+                        }
+                        completed++;
+                    }
+                    thread_logger->info("{} Points calculated", completed);
+                });
             }
-            ));
-        }
-
-        for (auto &thread : workers) {
-            thread.join();
         }
 
         sampleResults = *(shared_vector.lock());
@@ -103,11 +110,14 @@ std::vector<PathSample> System::calculateTopology(const size_t &procs) {
 }
 
 void System::_loadPDB(const std::string_view& name) {
+    /* We guess the number of point charges that we will need */
     std::uintmax_t fileSize = std::filesystem::file_size(name);
-    _pointCharges.reserve(fileSize / 69);
+    _pointCharges.reserve(fileSize / 69);// TODO place the 69 in the #define section, as number of bytes or bits in a line of UNICODE file
 
     forEachLineIn(name, [this](const std::string &line) {
         if (line.substr(0, 4) == "ATOM" || line.substr(0, 6) == "HETATM") {
+            //TODO catch the invalid_argument exception and either abort or continue...
+            //TODO if out_of_range exception, then we have some serious problems... abort
             this->_pointCharges.emplace_back(Eigen::Vector3d({std::stod(line.substr(31, 8)),
                                                               std::stod(line.substr(39, 8)),
                                                               std::stod(line.substr(47, 8))}),
@@ -162,18 +172,17 @@ void System::_loadOptions(const std::string_view &optionsFile) {
 }
 
 PathSample System::_sample() const noexcept(true) {
+    /* This is not thread-safe, however, implementation is thread-safe */
     Eigen::Vector3d initialPosition = _region->randomPoint();
+    /* This is not thread-safe, however, implementation is thread-safe */
     const int maxSteps = _randomDistance();
 
     Eigen::Vector3d finalPosition = initialPosition;
-
     int steps = 0;
 
-    while (_region->isInside(finalPosition) && ++steps < maxSteps) {
+    while (_region->isInside(finalPosition) && ++steps < maxSteps)
         finalPosition = _next(finalPosition);
-    }
 
-    // TODO theres a better way of doing this; I can return the result and then push back onto some stack or deque...
     return {(finalPosition - initialPosition).norm(),
                  (_curvature(finalPosition) + _curvature(initialPosition)) / 2.0};
 
@@ -183,12 +192,12 @@ double System::_curvature(const Eigen::Vector3d &alpha_0) const noexcept(true) {
     Eigen::Vector3d alpha_prime = electricField(alpha_0);
     Eigen::Vector3d alpha_1 = _next(alpha_0);
 
-    // Measures how much "time" we spent going forward
-    // delta alpha/delta t = E, in the limit of delta t -> 0
-    // then we have delta alpha/E = delta t
+    /* Measures how much "time" we spent going forward */
+    /* delta alpha/delta t = E, in the limit of delta t -> 0 */
+    /* then we have delta alpha/E = delta t */
     double delta_t = (alpha_1 - alpha_0).norm() / alpha_prime.norm();
 
-    // Simple directional derivative of the electric field in that direction
+    /* Simple directional derivative of the electric field in that direction */
     Eigen::Vector3d alpha_prime_prime = (electricField(alpha_1) - alpha_prime) / delta_t;
 
     double alpha_prime_norm = alpha_prime.norm();
