@@ -3,6 +3,7 @@
  */
 #include <thread>
 #include <cmath>
+#include <array>
 
 /*
  * EXTERNAL LIBRARY HEADER FILES
@@ -19,21 +20,70 @@
 
 #define PERM_SPACE 0.0055263495
 
-System::System(const std::string_view &proteinFile, const std::string_view &optionsFile)
-    : _pointCharges(), _center(), _basisMatrix(Eigen::Matrix3d::Identity()), _region(nullptr), _numberOfSamples(0) {
+System::System(std::vector<PointCharge> pc, const Option& options) : _pointCharges(std::move(pc)){
 
-    _loadOptions(optionsFile);
-    if (_region == nullptr) {
-        throw std::exception();
+    /* TODO can I make each of these functions? i bet I can...*/
+    if (options.centerID != AtomID::origin){
+        auto centerPC = find_if(begin(_pointCharges), end(_pointCharges),
+                          [&options](const auto& pc){ return (pc.id == options.centerID); });
+        if (centerPC != end(_pointCharges)){
+            _center = centerPC->coordinate;
+        }
+        else{
+            throw std::exception();
+        }
     }
 
-    _loadPDB(proteinFile);
-    if (_pointCharges.empty()) {
-        throw std::exception();
+    std::array<Eigen::Vector3d, 3> basis;
+    if(options.direction1ID != AtomID::e1){
+        auto basis1PC = find_if(begin(_pointCharges), end(_pointCharges),
+                           [&options](const auto& pc){ return pc.id == options.direction1ID; });
+
+        if (basis1PC != end(_pointCharges)){
+            basis[0] = basis1PC->coordinate;
+        }
+        else{
+            throw std::exception();
+        }
+    }
+    else{
+        basis[0] = {1.0,0.0,0.0};
     }
 
-    _translateToCenter();
-    _toUserBasis();
+    if(options.direction2ID != AtomID::e2){
+        auto basis2PC = find_if(begin(_pointCharges), end(_pointCharges),
+                                [&options](const auto& pc){ return pc.id == options.direction2ID; });
+
+        if (basis2PC != end(_pointCharges)){
+            basis[1] = basis2PC->coordinate;
+        }
+        else{
+            throw std::exception();
+        }
+    }
+    else{
+        basis[1] = {0.0, 1.0, 0.0};
+    }
+
+    basis[2] = basis[0].cross(basis[1]);
+    basis[1] = basis[2].cross(basis[0]);
+
+    for(size_t i = 0; i < basis.size(); i++){
+        _basisMatrix.block(0, static_cast<Eigen::Index>(i), 3, 1) = basis[i];
+    }
+
+    _pointCharges.erase(remove_if(begin(_pointCharges), end(_pointCharges),
+                                  [](const auto& pc){ return pc.charge == 0.0; }),
+                        end(_pointCharges));
+
+    //    SPDLOG_INFO("=====[Options | {}]=====", optionsFile);
+//    //TODO make a function overload for these...
+//    SPDLOG_INFO("[V1]     ==>> [ {} ]", _basisMatrix.block(0, 0, 3, 1).transpose());
+//    SPDLOG_INFO("[V2]     ==>> [ {} ]", _basisMatrix.block(0, 1, 3, 1).transpose());
+//    SPDLOG_INFO("[V3]     ==>> [ {} ]", _basisMatrix.block(0, 2, 3, 1).transpose());
+//    SPDLOG_INFO("[Center] ==>> [ {} ]", _center.transpose());
+//    SPDLOG_INFO("[Region] ==>> {}", _region->description());
+
 }
 
 Eigen::Vector3d System::electricField(const Eigen::Vector3d &position) const noexcept(true) {
@@ -48,13 +98,13 @@ Eigen::Vector3d System::electricField(const Eigen::Vector3d &position) const noe
     return result;
 }
 
-std::vector<PathSample> System::calculateTopology(const size_t &procs) {
+std::vector<PathSample> System::calculateTopology(const size_t &procs, const TopologyRegion& topologicalRegion) {
     SPDLOG_INFO("======[Sampling topology]======");
-    SPDLOG_INFO("[Npoints] ==>> {}", _numberOfSamples);
+    SPDLOG_INFO("[Npoints] ==>> {}", topologicalRegion.numberOfSamples);
     SPDLOG_INFO("[Threads] ==>> {}", procs);
 
     std::vector<PathSample> sampleResults;
-    sampleResults.reserve(_numberOfSamples);
+    sampleResults.reserve(topologicalRegion.numberOfSamples);
 
     std::shared_ptr<spdlog::logger> thread_logger;
     if (!(thread_logger = spdlog::get("Thread"))) {
@@ -62,11 +112,11 @@ std::vector<PathSample> System::calculateTopology(const size_t &procs) {
     }
 
     if (procs == 1) {
-        size_t samples = _numberOfSamples;
+        size_t samples = topologicalRegion.numberOfSamples;
         while(samples-- > 0)
-            sampleResults.emplace_back(_sample());
+            sampleResults.emplace_back(_sample(topologicalRegion.volume));
 
-        SPDLOG_INFO("{} Points calculated", _numberOfSamples);
+        SPDLOG_INFO("{} Points calculated", topologicalRegion.numberOfSamples);
     }
     else {
 
@@ -77,8 +127,12 @@ std::vector<PathSample> System::calculateTopology(const size_t &procs) {
 #endif
 
         /* Initialize thread-safe data types */
-        std::atomic_int samples = static_cast<int>(_numberOfSamples);
-        libguarded::plain_guarded<std::vector<PathSample>> shared_vector(_numberOfSamples);
+        std::atomic_int samples = static_cast<int>(topologicalRegion.numberOfSamples);
+        libguarded::plain_guarded<std::vector<PathSample>> shared_vector;
+        {
+            auto sharedVectorHandle = shared_vector.lock();
+            sharedVectorHandle->reserve(topologicalRegion.numberOfSamples);
+        }
 
         SPDLOG_INFO("====[Initializing threads]====");
         {
@@ -86,13 +140,13 @@ std::vector<PathSample> System::calculateTopology(const size_t &procs) {
             workers.reserve(procs);
 
             for (size_t i = 0; i < procs; i++) {
-                workers.emplace_back([&samples, &shared_vector, this]() {
+                workers.emplace_back([&samples, &shared_vector, &topologicalRegion, this]() {
                     auto thread_logger = spdlog::get("Thread");
                     thread_logger->info("Starting");
                     int completed = 0;
                     while (samples-- > 0) {
                         thread_logger->info("Computing sample {}", samples + 1);
-                        auto s = _sample();
+                        auto s = _sample(topologicalRegion.volume);
                         {
                             auto vector_handler = shared_vector.lock();
                             vector_handler->push_back(s);
@@ -109,78 +163,16 @@ std::vector<PathSample> System::calculateTopology(const size_t &procs) {
     return sampleResults;
 }
 
-void System::_loadPDB(const std::string_view& name) {
-    /* We guess the number of point charges that we will need */
-    std::uintmax_t fileSize = std::filesystem::file_size(name);
-    _pointCharges.reserve(fileSize / 69);// TODO place the 69 in the #define section, as number of bytes or bits in a line of UNICODE file
-
-    forEachLineIn(name, [this](const std::string &line) {
-        if (line.substr(0, 4) == "ATOM" || line.substr(0, 6) == "HETATM") {
-            //TODO catch the invalid_argument exception and either abort or continue...
-            //TODO if out_of_range exception, then we have some serious problems... abort
-            this->_pointCharges.emplace_back(Eigen::Vector3d({std::stod(line.substr(31, 8)),
-                                                              std::stod(line.substr(39, 8)),
-                                                              std::stod(line.substr(47, 8))}),
-                                             std::stod(line.substr(55, 8))
-            );
-        }
-    });
-
-    SPDLOG_INFO("Loaded in {} point charges from file {}", _pointCharges.size(), name);
-}
-
-void System::_loadOptions(const std::string_view &optionsFile) {
-    // TODO somehow place some checks here...
-    forEachLineIn(optionsFile, [this](const std::string &line) {
-        if (line.substr(0, 6) == "center") {
-            std::vector<std::string> info = split(line.substr(6), ' ');
-            this->_center = {stod(info[0]), stod(info[1]), stod(info[2])};
-        }
-        else if (line.substr(0, 2) == "v1") {
-            std::vector<std::string> info = split(line.substr(2), ' ');
-            Eigen::Vector3d v1(stod(info[0]), stod(info[1]), stod(info[2]));
-            this->_basisMatrix.block(0, 0, 3, 1) = v1;
-        }
-        else if (line.substr(0, 2) == "v2") {
-            std::vector<std::string> info = split(line.substr(2), ' ');
-            Eigen::Vector3d v2(stod(info[0]), stod(info[1]), stod(info[2]));
-            this->_basisMatrix.block(0, 1, 3, 1) = v2;
-        }
-        else if (line.substr(0, 6) == "volume") {
-            std::vector<std::string> info = split(line.substr(6), ' ');
-            if (info[0] == "box") {
-                std::array<double, 3> dims = {std::stod(info[1]), std::stod(info[2]), std::stod(info[3])};
-                this->_region = std::make_unique<Box>(dims);
-            }
-        }
-        else if (line.substr(0, 6) == "sample") {
-            std::vector<std::string> info = split(line.substr(6), ' ');
-            this->_numberOfSamples = static_cast<size_t>(std::stoi(info[0]));
-        }
-    });
-
-    _basisMatrix.block(0, 2, 3, 1) = _basisMatrix.col(0).cross(_basisMatrix.col(1));
-    
-    // TODO make this a seperate function 
-    SPDLOG_INFO("=====[Options | {}]=====", optionsFile);
-    //TODO make a function overload for these...
-//    SPDLOG_INFO("[V1]     ==>> [ {} ]", _basisMatrix.block(0, 0, 3, 1).transpose());
-//    SPDLOG_INFO("[V2]     ==>> [ {} ]", _basisMatrix.block(0, 1, 3, 1).transpose());
-//    SPDLOG_INFO("[V3]     ==>> [ {} ]", _basisMatrix.block(0, 2, 3, 1).transpose());
-//    SPDLOG_INFO("[Center] ==>> [ {} ]", _center.transpose());
-//    SPDLOG_INFO("[Region] ==>> {}", _region->description());
-}
-
-PathSample System::_sample() const noexcept(true) {
+PathSample System::_sample(const std::unique_ptr<Volume>& region) const noexcept(true) {
     /* This is not thread-safe, however, implementation is thread-safe */
-    Eigen::Vector3d initialPosition = _region->randomPoint();
+    Eigen::Vector3d initialPosition = region->randomPoint();
     /* This is not thread-safe, however, implementation is thread-safe */
-    const int maxSteps = _randomDistance();
+    const int maxSteps = region->randomDistance(STEP_SIZE);
 
     Eigen::Vector3d finalPosition = initialPosition;
     int steps = 0;
 
-    while (_region->isInside(finalPosition) && ++steps < maxSteps)
+    while (region->isInside(finalPosition) && ++steps < maxSteps)
         finalPosition = _next(finalPosition);
 
     return {(finalPosition - initialPosition).norm(),
@@ -203,6 +195,5 @@ double System::_curvature(const Eigen::Vector3d &alpha_0) const noexcept(true) {
     double alpha_prime_norm = alpha_prime.norm();
 
     return (alpha_prime.cross(alpha_prime_prime)).norm() / (alpha_prime_norm * alpha_prime_norm * alpha_prime_norm);
-
 }
 

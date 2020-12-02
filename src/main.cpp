@@ -14,9 +14,9 @@
 /*
  * CPET HEADER FILES
  */
-#include "System.h"
-#include "Instrumentation.h"
+#include "Calculator.h"
 
+/* TODO I can probably do either templating or something to fix this...*/
 std::optional<std::string> validPDBFile(const cxxopts::ParseResult& result) noexcept{
     if (result.count("protein")){
         if(std::filesystem::exists(result["protein"].as<std::string>())){
@@ -35,6 +35,15 @@ std::optional<std::string> validOptionFile(const cxxopts::ParseResult& result) n
     return std::nullopt;
 }
 
+std::optional<std::string> validChargeFile(const cxxopts::ParseResult& result) noexcept {
+    if(!result["charges"].as<std::string>().empty()){
+        if(!std::filesystem::exists(result["charges"].as<std::string>())){
+            return std::nullopt;
+        }
+    }
+    return result["charges"].as<std::string>();
+}
+
 std::optional<size_t> validThreads(const cxxopts::ParseResult& result) noexcept{
     if(result["threads"].as<int>() > 0){
         return result["threads"].as<int>();
@@ -51,6 +60,7 @@ int main (int argc, char** argv) {
         ("d,debug", "Enable debugging", cxxopts::value<bool>()->default_value("false")) // a bool parameter
         ("p,protein", "PDB", cxxopts::value<std::string>())
         ("o,options", "Option file", cxxopts::value<std::string>())
+        ("c,charges", "Partial atomic charge definitions", cxxopts::value<std::string>()->default_value(""))
         ("t,threads", "Number of threads", cxxopts::value<int>()->default_value("1"))
         ("O,out", "Output file", cxxopts::value<std::string>()->default_value(""))
         ("h,help", "Print usage")
@@ -92,6 +102,7 @@ int main (int argc, char** argv) {
         return 1;
     }
 
+    // TODO there has to be a better way of doing this...template or something
     std::optional<std::string> proteinFile;
     if(!(proteinFile = validPDBFile(result))){
         SPDLOG_ERROR("Invalid protein file");
@@ -113,16 +124,16 @@ int main (int argc, char** argv) {
         return 1;
     }
 
-    /* Begin the actual program here */
-    System system(proteinFile.value(), optionFile.value());
-
-    std::vector<PathSample> sampleData;
-    {
-        Timer t;
-        sampleData = system.calculateTopology(numberOfThreads.value());
-        std::string outputFile = result["out"].as<std::string>().empty() ? proteinFile.value() + ".dat" : result["out"].as<std::string>();
-        writeToFile(outputFile, sampleData);
+    std::optional<std::string> chargesFile;
+    if(!(chargesFile = validChargeFile(result))){
+        SPDLOG_WARN("Invalid charge file");
+        SPDLOG_WARN(options.help());
+        return 1;
     }
+
+    /* Begin the actual program here */
+    Calculator c(proteinFile.value(), optionFile.value(), chargesFile.value(), numberOfThreads.value());
+    c.compute();
 
     return 0;
 }

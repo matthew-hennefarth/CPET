@@ -6,8 +6,8 @@
 
 #include "Utilities.h"
 
-void forEachLineIn(const std::string_view& file, const std::function<void(const std::string&)>& func){
-    std::fstream inFile(std::string(file).c_str());
+void forEachLineIn(const std::string& file, const std::function<void(const std::string&)>& func){
+    std::fstream inFile(file);
     std::string line;
     if(inFile.is_open()){
         while(std::getline(inFile, line)){

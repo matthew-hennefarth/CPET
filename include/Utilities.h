@@ -20,7 +20,7 @@
     return generator;
 }
 
-void forEachLineIn(const std::string_view& file, const std::function<void(const std::string&)>& func);
+void forEachLineIn(const std::string& file, const std::function<void(const std::string&)>& func);
 
 std::vector<std::string> split(const std::string_view &str, char delim);
 

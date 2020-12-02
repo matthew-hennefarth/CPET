@@ -19,11 +19,15 @@ class Volume {
 
         [[nodiscard]] virtual bool isInside(const Eigen::Vector3d &position) const noexcept(true) = 0;
 
-        [[nodiscard]] virtual const double &maxDim() const noexcept(true) = 0;
+        [[nodiscard]] virtual const double &maxDim() const noexcept = 0;
 
         [[nodiscard]] virtual Eigen::Vector3d randomPoint() const = 0;
 
         [[nodiscard]] virtual std::string_view description() const noexcept(true) = 0;
+
+        [[nodiscard]] virtual int randomDistance(double stepSize) const noexcept = 0;
+
+        [[nodiscard]] virtual std::string type() const noexcept = 0;
 
 };
 

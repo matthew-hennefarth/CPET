@@ -56,6 +56,15 @@ class Box : public Volume{
             return result;
         }
 
+        [[nodiscard]] inline int randomDistance(double stepSize) const noexcept override{
+            std::uniform_int_distribution<int> distribution(1, static_cast<int>(maxDim() / stepSize));
+            return distribution(*randomNumberGenerator());
+        }
+
+        [[nodiscard]] inline std::string type() const noexcept override{
+            return "box";
+        }
+
     private:
         constexpr void _initializeDistributions(std::array<std::uniform_real_distribution<double>, 3>& distribution) const noexcept{
             for(size_t i = 0; i < distribution.size(); i++){

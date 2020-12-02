@@ -23,8 +23,10 @@
  * CPET HEADER FILES
  */
 #include "Volume.h"
-#include "Box.h"
 #include "Utilities.h"
+#include "TopologyRegion.h"
+#include "Option.h"
+#include "AtomID.h"
 
 // TODO maybe make this an option?
 #define STEP_SIZE 0.001
@@ -32,8 +34,9 @@
 struct PointCharge {
     Eigen::Vector3d coordinate;
     double charge;
+    AtomID id;
 
-    PointCharge(const Eigen::Vector3d &coord, const double &q) : coordinate(coord), charge(q) {}
+    PointCharge(const Eigen::Vector3d &coord, const double &q, const AtomID& aid) : coordinate(coord), charge(q), id(aid) {}
 };
 
 struct PathSample {
@@ -49,22 +52,24 @@ struct PathSample {
 
 class System {
     public:
-        System(const std::string_view &proteinFile, const std::string_view &optionsFile);
+        System(std::vector<PointCharge> pc, const Option& options);
 
         ~System() = default;
 
         [[nodiscard]] Eigen::Vector3d electricField(const Eigen::Vector3d &position) const noexcept;
 
-        std::vector<PathSample> calculateTopology(const size_t &procs);
+        std::vector<PathSample> calculateTopology(const size_t &procs, const TopologyRegion& topologicalRegion);
+
+        inline void transformToUserSpace() {
+            _translateToCenter();
+            _toUserBasis();
+        }
 
     private:
-        void _loadPDB(const std::string_view&);
-
-        void _loadOptions(const std::string_view&);
 
         [[nodiscard]] double _curvature(const Eigen::Vector3d& alpha_0) const noexcept;
 
-        PathSample _sample() const noexcept;
+        PathSample _sample(const std::unique_ptr<Volume>& region) const noexcept;
 
         inline void _forEachPC(const std::function<void(PointCharge &)> &func) {
             std::for_each(begin(_pointCharges), end(_pointCharges), func);
@@ -104,16 +109,9 @@ class System {
             return (pos + (1.0 / 6.0) * (u1 + 4 * u2 + u3));
         }
 
-        [[nodiscard]] inline int _randomDistance() const noexcept {
-            std::uniform_int_distribution<int> distribution(1, static_cast<int>(_region->maxDim() / STEP_SIZE));
-            return distribution(*randomNumberGenerator());
-        }
-
         std::vector<PointCharge> _pointCharges;
         Eigen::Vector3d _center;
         Eigen::Matrix3d _basisMatrix;
-        std::unique_ptr<Volume> _region;
-        size_t _numberOfSamples{};
 };
 
 #endif //SYSTEM_H
