@@ -13,6 +13,10 @@ struct TopologyRegion{
 
     size_t numberOfSamples;
 
+    [[nodiscard]] inline std::string details() const noexcept{
+        return "Samples: " + std::to_string(numberOfSamples) + "; Volume: " + volume->description();
+    }
+
 };
 
 #endif //TOPOLOGYREGION_H

@@ -48,7 +48,7 @@ class Box : public Volume{
             return result;
         }
 
-        [[nodiscard]] inline std::string_view description() const noexcept override {
+        [[nodiscard]] inline std::string description() const noexcept override {
             std::string result = "Box:";
             for(const auto& dim : _sides){
                 result += (" " + std::to_string(dim));

@@ -23,7 +23,7 @@ class Volume {
 
         [[nodiscard]] virtual Eigen::Vector3d randomPoint() const = 0;
 
-        [[nodiscard]] virtual std::string_view description() const noexcept(true) = 0;
+        [[nodiscard]] virtual std::string description() const noexcept(true) = 0;
 
         [[nodiscard]] virtual int randomDistance(double stepSize) const noexcept = 0;
 

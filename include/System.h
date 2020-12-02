@@ -17,13 +17,13 @@
  * EXTERNAL LIBRARY HEADER FILES
  */
 #include "spdlog/spdlog.h"
+#include "spdlog/fmt/ostr.h"
 #include "Eigen/Dense"
 
 /*
  * CPET HEADER FILES
  */
 #include "Volume.h"
-#include "Utilities.h"
 #include "TopologyRegion.h"
 #include "Option.h"
 #include "AtomID.h"
@@ -81,6 +81,7 @@ class System {
 
         inline void _translateToCenter() noexcept {
             SPDLOG_DEBUG("Translating to the center");
+            SPDLOG_INFO("[center] ==>> {}", _center.transpose());
             _translate(_center);
         }
 
@@ -89,15 +90,18 @@ class System {
             _translate(-1 * (_center));
         }
 
-        inline void _toUserBasis() {
-            SPDLOG_INFO("Translating to user basis");
+        inline void _toUserBasis() noexcept {
+            SPDLOG_DEBUG("Translating to user basis");
+
             Eigen::Matrix3d inverse = _basisMatrix.inverse();
+            SPDLOG_INFO("[User Basis]");
+            SPDLOG_INFO(inverse);
             //TODO Check if the inverse works..ie, isInvertible
             _forEachPC([&inverse](PointCharge &pc) { pc.coordinate = inverse * pc.coordinate; });
         }
 
         inline void _toDefaultBasis() noexcept {
-            SPDLOG_INFO("Translating to default basis");
+            SPDLOG_DEBUG("Translating to default basis");
             _forEachPC([this](PointCharge &pc) { pc.coordinate = _basisMatrix * pc.coordinate; });
         }
 

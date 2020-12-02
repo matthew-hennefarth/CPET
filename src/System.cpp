@@ -76,14 +76,6 @@ System::System(std::vector<PointCharge> pc, const Option& options) : _pointCharg
                                   [](const auto& pc){ return pc.charge == 0.0; }),
                         end(_pointCharges));
 
-    //    SPDLOG_INFO("=====[Options | {}]=====", optionsFile);
-//    //TODO make a function overload for these...
-//    SPDLOG_INFO("[V1]     ==>> [ {} ]", _basisMatrix.block(0, 0, 3, 1).transpose());
-//    SPDLOG_INFO("[V2]     ==>> [ {} ]", _basisMatrix.block(0, 1, 3, 1).transpose());
-//    SPDLOG_INFO("[V3]     ==>> [ {} ]", _basisMatrix.block(0, 2, 3, 1).transpose());
-//    SPDLOG_INFO("[Center] ==>> [ {} ]", _center.transpose());
-//    SPDLOG_INFO("[Region] ==>> {}", _region->description());
-
 }
 
 Eigen::Vector3d System::electricField(const Eigen::Vector3d &position) const noexcept(true) {
@@ -99,10 +91,6 @@ Eigen::Vector3d System::electricField(const Eigen::Vector3d &position) const noe
 }
 
 std::vector<PathSample> System::calculateTopology(const size_t &procs, const TopologyRegion& topologicalRegion) {
-    SPDLOG_INFO("======[Sampling topology]======");
-    SPDLOG_INFO("[Npoints] ==>> {}", topologicalRegion.numberOfSamples);
-    SPDLOG_INFO("[Threads] ==>> {}", procs);
-
     std::vector<PathSample> sampleResults;
     sampleResults.reserve(topologicalRegion.numberOfSamples);
 
@@ -145,7 +133,7 @@ std::vector<PathSample> System::calculateTopology(const size_t &procs, const Top
                     thread_logger->info("Starting");
                     int completed = 0;
                     while (samples-- > 0) {
-                        thread_logger->info("Computing sample {}", samples + 1);
+                        thread_logger->debug("Computing sample {}", samples + 1);
                         auto s = _sample(topologicalRegion.volume);
                         {
                             auto vector_handler = shared_vector.lock();
