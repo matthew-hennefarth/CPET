@@ -1,22 +1,16 @@
-/*
- * C++ STL HEADER FILES
- */
+/* C++ STL HEADER FILES */
 #include <string>
 #include <filesystem>
+#include <optional>
 
-/*
- * EXTERNAL LIBRARY HEADER FILES
- */
+/* EXTERNAL LIBRARY HEADER FILES */
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_sinks.h"
 #include "cxxopts/cxxopts.h"
 
-/*
- * CPET HEADER FILES
- */
+/* CPET HEADER FILES */
 #include "Calculator.h"
 
-/* TODO I can probably do either templating or something to fix this...*/
 std::optional<std::string> validPDBFile(const cxxopts::ParseResult& result) noexcept{
     if (result.count("protein")){
         if(std::filesystem::exists(result["protein"].as<std::string>())){
@@ -44,7 +38,7 @@ std::optional<std::string> validChargeFile(const cxxopts::ParseResult& result) n
     return result["charges"].as<std::string>();
 }
 
-std::optional<size_t> validThreads(const cxxopts::ParseResult& result) noexcept{
+std::optional<int> validThreads(const cxxopts::ParseResult& result) noexcept{
     if(result["threads"].as<int>() > 0){
         return result["threads"].as<int>();
     }
@@ -117,7 +111,7 @@ int main (int argc, char** argv) {
         return 1;
     }
 
-    std::optional<size_t> numberOfThreads;
+    std::optional<int> numberOfThreads;
     if(!(numberOfThreads = validThreads(result))){
         SPDLOG_ERROR("Invalid number of threads");
         SPDLOG_WARN(options.help());

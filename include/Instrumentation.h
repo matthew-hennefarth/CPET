@@ -1,61 +1,63 @@
 #ifndef INSTRUMENTATION_H
 #define INSTRUMENTATION_H
 
+/* C++ STL HEADER FILES */
 #include <chrono>
 #include <memory>
 #include <utility>
 #include <functional>
 
+/* EXTERNAL LIBRARY HEADER FILES */
 #include "spdlog/spdlog.h"
 
 class Timer{
     public:
         Timer() 
-            : _func([](const float){})
+            : func_([](const float){})
         { 
             Start(); 
         }
 
         explicit Timer(std::shared_ptr<spdlog::logger> logger) 
-            : _logger(std::move(logger)), _func([](const float){})
+            : logger_(std::move(logger)), func_([](const float){})
         {
             Start();
         }
 
         Timer(std::shared_ptr<spdlog::logger> logger, std::function<void(const float)> func) 
-            : _logger(std::move(logger)), _func(std::move(func))
+            : logger_(std::move(logger)), func_(std::move(func))
         {
             Start();
         }
 
         ~Timer()
         {
-            _end = std::chrono::steady_clock::now();
-            _duration = _end - _start;
+            end_ = std::chrono::steady_clock::now();
+            duration_ = end_ - start_;
 
-            const float sec = _duration.count();
+            const float sec = duration_.count();
 
-            if (_logger == nullptr){
+            if (logger_ == nullptr){
                 SPDLOG_INFO("Timer: {} sec", sec);
             }
             else{
-                _logger->info("Timer: {} sec", sec);
+                logger_->info("Timer: {} sec", sec);
             }
-            _func(sec);
+            func_(sec);
         }
 
         inline void Start() noexcept(true)
         {
-            _start = std::chrono::steady_clock::now();
+            start_ = std::chrono::steady_clock::now();
         }
 
     private:
-        std::chrono::time_point<std::chrono::steady_clock> _start, _end{};
+        std::chrono::time_point<std::chrono::steady_clock> start_, end_{};
         
-        std::chrono::duration<float> _duration{};
+        std::chrono::duration<float> duration_{};
         
-        std::shared_ptr<spdlog::logger> _logger{nullptr};
+        std::shared_ptr<spdlog::logger> logger_{nullptr};
         
-        std::function<void(const float)> _func;
+        std::function<void(const float)> func_;
 };
 #endif //INSTRUMENTATION_H

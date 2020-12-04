@@ -1,4 +1,4 @@
-set( SOURCE_FILES main.cpp Utilities.cpp System.cpp Option.cpp AtomID.cpp Calculator.cpp)
+set( SOURCE_FILES main.cpp Utilities.cpp System.cpp Option.cpp Calculator.cpp)
 include_directories( ${PROJECT_SOURCE_DIR}/include )
 
 # Include any 3rd Party Header Files

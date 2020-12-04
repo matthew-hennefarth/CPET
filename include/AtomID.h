@@ -1,37 +1,56 @@
-//
-// Created by Matthew Hennefarth on 12/1/20.
-//
-
 #ifndef ATOMID_H
 #define ATOMID_H
 
+/* C++ STL HEADER FILES */
 #include <string>
-#include <stdexcept>
+#include <utility>
+#include <type_traits>
+#include <algorithm>
 
+/* CPET HEADER FILES */
 #include "Utilities.h"
+#include "Exceptions.h"
 
 class AtomID{
     public:
 
-        const static std::string origin;
+        enum class Constants {
+            origin,
+            e1,
+            e2
+        };
 
-        const static std::string e1;
+        explicit AtomID(Constants other_id) : id(decodeConstant_(other_id)){}
 
-        const static std::string e2;
-
-        AtomID() noexcept = default;
-
-        explicit AtomID(std::string id) : id(std::move(id)){
+        explicit AtomID(std::string other_id) : id(std::move(other_id)){
             if (!validID()){
                 throw std::exception();
             }
+        }
+
+        AtomID(const AtomID&) = default;
+
+        AtomID(AtomID&&) = default;
+
+        AtomID& operator=(const AtomID&) = default;
+
+        AtomID& operator=(AtomID&&) = default;
+
+        AtomID& operator=(const std::string& rhs){
+            setID(rhs);
+            return *this;
+        }
+
+        AtomID& operator=(AtomID::Constants c) {
+            setID(decodeConstant_(c));
+            return *this;
         }
 
         [[nodiscard]] inline bool validID() const noexcept{
             return validID(id);
         }
 
-        [[nodiscard]] static inline bool validID(const std::string& id) noexcept {
+        [[nodiscard]] static inline bool validID(std::string_view id) noexcept {
             auto splitID = split(id, ':');
 
             if (splitID.size() != 3){
@@ -48,16 +67,15 @@ class AtomID{
             return true;
         }
 
-        AtomID& operator=(std::string newID) {
-            setID(std::move(newID));
-            return *this;
-        }
-
         [[nodiscard]] inline bool operator==(const std::string& rhs) const noexcept {return (id == rhs);}
+
+        [[nodiscard]] inline bool operator==(Constants c) const noexcept {return (id == decodeConstant_(c));}
 
         [[nodiscard]] inline bool operator==(const AtomID& rhs) const noexcept {return (id == rhs.id);}
 
         [[nodiscard]] inline bool operator!=(const std::string& rhs) const noexcept {return !(*this == rhs);}
+
+        [[nodiscard]] inline bool operator!=(Constants c) const noexcept {return !(*this == c);}
 
         [[nodiscard]] inline std::string& getID() noexcept {return id;}
 
@@ -69,14 +87,37 @@ class AtomID{
                 id = std::move(newID);
             }
             else{
-                throw std::exception();
+                throw cpet::value_error("Invalid AtomID: " + newID);
             }
 
         }
 
-        [[nodiscard]] static AtomID generateID(const std::string& pdbLine);
+        [[nodiscard]] static AtomID generateID(const std::string& pdbLine) {
+            if (pdbLine.size() < 26){
+                throw cpet::value_error("Invalid pdb line: " + pdbLine);
+            }
+
+            std::string result =  pdbLine.substr(21,2) + ":"
+                                  + pdbLine.substr(22,4) + ":"
+                                  + pdbLine.substr(12,4);
+
+            result.erase(remove(begin(result), end(result), ' '), end(result));
+            return AtomID(result);
+        }
 
         std::string id;
+
+    private:
+        [[nodiscard]] static inline std::string decodeConstant_(Constants c) {
+            switch (c) {
+                case AtomID::Constants::origin:
+                    return "-1:-1:-1";
+                case AtomID::Constants::e1:
+                    return "-1:-1:-2";
+                case AtomID::Constants::e2:
+                    return "-1:-1:-3";
+            }
+        }
 };
 
 #endif //ATOMID_H

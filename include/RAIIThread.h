@@ -1,52 +1,54 @@
 #ifndef RAIITHREAD_H
 #define RAIITHREAD_H
 
+/* C++ STL HEADER FILES */
 #include <thread>
+#include <utility>
 
 class RAIIThread{
     public:
         RAIIThread() = default;
 
         template<class Function, class... Args>
-        explicit RAIIThread(Function&& F, Args... args) noexcept : _thread(F, args...){}
+        explicit RAIIThread(Function&& F, Args... args) noexcept : thread_(F, args...){}
 
-        RAIIThread(RAIIThread&& other) noexcept : _thread(std::move(other._thread)) {}
+        RAIIThread(RAIIThread&& other) noexcept : thread_(std::move(other.thread_)) {}
 
         /* Thread does not have a copy constructor */
         RAIIThread(const RAIIThread& t) = delete;
 
         ~RAIIThread(){
-            if(_thread.joinable()){
-                _thread.join();
+            if(thread_.joinable()){
+                thread_.join();
             }
         }
 
         constexpr void join() {
-            _thread.join();
+            thread_.join();
         }
 
         constexpr void detach() {
-            _thread.detach();
+            thread_.detach();
         }
 
         inline bool joinable() const noexcept {
-            return _thread.joinable();
+            return thread_.joinable();
         }
 
         [[nodiscard]] inline std::thread::id get_id() const noexcept {
-            return _thread.get_id();
+            return thread_.get_id();
         }
 
         inline auto native_handle() {
-            return _thread.native_handle();
+            return thread_.native_handle();
         }
 
         constexpr void swap(RAIIThread& other) noexcept{
-            _thread.swap(other._thread);
+            thread_.swap(other.thread_);
         }
 
         inline RAIIThread& operator=(RAIIThread&& other) noexcept {
-            _thread = std::move(other._thread);
+            thread_ = std::move(other.thread_);
             return *this;
         }
 
@@ -54,7 +56,7 @@ class RAIIThread{
         RAIIThread& operator=(const RAIIThread&) = delete;
 
     private:
-        std::thread _thread;
+        std::thread thread_;
 };
 
 #endif //RAIITHREAD_H

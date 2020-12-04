@@ -1,16 +1,18 @@
 #ifndef UTILITIES_H
 #define UTILITIES_H
 
-/*
- * C++ STL HEADER FILES
- */
+/* C++ STL HEADER FILES */
 #include <vector>
 #include <string>
 #include <functional>
 #include <random>
 #include <fstream>
 
+/* EXTERNAL LIBRARY HEADER FILES */
 #include "spdlog/spdlog.h"
+
+/* CPET HEADER FILES */
+#include "Exceptions.h"
 
 [[nodiscard]] inline std::unique_ptr<std::mt19937> &randomNumberGenerator() noexcept {
     static thread_local std::unique_ptr<std::mt19937> generator = nullptr;
@@ -22,7 +24,7 @@
 
 void forEachLineIn(const std::string& file, const std::function<void(const std::string&)>& func);
 
-std::vector<std::string> split(const std::string_view &str, char delim);
+std::vector<std::string> split(std::string_view str, char delim);
 
 template<class T>
 void filter(std::vector<T>& list, const T& remove= T()) noexcept(true) {
@@ -32,6 +34,15 @@ void filter(std::vector<T>& list, const T& remove= T()) noexcept(true) {
             i--;
         }
     }
+}
+
+template<class InputIt, class UnaryPredicate>
+InputIt find_if_ex(InputIt first, InputIt last, UnaryPredicate p){
+    InputIt loc = std::find_if(first, last, p);
+    if (loc == last){
+        throw cpet::value_not_found("Could not find element in containiner");
+    }
+    return loc;
 }
 
 template<class T>
@@ -44,7 +55,7 @@ void writeToFile(const std::string& file, const std::vector<T>& out){
         outFile << std::flush;
     }
     else{
-        SPDLOG_ERROR("Could not open file {}", file);
+        throw cpet::io_error("Could not open file " + file);
     }
 }
 

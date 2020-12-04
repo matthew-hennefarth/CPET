@@ -1,10 +1,10 @@
-//
-// Created by Matthew Hennefarth on 11/12/20.
-//
-
 #ifndef VOLUME_H
 #define VOLUME_H
 
+/* C++ STL HEADER FILES */
+#include <string>
+
+/* EXTERNAL LIBRARY HEADER FILES */
 #include "Eigen/Dense"
 
 class Volume {

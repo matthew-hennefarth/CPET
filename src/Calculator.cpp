@@ -1,95 +1,94 @@
+/* C++ STL HEADER FILES */
 #include <fstream>
 
+/* EXTERNAL LIBRARY HEADER FILES */
 #include "spdlog/spdlog.h"
 #include "spdlog/fmt/ostr.h"
 
+/* CPET HEADER FILES */
 #include "Calculator.h"
 #include "Utilities.h"
 #include "System.h"
 #include "Instrumentation.h"
+#include "Exceptions.h"
 
-Calculator::Calculator(std::string proteinFile, const std::string& optionFile, std::string chargesFile, size_t procs)
- : _proteinFile(std::move(proteinFile)), _option(optionFile), _chargeFile(std::move(chargesFile)), _procs(procs){}
+Calculator::Calculator(std::string proteinFile, const std::string& optionFile, std::string chargesFile, int nThreads)
+    : proteinFile_(std::move(proteinFile)), option_(optionFile), chargeFile_(std::move(chargesFile)),
+    numberOfThreads_(nThreads){
 
- void Calculator::compute(){
-     std::vector<std::vector<PointCharge>> pointChargeTrajectory = _loadPDB();
+    loadPointChargeTrajectory_();
 
-     if(!_chargeFile.empty()){
-         _fixCharges(pointChargeTrajectory);
-     }
-
-     _computeTopology(pointChargeTrajectory);
-     _computeEField(pointChargeTrajectory);
 }
 
-void Calculator::_computeTopology(const std::vector<std::vector<PointCharge>>& pointChargeTrajectory) const{
-    for(size_t i = 0; i < pointChargeTrajectory.size(); i++){
+ void Calculator::compute(){
+
+     if(!chargeFile_.empty()){
+         fixCharges_();
+     }
+
+     computeTopology_();
+     computeEField_();
+}
+
+void Calculator::computeTopology_() const {
+    for(size_t i = 0; i < pointChargeTrajectory_.size(); i++){
         SPDLOG_INFO("=~=~=~=~[Trajectory {}]=~=~=~=~", i);
-        System sys(pointChargeTrajectory[i], _option);
+        System sys(pointChargeTrajectory_[i], option_);
         sys.transformToUserSpace();
 
-        for(const auto& region : _option.calculateEFieldTopology){
+        for(const auto& region : option_.calculateEFieldTopology){
             SPDLOG_INFO("======[Sampling topology]======");
             SPDLOG_INFO("[Volume ] ==>> {}", region.volume->description());
             SPDLOG_INFO("[Npoints] ==>> {}", region.numberOfSamples);
-            SPDLOG_INFO("[Threads] ==>> {}", _procs);
+            SPDLOG_INFO("[Threads] ==>> {}", numberOfThreads_);
             std::vector<PathSample> results;
             {
                 Timer t;
-                results = sys.calculateTopology(_procs, region);
+                results = sys.electricFieldTopologyIn(numberOfThreads_, region);
             }
-            _writeTopology(results, region, i);
+            writeTopologyResults_(results, region, static_cast<int>(i));
         }
     }
 }
 
-void Calculator::_computeEField(const std::vector<std::vector<PointCharge>>& pointChargeTrajectory) const{
+void Calculator::computeEField_() const {
     std::vector<std::vector<Eigen::Vector3d>> results;
-    for(const auto& point: _option.calculateEFieldPoints){
+    for(const auto& point: option_.calculateEFieldPoints) {
         SPDLOG_INFO("=~=~=~=~[Field at {}]=~=~=~=~", point);
-        std::vector<Eigen::Vector3d> fieldAtPoint;
-        for(const auto& trajectory : pointChargeTrajectory){
-            System sys(trajectory, _option);
+        std::vector<Eigen::Vector3d> fieldTrajectoryAtPoint;
+
+        for (const auto& trajectory : pointChargeTrajectory_) {
+            System sys(trajectory, option_);
             sys.transformToUserSpace();
 
             Eigen::Vector3d location;
             if(point.find(':') != std::string::npos){
-                /* TODO Can reuse this...seems to be a function!!!!*/
-                AtomID pcID;
-                pcID.setID(point);
-                auto pointPC = find_if(begin(trajectory), end(trajectory),
-                                        [&pcID](const auto& pc){ return pc.id == pcID; });
-
-                if (pointPC != end(trajectory)){
-                    location = pointPC->coordinate;
-                }
-                else{
-                    throw std::exception();
-                }
+                location = PointCharge::find(trajectory, AtomID(point))->coordinate;
             }
             else{
                 auto point_split = split(point, ',');
-                location = {std::stod(point_split[0]), std::stod(point_split[1]), std::stod(point_split[2])};
+                location = {std::stod(point_split[0]),
+                            std::stod(point_split[1]),
+                            std::stod(point_split[2])};
             }
-            Eigen::Vector3d field = sys.electricField(location);
+            Eigen::Vector3d field = sys.electricFieldAt(location);
             SPDLOG_INFO("Field: {}", field.transpose());
-            fieldAtPoint.emplace_back(sys.electricField(field));
+            fieldTrajectoryAtPoint.emplace_back(sys.electricFieldAt(field));
         }
-        results.push_back(fieldAtPoint);
+        results.push_back(fieldTrajectoryAtPoint);
 
     }
 
-    _writeEField(results);
+    writeEFieldResults_(results);
 
 }
 
-std::vector<std::vector<PointCharge>> Calculator::_loadPDB() const{
+void Calculator::loadPointChargeTrajectory_() {
 
-    std::vector<std::vector<PointCharge>> pointChargeTrajectory;
     std::vector<PointCharge> tmpHolder;
-    forEachLineIn(_proteinFile, [&pointChargeTrajectory, &tmpHolder](const std::string& line){
+    forEachLineIn(proteinFile_, [this, &tmpHolder](const std::string& line){
         if (line.rfind("ENDMDL", 0) == 0){
-            pointChargeTrajectory.push_back(tmpHolder);
+            pointChargeTrajectory_.push_back(tmpHolder);
             tmpHolder.clear();
         }
         else if(line.rfind("ATOM", 0) == 0 || line.rfind("HETATM", 0) == 0){
@@ -101,15 +100,14 @@ std::vector<std::vector<PointCharge>> Calculator::_loadPDB() const{
         }
     });
     if (!tmpHolder.empty()){
-        pointChargeTrajectory.push_back(tmpHolder);
+        pointChargeTrajectory_.push_back(tmpHolder);
     }
 
-    return pointChargeTrajectory;
 }
 
-std::vector<double> Calculator::_loadCharges() const{
+std::vector<double> Calculator::loadChargesFile_() const{
     std::vector<double> realCharges;
-    forEachLineIn(_chargeFile, [&realCharges](const std::string& line){
+    forEachLineIn(chargeFile_, [&realCharges](const std::string& line){
        auto charges = split(line, ' ');
        for(const auto& charge : charges){
            try{
@@ -123,12 +121,12 @@ std::vector<double> Calculator::_loadCharges() const{
     return realCharges;
 }
 
-void Calculator::_fixCharges(std::vector<std::vector<PointCharge>>& trajectory) const {
-    auto realCharges = _loadCharges();
+void Calculator::fixCharges_() {
+    auto realCharges = loadChargesFile_();
 
-    for(auto& structure : trajectory){
+    for(auto& structure : pointChargeTrajectory_){
         if(structure.size() != realCharges.size()){
-            throw std::exception();
+            throw cpet::value_error("Inconsistent number of point charges in trajectory and in charge file");
         }
 
         for(size_t i = 0; i < structure.size(); i++){
@@ -137,11 +135,11 @@ void Calculator::_fixCharges(std::vector<std::vector<PointCharge>>& trajectory) 
     }
 }
 
-void Calculator::_writeTopology(const std::vector<PathSample>& data, const TopologyRegion& region, size_t i) const {
-    std::string file = _proteinFile + '_' + std::to_string(i) + '_' + region.volume->type() + ".top";
+void Calculator::writeTopologyResults_(const std::vector<PathSample>& data, const TopologyRegion& region, int i) const {
+    std::string file = proteinFile_ + '_' + std::to_string(i) + '_' + region.volume->type() + ".top";
     std::ofstream outFile(file, std::ios::out);
     if(outFile.is_open()){
-        outFile << '#' << _proteinFile << ' ' << i << '\n';
+        outFile << '#' << proteinFile_ << ' ' << i << '\n';
         outFile << '#' << region.details() << '\n';
         /* TODO add options writing to this file...*/
         for(const auto& line : data){
@@ -151,16 +149,17 @@ void Calculator::_writeTopology(const std::vector<PathSample>& data, const Topol
     }
     else{
         SPDLOG_ERROR("Could not open file {}", file);
+        throw cpet::io_error("Could not open file " + file);
     }
 }
 
-void Calculator::_writeEField(const std::vector<std::vector<Eigen::Vector3d>> &results) const {
-    std::string file = _proteinFile + ".field";
+void Calculator::writeEFieldResults_(const std::vector<std::vector<Eigen::Vector3d>> &results) const {
+    std::string file = proteinFile_ + ".field";
     std::ofstream outFile(file, std::ios::out);
     if(outFile.is_open()){
-        outFile << '#' << _proteinFile << '\n';
+        outFile << '#' << proteinFile_ << '\n';
         for(size_t i = 0; i < results.size(); i++){
-            outFile << '#' << _option.calculateEFieldPoints[i] << '\n';
+            outFile << '#' << option_.calculateEFieldPoints[i] << '\n';
             for(const Eigen::Vector3d& field : results[i]){
                 outFile << field.transpose() << '\n';
             }
@@ -169,5 +168,6 @@ void Calculator::_writeEField(const std::vector<std::vector<Eigen::Vector3d>> &r
     }
     else{
         SPDLOG_ERROR("Could not open file {}", file);
+        throw cpet::io_error("Could not open file " + file);
     }
 }

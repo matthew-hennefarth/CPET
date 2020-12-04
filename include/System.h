@@ -1,43 +1,27 @@
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
-/*
- * C++ STL HEADER FILES
- */
+/* C++ STL HEADER FILES */
 #include <string>
 #include <vector>
 #include <memory>
-#include <mutex>
 #include <iostream>
-#include <filesystem>
-#include <random>
 #include <algorithm>
 
-/*
- * EXTERNAL LIBRARY HEADER FILES
- */
+/* EXTERNAL LIBRARY HEADER FILES */
 #include "spdlog/spdlog.h"
 #include "spdlog/fmt/ostr.h"
 #include "Eigen/Dense"
 
-/*
- * CPET HEADER FILES
- */
+/* CPET HEADER FILES */
 #include "Volume.h"
 #include "TopologyRegion.h"
 #include "Option.h"
-#include "AtomID.h"
+#include "Utilities.h"
+#include "PointCharge.h"
 
 // TODO maybe make this an option?
 #define STEP_SIZE 0.001
-
-struct PointCharge {
-    Eigen::Vector3d coordinate;
-    double charge;
-    AtomID id;
-
-    PointCharge(const Eigen::Vector3d &coord, const double &q, const AtomID& aid) : coordinate(coord), charge(q), id(aid) {}
-};
 
 struct PathSample {
     double distance;
@@ -54,68 +38,75 @@ class System {
     public:
         System(std::vector<PointCharge> pc, const Option& options);
 
-        ~System() = default;
+        [[nodiscard]] Eigen::Vector3d electricFieldAt(const Eigen::Vector3d &position) const noexcept;
 
-        [[nodiscard]] Eigen::Vector3d electricField(const Eigen::Vector3d &position) const noexcept;
+        [[nodiscard]] std::vector<PathSample> electricFieldTopologyIn(int numOfThreads,
+                                                                      const TopologyRegion& topologicalRegion);
 
-        std::vector<PathSample> calculateTopology(const size_t &procs, const TopologyRegion& topologicalRegion);
-
-        inline void transformToUserSpace() {
-            _translateToCenter();
-            _toUserBasis();
+        inline void transformToUserSpace() noexcept {
+            translateSystemToCenter_();
+            transformToUserBasis_();
         }
 
     private:
 
-        [[nodiscard]] double _curvature(const Eigen::Vector3d& alpha_0) const noexcept;
-
-        PathSample _sample(const std::unique_ptr<Volume>& region) const noexcept;
-
-        inline void _forEachPC(const std::function<void(PointCharge &)> &func) {
-            std::for_each(begin(_pointCharges), end(_pointCharges), func);
+        static inline void constructOrthonormalBasis_(std::array<Eigen::Vector3d, 3>& basis) noexcept{
+            basis[2] = basis[0].cross(basis[1]);
+            basis[1] = basis[2].cross(basis[0]);
         }
 
-        inline void _translate(const Eigen::Vector3d &position) noexcept {
-            _forEachPC([&position](PointCharge &pc) { pc.coordinate -= position; });
+        [[nodiscard]] double curvatureAt_(const Eigen::Vector3d& alpha_0) const noexcept;
+
+        PathSample sampleElectricFieldTopologyIn_(const Volume& region) const noexcept;
+
+        inline void forEachPointCharge_(const std::function<void(PointCharge &)> &func) {
+            std::for_each(begin(pointCharges_), end(pointCharges_), func);
         }
 
-        inline void _translateToCenter() noexcept {
+        inline void translateSystemTo_(const Eigen::Vector3d &position) noexcept {
+            forEachPointCharge_([&position](PointCharge &pc) { pc.coordinate -= position; });
+        }
+
+        inline void translateSystemToCenter_() noexcept {
             SPDLOG_DEBUG("Translating to the center");
-            SPDLOG_INFO("[center] ==>> {}", _center.transpose());
-            _translate(_center);
+            SPDLOG_INFO("[center] ==>> {}", center_.transpose());
+            translateSystemTo_(center_);
         }
 
-        inline void _translateToOrigin() noexcept {
+        inline void translateSystemToOrigin_() noexcept {
             SPDLOG_DEBUG("Translating to the Origin");
-            _translate(-1 * (_center));
+            translateSystemTo_(-1 * (center_));
         }
 
-        inline void _toUserBasis() noexcept {
+        inline void transformToUserBasis_() noexcept {
             SPDLOG_DEBUG("Translating to user basis");
 
-            Eigen::Matrix3d inverse = _basisMatrix.inverse();
+            Eigen::Matrix3d inverse = basisMatrix_.inverse();
             SPDLOG_INFO("[User Basis]");
             SPDLOG_INFO(inverse);
-            //TODO Check if the inverse works..ie, isInvertible
-            _forEachPC([&inverse](PointCharge &pc) { pc.coordinate = inverse * pc.coordinate; });
+            forEachPointCharge_([&inverse](PointCharge &pc) {
+                                    pc.coordinate = inverse * pc.coordinate;
+                                });
         }
 
-        inline void _toDefaultBasis() noexcept {
+        inline void transformToDefaultBasis_() noexcept {
             SPDLOG_DEBUG("Translating to default basis");
-            _forEachPC([this](PointCharge &pc) { pc.coordinate = _basisMatrix * pc.coordinate; });
+            forEachPointCharge_([this](PointCharge &pc) {
+                                    pc.coordinate = basisMatrix_ * pc.coordinate;
+                                });
         }
 
-        [[nodiscard]] inline Eigen::Vector3d _next(const Eigen::Vector3d &pos) const noexcept {
+        [[nodiscard]] inline Eigen::Vector3d nextPoint_(const Eigen::Vector3d &pos) const noexcept {
             /* Runge Kutta Order 4 */
-            Eigen::Vector3d u1 = STEP_SIZE * electricField(pos);
-            Eigen::Vector3d u2 = STEP_SIZE * electricField(pos + (0.5 * u1));
-            Eigen::Vector3d u3 = STEP_SIZE * electricField(pos + 2 * u2 - u1);
+            Eigen::Vector3d u1 = STEP_SIZE * electricFieldAt(pos);
+            Eigen::Vector3d u2 = STEP_SIZE * electricFieldAt(pos + (0.5 * u1));
+            Eigen::Vector3d u3 = STEP_SIZE * electricFieldAt(pos + 2 * u2 - u1);
             return (pos + (1.0 / 6.0) * (u1 + 4 * u2 + u3));
         }
 
-        std::vector<PointCharge> _pointCharges;
-        Eigen::Vector3d _center;
-        Eigen::Matrix3d _basisMatrix;
+        std::vector<PointCharge> pointCharges_;
+        Eigen::Vector3d center_;
+        Eigen::Matrix3d basisMatrix_;
 };
 
 #endif //SYSTEM_H

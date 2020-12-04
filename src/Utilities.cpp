@@ -1,9 +1,12 @@
+
+/* C++ STL HEADER FILES */
 #if __cplusplus <= 199711L
 #include <algorithm>
 #else
 #include <numeric>
 #endif
 
+/* CPET HEADER FILES */
 #include "Utilities.h"
 
 void forEachLineIn(const std::string& file, const std::function<void(const std::string&)>& func){
@@ -15,15 +18,15 @@ void forEachLineIn(const std::string& file, const std::function<void(const std::
         }
     }
     else{
-        SPDLOG_ERROR("Could not open file {}", file);
+        throw cpet::io_error("Could not open file " + file);
     }
 }
 
-std::vector<std::string> split(const std::string_view &str, char delim) {
+std::vector<std::string> split(std::string_view str, char delim) {
     std::vector<std::string> result;
 
     std::string::size_type start = 0;
-    for (std::string::size_type i = 0; i < str.size(); i++){
+    for (size_t i = 0; i < str.size(); i++){
         if (str[i] == delim && start != i) {
             result.emplace_back(str.substr(start, i - start));
             start = i + 1;

@@ -1,43 +1,49 @@
-//
-// Created by Matthew Hennefarth on 12/1/20.
-//
-
 #ifndef CALCULATOR_H
 #define CALCULATOR_H
 
+/* C++ STL HEADER FILES */
 #include <string>
 #include <vector>
 
+/* EXTERNAL LIBRARY HEADER FILES */
 #include "Eigen/Dense"
 
+/* CPET HEADER FILES */
 #include "Option.h"
+#include "PointCharge.h"
 #include "System.h"
 #include "TopologyRegion.h"
 
 class Calculator{
     public:
-        Calculator(std::string proteinFile, const std::string& optionFile, std::string chargesFile="", size_t procs=1);
+        Calculator(std::string proteinFile, const std::string& optionFile, std::string chargesFile="", int nThreads=1);
 
         void compute();
 
     private:
-        std::string _proteinFile;
-        Option _option;
-        std::string _chargeFile;
-        size_t _procs;
+        std::string proteinFile_;
+        
+        Option option_;
+        
+        std::string chargeFile_;
+        
+        int numberOfThreads_;
 
-        void _fixCharges(std::vector<std::vector<PointCharge>>& trajectory) const;
+        std::vector<std::vector<PointCharge>> pointChargeTrajectory_;
 
-        void _computeTopology(const std::vector<std::vector<PointCharge>>& pointChargeTrajectory) const;
-        void _computeEField(const std::vector<std::vector<PointCharge>>& pointChargeTrajectory) const;
+        void fixCharges_();
 
-        std::vector<std::vector<PointCharge>> _loadPDB() const;
+        void computeTopology_() const;
+        
+        void computeEField_() const;
 
-        std::vector<double> _loadCharges() const;
+        void loadPointChargeTrajectory_();
 
-        void _writeTopology(const std::vector<PathSample>& data, const TopologyRegion& region, size_t i) const;
+        [[nodiscard]] std::vector<double> loadChargesFile_() const;
 
-        void _writeEField(const std::vector<std::vector<Eigen::Vector3d>>& results) const;
+        void writeTopologyResults_(const std::vector<PathSample>& data, const TopologyRegion& region, int i) const;
+
+        void writeEFieldResults_(const std::vector<std::vector<Eigen::Vector3d>>& results) const;
 
 };
 
