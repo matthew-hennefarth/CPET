@@ -14,14 +14,11 @@
 
 Calculator::Calculator(std::string proteinFile, const std::string& optionFile, std::string chargesFile, int nThreads)
     : proteinFile_(std::move(proteinFile)), option_(optionFile), chargeFile_(std::move(chargesFile)),
-    numberOfThreads_(nThreads){
-
+    numberOfThreads_(nThreads) {
     loadPointChargeTrajectory_();
-
 }
 
- void Calculator::compute(){
-
+ void Calculator::compute() {
      if(!chargeFile_.empty()){
          fixCharges_();
      }
@@ -76,15 +73,11 @@ void Calculator::computeEField_() const {
             fieldTrajectoryAtPoint.emplace_back(sys.electricFieldAt(field));
         }
         results.push_back(fieldTrajectoryAtPoint);
-
     }
-
     writeEFieldResults_(results);
-
 }
 
 void Calculator::loadPointChargeTrajectory_() {
-
     std::vector<PointCharge> tmpHolder;
     forEachLineIn(proteinFile_, [this, &tmpHolder](const std::string& line){
         if (line.rfind("ENDMDL", 0) == 0){
@@ -102,7 +95,6 @@ void Calculator::loadPointChargeTrajectory_() {
     if (!tmpHolder.empty()){
         pointChargeTrajectory_.push_back(tmpHolder);
     }
-
 }
 
 std::vector<double> Calculator::loadChargesFile_() const{

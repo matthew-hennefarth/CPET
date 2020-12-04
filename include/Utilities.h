@@ -38,25 +38,10 @@ void filter(std::vector<T>& list, const T& remove= T()) noexcept(true) {
 
 template<class InputIt, class UnaryPredicate>
 InputIt find_if_ex(InputIt first, InputIt last, UnaryPredicate p){
-    InputIt loc = std::find_if(first, last, p);
-    if (loc == last){
-        throw cpet::value_not_found("Could not find element in containiner");
+    if (auto loc = std::find_if(first, last, p); loc != last){
+        return loc;
     }
-    return loc;
-}
-
-template<class T>
-void writeToFile(const std::string& file, const std::vector<T>& out){
-    std::ofstream outFile(file, std::ios::out);
-    if(outFile.is_open()){
-        for(const auto& line : out){
-            outFile << line << '\n';
-        }
-        outFile << std::flush;
-    }
-    else{
-        throw cpet::io_error("Could not open file " + file);
-    }
+    throw cpet::value_not_found("Could not find element in container");
 }
 
 #endif //UTILITIES_H

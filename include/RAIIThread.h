@@ -23,11 +23,11 @@ class RAIIThread{
             }
         }
 
-        constexpr void join() {
+        inline void join() {
             thread_.join();
         }
 
-        constexpr void detach() {
+        inline void detach() {
             thread_.detach();
         }
 
@@ -43,7 +43,7 @@ class RAIIThread{
             return thread_.native_handle();
         }
 
-        constexpr void swap(RAIIThread& other) noexcept{
+        inline void swap(RAIIThread& other) noexcept{
             thread_.swap(other.thread_);
         }
 

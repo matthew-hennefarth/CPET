@@ -20,29 +20,29 @@ class AtomID{
             e2
         };
 
-        explicit AtomID(Constants other_id) : id(decodeConstant_(other_id)){}
+        explicit inline AtomID(Constants other_id) noexcept : id(decodeConstant_(other_id)){}
 
-        explicit AtomID(std::string other_id) : id(std::move(other_id)){
+        explicit inline AtomID(std::string other_id) : id(std::move(other_id)){
             if (!validID()){
-                throw std::exception();
+                throw cpet::value_error("Invalid atom ID: " + id);
             }
         }
 
-        AtomID(const AtomID&) = default;
+        inline AtomID(const AtomID&) = default;
 
-        AtomID(AtomID&&) = default;
+        inline AtomID(AtomID&&) = default;
 
-        AtomID& operator=(const AtomID&) = default;
+        inline AtomID& operator=(const AtomID&) = default;
 
-        AtomID& operator=(AtomID&&) = default;
+        inline AtomID& operator=(AtomID&&) = default;
 
-        AtomID& operator=(const std::string& rhs){
+        inline AtomID& operator=(const std::string& rhs){
             setID(rhs);
             return *this;
         }
 
-        AtomID& operator=(AtomID::Constants c) {
-            setID(decodeConstant_(c));
+        inline AtomID& operator=(AtomID::Constants c) {
+            id = decodeConstant_(c);
             return *this;
         }
 
@@ -81,22 +81,19 @@ class AtomID{
 
         [[nodiscard]] inline const std::string& getID() const noexcept {return id;}
 
-        inline void setID(std::string newID) {
-
+        inline void setID(const std::string& newID) {
             if(validID(newID)){
-                id = std::move(newID);
+                id = newID;
             }
             else{
                 throw cpet::value_error("Invalid AtomID: " + newID);
             }
-
         }
 
-        [[nodiscard]] static AtomID generateID(const std::string& pdbLine) {
+        [[nodiscard]] static inline AtomID generateID(const std::string& pdbLine) {
             if (pdbLine.size() < 26){
                 throw cpet::value_error("Invalid pdb line: " + pdbLine);
             }
-
             std::string result =  pdbLine.substr(21,2) + ":"
                                   + pdbLine.substr(22,4) + ":"
                                   + pdbLine.substr(12,4);

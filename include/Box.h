@@ -14,7 +14,7 @@
 
 class Box : public Volume {
     public:
-        explicit Box(const std::array<double, 3>& sides) : sides_(sides) {
+        explicit inline Box(const std::array<double, 3>& sides) : sides_(sides) {
             for (const auto& val : sides_) {
                 if (val < 0){
                     throw cpet::value_error("Invalid value: " + std::to_string(val));
@@ -35,7 +35,7 @@ class Box : public Volume {
             return true;
         }
 
-        [[nodiscard]] inline Eigen::Vector3d randomPoint() const noexcept override{
+        [[nodiscard]] inline Eigen::Vector3d randomPoint() const noexcept override {
             Eigen::Vector3d result;
 
             std::array<std::uniform_real_distribution<double>, 3> distribution;
@@ -57,17 +57,17 @@ class Box : public Volume {
             return result;
         }
 
-        [[nodiscard]] inline int randomDistance(double stepSize) const noexcept override{
+        [[nodiscard]] inline int randomDistance(double stepSize) const noexcept override {
             std::uniform_int_distribution<int> distribution(1, static_cast<int>(maxDim() / stepSize));
             return distribution(*randomNumberGenerator());
         }
 
-        [[nodiscard]] inline std::string type() const noexcept override{
+        [[nodiscard]] inline std::string type() const noexcept override {
             return "box";
         }
 
     private:
-        inline void initializeDistributions_(std::array<std::uniform_real_distribution<double>, 3>& distribution) const noexcept{
+        inline void initializeDistributions_(std::array<std::uniform_real_distribution<double>, 3>& distribution) const noexcept {
             for(size_t i = 0; i < distribution.size(); i++){
                 distribution[i] = std::uniform_real_distribution<double>(-1*sides_[i], sides_[i]);
             }

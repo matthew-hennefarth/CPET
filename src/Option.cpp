@@ -4,10 +4,10 @@
 #include "Box.h"
 
 Option::Option(const std::string& optionFile){
-    loadOptions_(optionFile);
+    loadOptionsFromFile_(optionFile);
 }
 
-void Option::loadOptions_(const std::string& optionFile) {
+void Option::loadOptionsFromFile_(const std::string& optionFile) {
     forEachLineIn(optionFile, [this](const std::string& line) {
         if (line.substr(0, 5) == "align") {
             std::vector<std::string> info = split(line.substr(5), ' ');

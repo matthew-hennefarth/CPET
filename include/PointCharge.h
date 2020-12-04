@@ -15,16 +15,16 @@ struct PointCharge {
 
     AtomID id;
 
-    PointCharge(const Eigen::Vector3d &coord, double q, AtomID  aid)
+    inline PointCharge(const Eigen::Vector3d& coord, double q, AtomID  aid) noexcept
         : coordinate(coord), charge(q), id(std::move(aid)) {}
 
-    PointCharge(PointCharge&&) = default;
+    inline PointCharge(PointCharge&&) = default;
 
-    PointCharge(const PointCharge&) = default;
+    inline PointCharge(const PointCharge&) = default;
 
-    inline PointCharge& operator=(const PointCharge&) = default;
+    inline PointCharge& operator=(const PointCharge&) noexcept = default;
 
-    inline PointCharge& operator=(PointCharge&&) = default;
+    inline PointCharge& operator=(PointCharge&&) noexcept = default;
 
     [[nodiscard]] static inline auto find(const std::vector<PointCharge>& pointCharges,
                                           const AtomID& id) -> decltype (pointCharges.begin()){

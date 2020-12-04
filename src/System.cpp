@@ -13,21 +13,21 @@
 
 #define PERM_SPACE 0.0055263495
 
-System::System(std::vector<PointCharge> pc, const Option& options) : pointCharges_(std::move(pc)){
+System::System(std::vector<PointCharge> pc, const Option& options) : pointCharges_(std::move(pc)) {
 
-    if (options.centerID != AtomID::Constants::origin){
+    if (options.centerID != AtomID::Constants::origin) {
         center_ = PointCharge::find(pointCharges_, options.centerID)->coordinate;
     }
 
     std::array<Eigen::Vector3d, 3> basis;
-    if(options.direction1ID != AtomID::Constants::e1){
+    if(options.direction1ID != AtomID::Constants::e1) {
         basis[0] = PointCharge::find(pointCharges_, options.direction1ID)->coordinate;
     }
     else{
         basis[0] = {1.0,0.0,0.0};
     }
 
-    if(options.direction2ID != AtomID::Constants::e2){
+    if(options.direction2ID != AtomID::Constants::e2) {
         basis[1] = PointCharge::find(pointCharges_, options.direction2ID)->coordinate;
     }
     else{
@@ -36,7 +36,7 @@ System::System(std::vector<PointCharge> pc, const Option& options) : pointCharge
 
     constructOrthonormalBasis_(basis);
 
-    for(size_t i = 0; i < basis.size(); i++){
+    for(size_t i = 0; i < basis.size(); i++) {
         basisMatrix_.block(0, static_cast<Eigen::Index>(i), 3, 1) = basis[i];
     }
 
@@ -102,10 +102,9 @@ std::vector<PathSample> System::electricFieldTopologyIn(int numOfThreads, const 
             for (int i = 0; i < numOfThreads; i++) {
                 workers.emplace_back([&samples, &shared_vector, &topologicalRegion, this]() {
                     auto thread_logger = spdlog::get("Thread");
-                    thread_logger->info("Starting");
+                    thread_logger->info("Spinning up...");
                     int completed = 0;
                     while (samples-- > 0) {
-                        thread_logger->debug("Computing sample {}", samples + 1);
                         auto s = sampleElectricFieldTopologyIn_(*topologicalRegion.volume);
                         {
                             auto vector_handler = shared_vector.lock();

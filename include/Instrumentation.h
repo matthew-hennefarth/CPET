@@ -12,26 +12,21 @@
 
 class Timer{
     public:
-        Timer() 
-            : func_([](const float){})
-        { 
+        inline Timer() noexcept : func_([](const float){}) {
             Start(); 
         }
 
-        explicit Timer(std::shared_ptr<spdlog::logger> logger) 
-            : logger_(std::move(logger)), func_([](const float){})
-        {
+        explicit inline Timer(std::shared_ptr<spdlog::logger> logger) noexcept
+            : logger_(std::move(logger)), func_([](const float){}) {
             Start();
         }
 
-        Timer(std::shared_ptr<spdlog::logger> logger, std::function<void(const float)> func) 
-            : logger_(std::move(logger)), func_(std::move(func))
-        {
+        inline Timer(std::shared_ptr<spdlog::logger> logger, std::function<void(const float)> func) noexcept
+            : logger_(std::move(logger)), func_(std::move(func)) {
             Start();
         }
 
-        ~Timer()
-        {
+        ~Timer() noexcept {
             end_ = std::chrono::steady_clock::now();
             duration_ = end_ - start_;
 
@@ -46,7 +41,7 @@ class Timer{
             func_(sec);
         }
 
-        inline void Start() noexcept(true)
+        inline void Start() noexcept
         {
             start_ = std::chrono::steady_clock::now();
         }

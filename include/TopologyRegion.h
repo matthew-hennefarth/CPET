@@ -9,18 +9,16 @@
 #include "Volume.h"
 
 struct TopologyRegion{
-
-    TopologyRegion(std::unique_ptr<Volume> vol, int samples) noexcept
-        : volume(std::move(vol)), numberOfSamples(samples){}
-
     std::unique_ptr<Volume> volume;
 
     int numberOfSamples;
 
-    [[nodiscard]] inline std::string details() const noexcept{
+    inline TopologyRegion(std::unique_ptr<Volume> vol, int samples) noexcept
+        : volume(std::move(vol)), numberOfSamples(samples) {}
+
+    [[nodiscard]] inline std::string details() const noexcept {
         return "Samples: " + std::to_string(numberOfSamples) + "; Volume: " + volume->description();
     }
-
 };
 
 #endif //TOPOLOGYREGION_H

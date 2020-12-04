@@ -27,8 +27,7 @@ class Option{
         std::vector<TopologyRegion> calculateEFieldTopology;
 
     private:
-        void loadOptions_(const std::string& optionFile);
-
+        void loadOptionsFromFile_(const std::string& optionFile);
 };
 
 #endif //OPTION_H
