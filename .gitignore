@@ -47,5 +47,4 @@ _deps
 
 bin/
 build/
-release
 .ccls

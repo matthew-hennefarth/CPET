@@ -9,11 +9,9 @@ endif()
 set(CMAKE_CXX_STANDARD 20)
 
 # Set the binary output
+set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin/$<CONFIG> )
 if( CMAKE_BUILD_TYPE MATCHES Debug )
-    set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin )
     add_definitions(-DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG)
-elseif( CMAKE_BUILD_TYPE MATCHES Release )
-    set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/release )
 endif()
 
 #----------------------------------------------[INCLUDE COMPILER WARNINGS]----------------------------------------------
