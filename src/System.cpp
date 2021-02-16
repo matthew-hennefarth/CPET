@@ -4,6 +4,7 @@
 
 /* EXTERNAL LIBRARY HEADER FILES */
 #include "spdlog/sinks/stdout_sinks.h"
+#include "spdlog/fmt/ostr.h"
 #include "cs_libguarded/cs_plain_guarded.h"
 
 /* CPET HEADER FILES */
@@ -18,17 +19,22 @@ System::System(std::vector<PointCharge> pc, const Option& options) : pointCharge
     if (options.centerID != AtomID::Constants::origin) {
         center_ = PointCharge::find(pointCharges_, options.centerID)->coordinate;
     }
+    else{
+        center_ = {0.0, 0.0, 0.0};
+    }
 
     std::array<Eigen::Vector3d, 3> basis;
     if(options.direction1ID != AtomID::Constants::e1) {
-        basis[0] = PointCharge::find(pointCharges_, options.direction1ID)->coordinate;
+        basis[0] = PointCharge::find(pointCharges_, options.direction1ID)->coordinate - center_;
+        basis[0] = basis[0] / basis[0].norm();
     }
     else{
         basis[0] = {1.0,0.0,0.0};
     }
 
     if(options.direction2ID != AtomID::Constants::e2) {
-        basis[1] = PointCharge::find(pointCharges_, options.direction2ID)->coordinate;
+        basis[1] = PointCharge::find(pointCharges_, options.direction2ID)->coordinate - center_;
+        basis[1] = basis[1] / basis[1].norm();
     }
     else{
         basis[1] = {0.0, 1.0, 0.0};
@@ -39,6 +45,9 @@ System::System(std::vector<PointCharge> pc, const Option& options) : pointCharge
     for(size_t i = 0; i < basis.size(); i++) {
         basisMatrix_.block(0, static_cast<Eigen::Index>(i), 3, 1) = basis[i];
     }
+    if(basisMatrix_.determinant() == 0){
+        throw cpet::value_error("Basis is not linearly independent");
+    }
 
     pointCharges_.erase(remove_if(begin(pointCharges_), end(pointCharges_),
                                         [](const auto& pc){
@@ -48,7 +57,7 @@ System::System(std::vector<PointCharge> pc, const Option& options) : pointCharge
 
 }
 
-Eigen::Vector3d System::electricFieldAt(const Eigen::Vector3d &position) const noexcept {
+Eigen::Vector3d System::electricFieldAt(const Eigen::Vector3d &position) const {
     Eigen::Vector3d result(0, 0, 0);
 
     Eigen::Vector3d d;
@@ -58,7 +67,7 @@ Eigen::Vector3d System::electricFieldAt(const Eigen::Vector3d &position) const n
         dNorm = d.norm();
         result += ((pc.charge * d) / (dNorm * dNorm * dNorm));
     }
-    result /= (1.0 / (4.0 * M_PI * PERM_SPACE));
+    result *= (1.0 / (4.0 * M_PI * PERM_SPACE));
     return result;
 }
 

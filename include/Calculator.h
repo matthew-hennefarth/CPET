@@ -20,8 +20,12 @@ class Calculator{
 
         void compute();
 
+        inline void setOutputFilePrefix(const std::string& prefix) {outputPrefix_ = prefix;}
+
     private:
         std::string proteinFile_;
+
+        std::string outputPrefix_;
         
         Option option_;
         
