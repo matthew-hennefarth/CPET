@@ -3,9 +3,12 @@
 
 /* C++ STL HEADER FILES */
 #include <algorithm>
+#include <optional>
 #include <string>
 #include <type_traits>
 #include <utility>
+
+#include "Eigen/Dense"
 
 /* CPET HEADER FILES */
 #include "Exceptions.h"
@@ -15,8 +18,12 @@ class AtomID {
  public:
   enum class Constants { origin, e1, e2 };
 
-  explicit inline AtomID(Constants other_id) noexcept
-      : id(decodeConstant_(other_id)) {}
+  explicit inline AtomID(Constants other_id)
+      : id(decodeConstant_(other_id)) {
+    if (!validID()) {
+      throw cpet::value_error("Invalid atom id: " + id);
+    }
+  }
 
   explicit inline AtomID(std::string other_id) : id(std::move(other_id)) {
     if (!validID()) {
@@ -39,24 +46,32 @@ class AtomID {
 
   inline AtomID& operator=(AtomID::Constants c) {
     id = decodeConstant_(c);
+    if (!validID()) {
+      throw cpet::value_error("Invalid AtomID specification: " + id);
+    }
     return *this;
   }
 
   [[nodiscard]] inline bool validID() const noexcept { return validID(id); }
 
-  [[nodiscard]] static inline bool validID(std::string_view id) noexcept {
-    auto splitID = split(id, ':');
+  [[nodiscard]] inline bool validID(std::string_view atomid) const noexcept {
+    auto splitID = split(atomid, ':');
 
     if (splitID.size() != 3) {
       return false;
     }
 
     try {
-      stoi(splitID[1]);
+      position_.emplace(std::stod(splitID[0]), std::stod(splitID[1]),
+                        std::stod(splitID[2]));
     } catch (const std::invalid_argument&) {
-      return false;
+      position_.reset();
+      try {
+        stoi(splitID[1]);
+      } catch (const std::invalid_argument&) {
+        return false;
+      }
     }
-
     return true;
   }
 
@@ -103,17 +118,24 @@ class AtomID {
     return AtomID(result);
   }
 
+  [[nodiscard]] inline std::optional<Eigen::Vector3d> position()
+      const noexcept {
+    return position_;
+  }
+
   std::string id;
 
  private:
+  mutable std::optional<Eigen::Vector3d> position_;
+
   [[nodiscard]] static inline std::string decodeConstant_(Constants c) {
     switch (c) {
       case AtomID::Constants::origin:
-        return "-1:-1:-1";
+        return "0:0:0";
       case AtomID::Constants::e1:
-        return "-1:-1:-2";
+        return "1:0:0";
       case AtomID::Constants::e2:
-        return "-1:-1:-3";
+        return "0:1:0";
     }
   }
 };
