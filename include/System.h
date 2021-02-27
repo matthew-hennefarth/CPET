@@ -48,6 +48,9 @@ class System {
     transformToUserBasis_();
   }
 
+  [[nodiscard]] Eigen::Vector3d center() const {return center_;}
+  [[nodiscard]] Eigen::Matrix3d basisMatrix() const {return basisMatrix_;}
+
  private:
   static inline void constructOrthonormalBasis_(
       std::array<Eigen::Vector3d, 3>& basis) noexcept {

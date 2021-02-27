@@ -8,17 +8,18 @@
 /* CPET HEADER FILES */
 #include "Volume.h"
 
-struct TopologyRegion{
-    std::unique_ptr<Volume> volume;
+struct TopologyRegion {
+  std::unique_ptr<Volume> volume;
 
-    int numberOfSamples;
+  int numberOfSamples;
 
-    inline TopologyRegion(std::unique_ptr<Volume> vol, int samples) noexcept
-        : volume(std::move(vol)), numberOfSamples(samples) {}
+  inline TopologyRegion(std::unique_ptr<Volume> vol, int samples) noexcept
+      : volume(std::move(vol)), numberOfSamples(samples) {}
 
-    [[nodiscard]] inline std::string details() const noexcept {
-        return "Samples: " + std::to_string(numberOfSamples) + "; Volume: " + volume->description();
-    }
+  [[nodiscard]] inline std::string details() const noexcept {
+    return "Samples: " + std::to_string(numberOfSamples) +
+           "; Volume: " + volume->description();
+  }
 };
 
-#endif //TOPOLOGYREGION_H
+#endif  // TOPOLOGYREGION_H

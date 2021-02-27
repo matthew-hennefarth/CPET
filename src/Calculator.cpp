@@ -2,8 +2,9 @@
 #include <fstream>
 
 /* EXTERNAL LIBRARY HEADER FILES */
-#include "spdlog/spdlog.h"
+#include "spdlog/sinks/stdout_sinks.h"
 #include "spdlog/fmt/ostr.h"
+#include "spdlog/spdlog.h"
 
 /* CPET HEADER FILES */
 #include "Calculator.h"
@@ -27,16 +28,22 @@ void Calculator::compute() {
     fixCharges_();
   }
 
+  createSystems_();
+  transformSystems_();
+
   if (!option_.calculateEFieldTopology.empty()) {
     computeTopology_();
   }
   if (!option_.calculateEFieldPoints.empty()) {
     computeEField_();
   }
+  if (!option_.calculateEFieldVolumes.empty()) {
+    computeVolume_();
+  }
 }
 
 void Calculator::computeTopology_() const {
-  for (size_t i = 0; i < pointChargeTrajectory_.size(); i++) {
+  for (size_t i = 0; i < systems_.size(); i++) {
     SPDLOG_INFO("=~=~=~=~[Trajectory {}]=~=~=~=~", i);
     System sys(pointChargeTrajectory_[i], option_);
     sys.transformToUserSpace();
@@ -62,25 +69,42 @@ void Calculator::computeEField_() const {
     SPDLOG_INFO("=~=~=~=~[Field at {}]=~=~=~=~", point);
     std::vector<Eigen::Vector3d> fieldTrajectoryAtPoint;
 
-    for (const auto& trajectory : pointChargeTrajectory_) {
-      System sys(trajectory, option_);
-      sys.transformToUserSpace();
-
+    for (size_t i = 0; i < systems_.size(); i++) {
       Eigen::Vector3d location;
       if (point.find(':') != std::string::npos) {
-        location = PointCharge::find(trajectory, AtomID(point))->coordinate;
+        location = PointCharge::find(pointChargeTrajectory_[i], AtomID(point))
+                       ->coordinate;
       } else {
         auto point_split = split(point, ',');
         location = {std::stod(point_split[0]), std::stod(point_split[1]),
                     std::stod(point_split[2])};
       }
-      Eigen::Vector3d field = sys.electricFieldAt(location);
+      Eigen::Vector3d field = systems_[i].electricFieldAt(location);
       SPDLOG_INFO("Field: {} [{}]", field.transpose(), field.norm());
       fieldTrajectoryAtPoint.emplace_back(field);
     }
     results.push_back(fieldTrajectoryAtPoint);
   }
   writeEFieldResults_(results);
+}
+
+void Calculator::computeVolume_() const {
+  for (const auto& volume : option_.calculateEFieldVolumes) {
+    std::vector<std::vector<Eigen::Vector3d>> volumeResults;
+    volumeResults.reserve(systems_.size());
+
+    for (const auto& system : systems_) {
+      std::vector<Eigen::Vector3d> tmpSystemResults;
+      tmpSystemResults.reserve(volume.points.size());
+
+      for (const auto& position : volume.points) {
+        tmpSystemResults.push_back(system.electricFieldAt(position));
+      }
+
+      volumeResults.push_back(tmpSystemResults);
+    }
+    writeVolumeResults_(volumeResults, volume);
+  }
 }
 
 void Calculator::loadPointChargeTrajectory_() {
@@ -161,6 +185,35 @@ void Calculator::writeEFieldResults_(
       outFile << '#' << option_.calculateEFieldPoints[i] << '\n';
       for (const Eigen::Vector3d& field : results[i]) {
         outFile << field.transpose() << '\n';
+      }
+    }
+    outFile << std::flush;
+  } else {
+    SPDLOG_ERROR("Could not open file {}", file);
+    throw cpet::io_error("Could not open file " + file);
+  }
+}
+
+void Calculator::writeVolumeResults_(
+    const std::vector<std::vector<Eigen::Vector3d>>& results,
+    const EFieldVolume& volume) const {
+  std::string file = outputPrefix_ + '_' + volume.name() + ".volume";
+  std::ofstream outFile(file, std::ios::out);
+
+  const Eigen::IOFormat fmt(6, Eigen::DontAlignCols, " ", " ", "", "", "", "");
+  const Eigen::IOFormat commentFmt(6, 0, " ", "\n", "#", "");
+
+
+  if (outFile.is_open()) {
+    outFile << '#' << proteinFile_ << '\n';
+    outFile << '#' << volume.details() << '\n';
+    for (size_t i = 0; i < systems_.size(); i++) {
+      outFile << "#Frame " << i << '\n';
+      outFile << "#Center: " << systems_[i].center().transpose() << '\n';
+      outFile << "#Basis Matrix:\n" << systems_[i].basisMatrix().format(commentFmt) << '\n';
+
+      for (size_t j = 0; j < results[i].size(); j++) {
+        outFile << volume.points[j].transpose().format(fmt) << ' ' << results[i][j].transpose().format(fmt) << '\n';
       }
     }
     outFile << std::flush;
