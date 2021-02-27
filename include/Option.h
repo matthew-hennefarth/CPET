@@ -23,7 +23,7 @@ class Option {
 
   AtomID direction2ID{AtomID::Constants::e2};
 
-  std::vector<std::string> calculateEFieldPoints;
+  std::vector<AtomID> calculateEFieldPoints;
 
   std::vector<TopologyRegion> calculateEFieldTopology;
 

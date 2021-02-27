@@ -66,19 +66,18 @@ void Calculator::computeTopology_() const {
 void Calculator::computeEField_() const {
   std::vector<std::vector<Eigen::Vector3d>> results;
   for (const auto& point : option_.calculateEFieldPoints) {
-    SPDLOG_INFO("=~=~=~=~[Field at {}]=~=~=~=~", point);
+    SPDLOG_INFO("=~=~=~=~[Field at {}]=~=~=~=~", point.id);
     std::vector<Eigen::Vector3d> fieldTrajectoryAtPoint;
 
     for (size_t i = 0; i < systems_.size(); i++) {
       Eigen::Vector3d location;
-      if (point.find(':') != std::string::npos) {
-        location = PointCharge::find(pointChargeTrajectory_[i], AtomID(point))
-                       ->coordinate;
+
+      if (point.position()) {
+        location = *(point.position());
       } else {
-        auto point_split = split(point, ',');
-        location = {std::stod(point_split[0]), std::stod(point_split[1]),
-                    std::stod(point_split[2])};
+        location = PointCharge::find(pointChargeTrajectory_[i], point)->coordinate;
       }
+
       Eigen::Vector3d field = systems_[i].electricFieldAt(location);
       SPDLOG_INFO("Field: {} [{}]", field.transpose(), field.norm());
       fieldTrajectoryAtPoint.emplace_back(field);
@@ -182,7 +181,7 @@ void Calculator::writeEFieldResults_(
   if (outFile.is_open()) {
     outFile << '#' << proteinFile_ << '\n';
     for (size_t i = 0; i < results.size(); i++) {
-      outFile << '#' << option_.calculateEFieldPoints[i] << '\n';
+      outFile << '#' << option_.calculateEFieldPoints[i].id << '\n';
       for (const Eigen::Vector3d& field : results[i]) {
         outFile << field.transpose() << '\n';
       }
