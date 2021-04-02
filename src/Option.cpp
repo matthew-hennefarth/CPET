@@ -37,9 +37,10 @@ void Option::loadOptionsFromFile_(const std::string& optionFile) {
         std::array<double, 3> dims = {std::stod(info[1]), std::stod(info[2]),
                                       std::stod(info[3])};
         calculateEFieldVolumes.emplace_back(
-            std::make_unique<Box>(dims), std::array<int, 3>{std::stoi(info[4]), std::stoi(info[5]),
-            std::stoi(info[6])});
-}
+            std::make_unique<Box>(dims),
+            std::array<int, 3>{std::stoi(info[4]), std::stoi(info[5]),
+                               std::stoi(info[6])});
+      }
     }
   });
 }

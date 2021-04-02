@@ -4,8 +4,8 @@
 
 /* EXTERNAL LIBRARY HEADER FILES */
 #include "cs_libguarded/cs_plain_guarded.h"
-#include "spdlog/fmt/ostr.h"
 #include "spdlog/sinks/stdout_sinks.h"
+#include "spdlog/fmt/ostr.h"
 
 /* CPET HEADER FILES */
 #include "Instrumentation.h"
@@ -26,7 +26,7 @@ System::System(std::vector<PointCharge> pc, const Option& options)
 
   if (options.direction1ID.position()) {
     SPDLOG_INFO("we have a position!!!!");
-    basis[0] = *(options.direction1ID.position());
+    basis[0] = *(options.direction1ID.position()) - center_;
   } else {
     basis[0] =
         PointCharge::find(pointCharges_, options.direction1ID)->coordinate -
@@ -35,7 +35,7 @@ System::System(std::vector<PointCharge> pc, const Option& options)
   basis[0] = basis[0] / basis[0].norm();
 
   if (options.direction2ID.position()) {
-    basis[1] = *(options.direction2ID.position());
+    basis[1] = *(options.direction2ID.position()) - center_;
   } else {
     basis[1] =
         PointCharge::find(pointCharges_, options.direction2ID)->coordinate -
