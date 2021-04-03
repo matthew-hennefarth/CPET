@@ -64,7 +64,7 @@ Furthermore, you should see a new file `my_pdb_file.pdb.field` which contains
 
 To understand the output, lets consider the text from the standard out. Note that we print out the center that we are using, which is at (0,0,0). Next we printout the user basis that we are using. Since we have not specified any alternative basis, we use the standard basis. Finally, we printout the field at the location 0:0:0. Note that the value in brackets `[0.15425672813686317]` is the magnitude of the field at that position. Note that the field output is in units of V/Å. Note that the output in the `my_pdb_file.pdb.field` file is a condensed version of this data.
 
-## Protein Trajectory
+## Protein Trajectories
 One the key strengths of this program is computing the electric field along a protein trajectory. A single pdb file should contain all the different structures, seperated by the `ENDMDL` line. That is to say, if we have a pdb file, `traj.pdb` which is as such:
 
     ATOM      1  N   MET A   1     105.084 111.090  87.799 -0.836  0.00           N
@@ -102,6 +102,29 @@ calling `cpet -p traj.pdb -o options` will output something similar to:
 
 Notice how we have calculate the electric field at the origin for both structures in the pdb file! Though, for trajectory files, it becomes cumbersome to assign partial atomic charges for every atom in every structure. Instead, if we take the first frame and generate a .pdb with the partial atomic charges in the occupancy column, we can use this as a template for all of the structures in our trajectory. As such, we notify the program to use the charges from a different file using the `-c` option. For example, if the first frame contains the partial atomic charges for our trajectory (in the file `frame0.pdb`), then we could have called `cpet -p traj.pdb -c frame0.pdb -o options` instead. Note that this means that the charges are fixed throughout the trajectory, whereas they may be dynamic. Though, often in classical force fields, the partial atomic charges are fixed anyways, and it is not too poor of an approximation.
 
+## Choosing an Origin and Basis Set
+The electric field is a vector quantity with an x,y,z component and which is dependent on the basis that we are using. Often times, we are interested in a primary direction of the electric field (along some bond) and as such want to measure the field in this alternative basis set ({x<sub>1</sub>, x<sub>2</sub>, x<sub>3</sub>}) along the trajectory. We can specify the translation and rotation of the standard basis to an alternative basis using the keyword `align arg1 arg2 arg3` in the options file. 1 or 3 parameters then follows. The first will be the new center. The second and third option are the new directions for which we should align our basis in, relative to the center just specified. That is, x<sub>1</sub> = arg2 - arg1. We then guess x<sub>2</sub> to arg3-arg1. Since x<sub>1</sub> and x<sub>2</sub> are not always orthogonal, we then use the cross-product to determine x<sub>3</sub> = x<sub>1</sub> x x<sub>2</sub>. Now, x<sub>1</sub> and x<sub>3</sub> are orthonal, and we finally complete the orthogonal basis by taking x<sub>2</sub> = x<sub>3</sub> x x<sub>1</sub>. All vectors are normalized to createthe orthonormal basis. Some examples:
+
+    align 1:5:4
+   
+In the above example, we only change the origin to (1,5,4).
+    
+    align 1:5:4 1:6:4 1:5:5   
+
+In this example, will change the origin to (1,5,4) and set the x<sub>1</sub> to (1,6,4) - (1,5,4) = (0,1,0). The x<sub>3</sub>-direction will be specified by the normal vector to the plane created by (0,1,0) and (1,5,5) - (1,5,4), or (0,0,1). That means, x<sub>3</sub> = (1,0,0). To find x<sub>2</sub>, we take the cross product between (1,0,0) and (0,1,0), which is (0,0,1). 
+
+When we specify a new center and basis with the `align` keyword, all of the commands in the options file will then take place in this new frame. That is, 
+    
+    align 1:5:4
+    field 0:0:0
+    
+will first translate the system to 1:5:4 (the new origin), and then compute the field at 0:0:0 (which is really 1:5:4 in the original pdb coordinates). If we did
+    
+    align 1:5:4
+    field 1:0:0
+    
+we would be calculating the field at (2,5,4). While this is not too interesting for simple field calculations, it becomes useful for protein trajectories, where we want the field at some atom (which could be moving) and along some bond (which the direction could also be moving). Furthermore, for the more complex options of `plot` and `topology`, we use the align section to orient our 3D volumes.
+
 ## Further Command-line Options
 The additional options (beyond `-o` and `-p` one can specify are
 - `-d`
@@ -110,4 +133,5 @@ The additional options (beyond `-o` and `-p` one can specify are
 - `-O` 
 - `-h` 
 - `-v`
+
 `-d`, `-h`, and `-v` are boolean flags which signal 'debug', 'help message', and 'verbose' respectively. `-c` specifies an alternative file from which to reference the partial atomic charges for each atom. Again, the charges should be in the occupancy column. `-t` tells the program the number of threads to use when computing topological quantities. Note that there is ONLY parallizability for the `topology` keyword in the options file. `-O` specifies an alternative output file prefix. Note that if this is not specified, then the default file prefix will be the pdb file from the `-p` option.
