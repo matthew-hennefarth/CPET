@@ -10,6 +10,7 @@
 
 /* CPET HEADER FILES */
 #include "Calculator.h"
+#include "Exceptions.h"
 
 std::optional<std::string> validPDBFile(
     const cxxopts::ParseResult& result) noexcept {
@@ -130,12 +131,19 @@ int main(int argc, char** argv) {
   }
 
   /* Begin the actual program here */
-  Calculator c(proteinFile.value(), optionFile.value(), chargesFile.value(),
+  try{
+    Calculator c(proteinFile.value(), optionFile.value(), chargesFile.value(),
                numberOfThreads.value());
-  if (!result["out"].as<std::string>().empty()) {
-    c.setOutputFilePrefix(result["out"].as<std::string>());
+    if (!result["out"].as<std::string>().empty()) {
+      c.setOutputFilePrefix(result["out"].as<std::string>());
+    }
+    c.compute();
   }
-  c.compute();
+  catch (cpet::value_error exc)
+  {
+    // catch anything thrown within try block that derives from std::exception
+    SPDLOG_ERROR("BOI");
+  }
 
   return 0;
 }

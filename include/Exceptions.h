@@ -5,12 +5,14 @@
 #include <stdexcept>
 #include <string>
 
+#include <iostream>
+
 namespace cpet{
     class value_error : std::runtime_error {
         public:
-            explicit value_error(const std::string& what_arg) : std::runtime_error(what_arg){}
+            explicit value_error(const std::string& what_arg) : std::runtime_error(what_arg){std::cerr << what_arg;}
 
-            explicit value_error(const char * what_arg) : std::runtime_error(what_arg){}
+            explicit value_error(const char * what_arg) : std::runtime_error(what_arg){std::cerr << what_arg;}
     };
 
     class value_not_found : std::runtime_error {
