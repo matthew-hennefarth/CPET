@@ -2,7 +2,7 @@
 Tool used to compute the classical electric field from a protein structure (or structures) as well as sample topological data.
 
 ## Requirements
-- CMake Version >= 3.17
+- CMake Version >= 3.16
 - Clang Version >= 12.0.0 or GCC Version >= 9.3.0
 - Eigen
 - cs_libguarded
