@@ -19,7 +19,7 @@ class AtomID {
   enum class Constants { origin, e1, e2 };
 
   explicit inline AtomID(Constants other_id)
-      : id(decodeConstant_(other_id)) {
+      : id(decodeConstant_(other_id)), isConstant_(true) {
     if (!validID()) {
       throw cpet::value_error("Invalid atom id: " + id);
     }
@@ -49,30 +49,30 @@ class AtomID {
     if (!validID()) {
       throw cpet::value_error("Invalid AtomID specification: " + id);
     }
+    isConstant_ = true;
     return *this;
   }
 
   [[nodiscard]] inline bool validID() const noexcept { return validID(id); }
 
-  [[nodiscard]] inline bool validID(std::string_view atomid) const noexcept {
+  [[nodiscard]] static inline bool validID(std::string_view atomid) noexcept {
     auto splitID = split(atomid, ':');
 
     if (splitID.size() != 3) {
       return false;
     }
 
-    try {
-      position_.emplace(std::stod(splitID[0]), std::stod(splitID[1]),
-                        std::stod(splitID[2]));
-    } catch (const std::invalid_argument&) {
-      position_.reset();
-      try {
-        stoi(splitID[1]);
-      } catch (const std::invalid_argument&) {
-        return false;
+    for (const auto& arg : splitID) {
+      if (!isDouble(arg)) {
+        goto invalid_arg;
       }
     }
+
     return true;
+  invalid_arg:
+    if (isDouble(splitID[1])) return true;
+
+    return false;
   }
 
   [[nodiscard]] inline bool operator==(const std::string& rhs) const noexcept {
@@ -120,12 +120,29 @@ class AtomID {
 
   [[nodiscard]] inline std::optional<Eigen::Vector3d> position()
       const noexcept {
+    if (!position_) {
+      auto splitID = split(id, ':');
+
+      if (splitID.size() != 3) {
+        position_.reset();
+      } else {
+        try {
+          position_.emplace(std::stod(splitID[0]), std::stod(splitID[1]),
+                            std::stod(splitID[2]));
+        } catch (const std::invalid_argument&) {
+          position_.reset();
+        }
+      }
+    }
     return position_;
   }
+
+  [[nodiscard]] inline bool isConstant() const noexcept { return isConstant_; }
 
   std::string id;
 
  private:
+  bool isConstant_ = false;
   mutable std::optional<Eigen::Vector3d> position_;
 
   [[nodiscard]] static inline std::string decodeConstant_(Constants c) {

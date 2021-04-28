@@ -42,3 +42,11 @@ std::vector<std::string> split(std::string_view str, char delim) {
 
     return result;
 }
+
+bool isDouble (const std::string& str) noexcept {
+  double result;
+  auto i = std::istringstream(str);
+
+  i >> result;
+  return !i.fail() && i.eof();
+}

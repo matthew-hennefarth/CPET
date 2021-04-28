@@ -25,25 +25,47 @@ System::System(std::vector<PointCharge> pc, const Option& options)
   std::array<Eigen::Vector3d, 3> basis;
 
   if (options.direction1ID.position()) {
-    SPDLOG_INFO("we have a position!!!!");
-    basis[0] = *(options.direction1ID.position()) - center_;
+    if (options.direction1ID.isConstant()) {
+      SPDLOG_DEBUG("Using constant direction for direction 1");
+      basis[0] = *(options.direction1ID.position());
+    }
+    else {
+      SPDLOG_DEBUG("Using user defined vector for direction 1");
+      basis[0] = *(options.direction1ID.position()) - center_;
+    }
   } else {
     basis[0] =
         PointCharge::find(pointCharges_, options.direction1ID)->coordinate -
         center_;
   }
+  SPDLOG_DEBUG("Basis[0] is {}", basis[0].transpose());
   basis[0] = basis[0] / basis[0].norm();
+  SPDLOG_DEBUG("Normalized, basis[0] is {}", basis[0].transpose());
 
   if (options.direction2ID.position()) {
-    basis[1] = *(options.direction2ID.position()) - center_;
+    if (options.direction2ID.isConstant()) {
+      SPDLOG_DEBUG("Using constant direction for direction 2");
+      basis[1] = *(options.direction2ID.position());
+    }
+    else {
+      SPDLOG_DEBUG("Using user defined vector for direction 2");
+      basis[1] = *(options.direction2ID.position()) - center_;
+    }
   } else {
     basis[1] =
         PointCharge::find(pointCharges_, options.direction2ID)->coordinate -
         center_;
   }
+  SPDLOG_DEBUG("Basis[1] is {}", basis[1].transpose());
   basis[1] = basis[1] / basis[1].norm();
+  SPDLOG_DEBUG("Normalized, basis[1] is {}", basis[1].transpose());
 
   constructOrthonormalBasis_(basis);
+
+  SPDLOG_DEBUG("Final Basis Vectors:");
+  for(const auto& b : basis){
+    SPDLOG_DEBUG("{}", b.transpose());
+  }
 
   for (size_t i = 0; i < basis.size(); i++) {
     basisMatrix_.block(0, static_cast<Eigen::Index>(i), 3, 1) = basis[i];

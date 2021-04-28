@@ -56,6 +56,9 @@ class System {
       std::array<Eigen::Vector3d, 3>& basis) noexcept {
     basis[2] = basis[0].cross(basis[1]);
     basis[1] = basis[2].cross(basis[0]);
+
+    basis[2] = basis[2] / basis[2].norm();
+    basis[1] = basis[1] / basis[1].norm();
   }
 
   [[nodiscard]] double curvatureAt_(
