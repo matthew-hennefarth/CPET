@@ -54,6 +54,7 @@ class System {
  private:
   static inline void constructOrthonormalBasis_(
       std::array<Eigen::Vector3d, 3>& basis) noexcept {
+    SPDLOG_DEBUG("Constructing orthonormal basis...");
     basis[2] = basis[0].cross(basis[1]);
     basis[1] = basis[2].cross(basis[0]);
 
