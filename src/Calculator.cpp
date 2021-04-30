@@ -144,14 +144,14 @@ void Calculator::fixCharges_() {
 
   for (auto& structure : pointChargeTrajectory_) {
     if (structure.size() != realCharges.size()) {
-      auto it = find(pointChargeTrajectory_.begin(),
-                     pointChargeTrajectory_.end(), structure);
-      auto index = static_cast<int>(it - pointChargeTrajectory_.begin());
-      SPDLOG_ERROR(
-          "Inconsistent number of point charges in trajectory structure {} and "
-          "in charge "
-          "file",
-          index);
+      //auto it = find(pointChargeTrajectory_.begin(),
+                     //pointChargeTrajectory_.end(), structure);
+      //auto index = static_cast<int>(it - pointChargeTrajectory_.begin());
+      //SPDLOG_ERROR(
+          //"Inconsistent number of point charges in trajectory structure {} and "
+          //"in charge "
+          //"file",
+          //index);
       SPDLOG_ERROR("Structure size: {}, number of charges: {}",
                    structure.size(), realCharges.size());
       throw cpet::value_error(

@@ -1,3 +1,6 @@
 [submodule "submodules/cs_libguarded"]
 	path = submodules/cs_libguarded
 	url = https://github.com/copperspice/cs_libguarded.git
+[submodule "submodules/cxxopts"]
+	path = submodules/cxxopts
+	url = https://github.com/jarro2783/cxxopts.git
