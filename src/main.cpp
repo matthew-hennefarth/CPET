@@ -4,7 +4,7 @@
 #include <string>
 
 /* EXTERNAL LIBRARY HEADER FILES */
-#include "cxxopts/cxxopts.h"
+#include "cxxopts/cxxopts.hpp"
 #include "spdlog/sinks/stdout_sinks.h"
 #include "spdlog/spdlog.h"
 
