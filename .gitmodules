@@ -4,3 +4,6 @@
 [submodule "submodules/cxxopts"]
 	path = submodules/cxxopts
 	url = https://github.com/jarro2783/cxxopts.git
+[submodule "submodules/spdlog"]
+	path = submodules/spdlog
+	url = https://github.com/gabime/spdlog.git
