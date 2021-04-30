@@ -12,6 +12,14 @@ Note that libraries are included as git submodules, and do not need to be instal
 - spdlog
 
 ## Installation
+### Download Binaries
+Binaries are available for [Linux](https://github.com/matthew-hennefarth/CPET/releases/download/v0.0.0/cpet_Linux-x86_64) (gcc > 9.3) and [MacOSX](https://github.com/matthew-hennefarth/CPET/releases/download/v0.0.0/cpet_MacOSX-ARM64) (ARM 64, 'Apple Silicon'). If you receive an error such as 
+
+    /usr/lib64/libstdc++.so.6: version `GLIBCXX_3.4.26' not found
+
+you will have to compile from source (see below).
+
+### Compile from source
 Clone this repository and the submodules using
 
     git clone --recursive https://github.com/matthew-hennefarth/CPET.git
