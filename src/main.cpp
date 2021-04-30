@@ -1,3 +1,6 @@
+// Copyright(c) 2020-Present, Matthew R. Hennefarth
+// Distributed under the MIT License (http://opensource.org/licenses/MIT)
+
 /* C++ STL HEADER FILES */
 #include <filesystem>
 #include <optional>
@@ -131,16 +134,14 @@ int main(int argc, char** argv) {
   }
 
   /* Begin the actual program here */
-  try{
+  try {
     Calculator c(proteinFile.value(), optionFile.value(), chargesFile.value(),
-               numberOfThreads.value());
+                 numberOfThreads.value());
     if (!result["out"].as<std::string>().empty()) {
       c.setOutputFilePrefix(result["out"].as<std::string>());
     }
     c.compute();
-  }
-  catch (cpet::value_error exc)
-  {
+  } catch (cpet::value_error exc) {
     // catch anything thrown within try block that derives from std::exception
     SPDLOG_ERROR("BOI");
   }

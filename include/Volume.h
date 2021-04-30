@@ -1,3 +1,6 @@
+// Copyright(c) 2020-Present, Matthew R. Hennefarth
+// Distributed under the MIT License (http://opensource.org/licenses/MIT)
+
 #ifndef VOLUME_H
 #define VOLUME_H
 

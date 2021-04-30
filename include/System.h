@@ -1,3 +1,6 @@
+// Copyright(c) 2020-Present, Matthew R. Hennefarth
+// Distributed under the MIT License (http://opensource.org/licenses/MIT)
+
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
@@ -48,8 +51,8 @@ class System {
     transformToUserBasis_();
   }
 
-  [[nodiscard]] Eigen::Vector3d center() const {return center_;}
-  [[nodiscard]] Eigen::Matrix3d basisMatrix() const {return basisMatrix_;}
+  [[nodiscard]] Eigen::Vector3d center() const { return center_; }
+  [[nodiscard]] Eigen::Matrix3d basisMatrix() const { return basisMatrix_; }
 
  private:
   static inline void constructOrthonormalBasis_(
