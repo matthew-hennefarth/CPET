@@ -75,7 +75,8 @@ void Calculator::computeEField_() const {
       if (point.position()) {
         location = *(point.position());
       } else {
-        location = PointCharge::find(pointChargeTrajectory_[i], point)->coordinate;
+        location =
+            PointCharge::find(pointChargeTrajectory_[i], point)->coordinate;
       }
 
       Eigen::Vector3d field = systems_[i].electricFieldAt(location);
@@ -107,6 +108,7 @@ void Calculator::computeVolume_() const {
 }
 
 void Calculator::loadPointChargeTrajectory_() {
+  SPDLOG_DEBUG("Loading point charge trajectory from {} ...", proteinFile_);
   std::vector<PointCharge> tmpHolder;
   forEachLineIn(proteinFile_, [this, &tmpHolder](const std::string& line) {
     if (line.rfind("ENDMDL", 0) == 0) {
@@ -126,6 +128,7 @@ void Calculator::loadPointChargeTrajectory_() {
 }
 
 std::vector<double> Calculator::loadChargesFile_() const {
+  SPDLOG_DEBUG("Loading charges from external file {} ...", chargeFile_);
   std::vector<double> realCharges;
   forEachLineIn(chargeFile_, [&realCharges](const std::string& line) {
     if (line.rfind("ATOM", 0) == 0 || line.rfind("HETATM", 0) == 0) {
@@ -136,13 +139,21 @@ std::vector<double> Calculator::loadChargesFile_() const {
 }
 
 void Calculator::fixCharges_() {
+  SPDLOG_DEBUG("Fixing charges in structure file with real charges...");
   auto realCharges = loadChargesFile_();
 
   for (auto& structure : pointChargeTrajectory_) {
     if (structure.size() != realCharges.size()) {
+      auto it = find(pointChargeTrajectory_.begin(),
+                     pointChargeTrajectory_.end(), structure);
+      auto index = static_cast<int>(it - pointChargeTrajectory_.begin());
       SPDLOG_ERROR(
-          "Inconsistent number of point charges in trajectory and in charge "
-          "file");
+          "Inconsistent number of point charges in trajectory structure {} and "
+          "in charge "
+          "file",
+          index);
+      SPDLOG_ERROR("Structure size: {}, number of charges: {}",
+                   structure.size(), realCharges.size());
       throw cpet::value_error(
           "Inconsistent number of point charges in trajectory and in charge "
           "file");
@@ -157,6 +168,7 @@ void Calculator::fixCharges_() {
 void Calculator::writeTopologyResults_(const std::vector<PathSample>& data,
                                        const TopologyRegion& region,
                                        int i) const {
+  SPDLOG_DEBUG("Writing topology results...");
   std::string file = outputPrefix_ + '_' + std::to_string(i) + '_' +
                      region.volume->type() + ".top";
   std::ofstream outFile(file, std::ios::out);
@@ -202,17 +214,18 @@ void Calculator::writeVolumeResults_(
   const Eigen::IOFormat fmt(6, Eigen::DontAlignCols, " ", " ", "", "", "", "");
   const Eigen::IOFormat commentFmt(6, 0, " ", "\n", "#", "");
 
-
   if (outFile.is_open()) {
     outFile << '#' << proteinFile_ << '\n';
     outFile << '#' << volume.details() << '\n';
     for (size_t i = 0; i < systems_.size(); i++) {
       outFile << "#Frame " << i << '\n';
       outFile << "#Center: " << systems_[i].center().transpose() << '\n';
-      outFile << "#Basis Matrix:\n" << systems_[i].basisMatrix().format(commentFmt) << '\n';
+      outFile << "#Basis Matrix:\n"
+              << systems_[i].basisMatrix().format(commentFmt) << '\n';
 
       for (size_t j = 0; j < results[i].size(); j++) {
-        outFile << volume.points[j].transpose().format(fmt) << ' ' << results[i][j].transpose().format(fmt) << '\n';
+        outFile << volume.points[j].transpose().format(fmt) << ' '
+                << results[i][j].transpose().format(fmt) << '\n';
       }
     }
     outFile << std::flush;

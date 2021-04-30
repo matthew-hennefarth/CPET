@@ -4,8 +4,8 @@
 
 /* EXTERNAL LIBRARY HEADER FILES */
 #include "cs_libguarded/cs_plain_guarded.h"
-#include "spdlog/sinks/stdout_sinks.h"
 #include "spdlog/fmt/ostr.h"
+#include "spdlog/sinks/stdout_sinks.h"
 
 /* CPET HEADER FILES */
 #include "Instrumentation.h"
@@ -28,8 +28,7 @@ System::System(std::vector<PointCharge> pc, const Option& options)
     if (options.direction1ID.isConstant()) {
       SPDLOG_DEBUG("Using constant direction for direction 1");
       basis[0] = *(options.direction1ID.position());
-    }
-    else {
+    } else {
       SPDLOG_DEBUG("Using user defined vector for direction 1");
       basis[0] = *(options.direction1ID.position()) - center_;
     }
@@ -46,8 +45,7 @@ System::System(std::vector<PointCharge> pc, const Option& options)
     if (options.direction2ID.isConstant()) {
       SPDLOG_DEBUG("Using constant direction for direction 2");
       basis[1] = *(options.direction2ID.position());
-    }
-    else {
+    } else {
       SPDLOG_DEBUG("Using user defined vector for direction 2");
       basis[1] = *(options.direction2ID.position()) - center_;
     }
@@ -63,17 +61,22 @@ System::System(std::vector<PointCharge> pc, const Option& options)
   constructOrthonormalBasis_(basis);
 
   SPDLOG_DEBUG("Final Basis Vectors:");
-  for(const auto& b : basis){
+#if SPDLOG_ACTIVE_LEVEL == SPDLOG_LEVEL_DEBUG
+  for (const auto& b : basis) {
     SPDLOG_DEBUG("{}", b.transpose());
   }
+#endif
 
+  SPDLOG_DEBUG("Constructing basis matrix...");
   for (size_t i = 0; i < basis.size(); i++) {
     basisMatrix_.block(0, static_cast<Eigen::Index>(i), 3, 1) = basis[i];
   }
   if (basisMatrix_.determinant() == 0) {
+    SPDLOG_ERROR("Basis is not linearly independent");
     throw cpet::value_error("Basis is not linearly independent");
   }
 
+  SPDLOG_DEBUG("Removing point charges with charge of 0...");
   pointCharges_.erase(
       remove_if(begin(pointCharges_), end(pointCharges_),
                 [](const auto& pc) { return pc.charge == 0.0; }),
@@ -81,6 +84,7 @@ System::System(std::vector<PointCharge> pc, const Option& options)
 }
 
 Eigen::Vector3d System::electricFieldAt(const Eigen::Vector3d& position) const {
+  SPDLOG_DEBUG("Computing field at {}...", position.transpose());
   Eigen::Vector3d result(0, 0, 0);
 
   Eigen::Vector3d d;
@@ -91,6 +95,7 @@ Eigen::Vector3d System::electricFieldAt(const Eigen::Vector3d& position) const {
     result += ((pc.charge * d) / (dNorm * dNorm * dNorm));
   }
   result *= (1.0 / (4.0 * M_PI * PERM_SPACE));
+  SPDLOG_DEBUG("Field is {}", result.transpose());
   return result;
 }
 
@@ -105,6 +110,7 @@ std::vector<PathSample> System::electricFieldTopologyIn(
   }
 
   if (numOfThreads == 1) {
+    SPDLOG_DEBUG("Single thread...");
     int samples = topologicalRegion.numberOfSamples;
     while (samples-- > 0)
       sampleResults.emplace_back(
@@ -112,6 +118,7 @@ std::vector<PathSample> System::electricFieldTopologyIn(
 
     SPDLOG_INFO("{} Points calculated", topologicalRegion.numberOfSamples);
   } else {
+    SPDLOG_DEBUG("Multi-threads: {}", numOfThreads);
 #if SPDLOG_ACTIVE_LEVEL == SPDLOG_LEVEL_DEBUG
     thread_logger->set_pattern("[Thread: %t] [%l] %v");
 #else
@@ -119,6 +126,7 @@ std::vector<PathSample> System::electricFieldTopologyIn(
 #endif
 
     /* Initialize thread-safe data types */
+    SPDLOG_DEBUG("Initializing data structures...");
     std::atomic_int samples =
         static_cast<int>(topologicalRegion.numberOfSamples);
     libguarded::plain_guarded<std::vector<PathSample>> shared_vector;
@@ -175,6 +183,7 @@ PathSample System::sampleElectricFieldTopologyIn_(const Volume& region) const
 }
 
 double System::curvatureAt_(const Eigen::Vector3d& alpha_0) const noexcept {
+  SPDLOG_DEBUG("Calculating curvature of field at {}", alpha_0.transpose());
   Eigen::Vector3d alpha_prime = electricFieldAt(alpha_0);
   Eigen::Vector3d alpha_1 = nextPoint_(alpha_0);
 
