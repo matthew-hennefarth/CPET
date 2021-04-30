@@ -8,12 +8,14 @@ endif()
 
 set(CMAKE_CXX_STANDARD 17)
 
-# Set the binary output
-set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin/$<CONFIG> )
 if( CMAKE_BUILD_TYPE MATCHES Debug )
   add_definitions(-DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG)
+  # Set the binary output
+  set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin/Debug )
 else()
   add_definitions(-DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_INFO)
+  # Set the binary output
+  set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin/ )
 endif()
 
 #----------------------------------------------[INCLUDE COMPILER WARNINGS]----------------------------------------------
