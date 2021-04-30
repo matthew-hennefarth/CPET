@@ -10,29 +10,20 @@ Tool used to compute the classical electric field from a protein structure (or s
 - spdlog
 
 ## Installation
-Place the Eigen, cs_libguarded, cxxopts, and spdlog header file directories in the libs/include. The structure should be like the following:  
+Clone this repository and the submodules using
 
-    CPET
-     |- cmake  
-     |- include  
-     |- libs  
-     |- include 
-         |- Eigen 
-             |- <Eigen .h files>
-         |- cs_libguarded 
-             |- <Eigen .h files>
-         |- cxxopts
-             |- <Eigen .h files>
-         |- spdlog
-             |- <Eigen .h files>
-     |- src
+    git clone --recursive https://github.com/matthew-hennefarth/CPET.git
              
-Then, make a build directory, `mkdir build` and go into this directory, `cd build`. We will then run cmake to build the binary.
+or, if using ssh,
+
+    git clone --recursive git@github.com:matthew-hennefarth/CPET.git
+     
+Then, go into the project and make a build directory, `mkdir build` and go into this directory, `cd build`. We will then run cmake to build the binary.
 
     cmake ../
     make
 
-This should create the executable, `cpet`, in `CPET/bin/Release` to be used.
+This should create the executable, `cpet`, in `CPET/bin` to be used.
 
 ## Usage
 Calling `cpet -h` will output the various options available. What is always needed is a pdb file and an options file. The pdb file should contain the partial atomic charges in the occupancy column (columns 55-60) for each atom. I recommend using the [Atomic Charge Calculate II](https://acc2.ncbr.muni.cz/) for generating partial atomic charges, and it will place the charges in the occupancy column automatically. The options file will tell the program what to compute and how.
