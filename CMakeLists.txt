@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.11)
-project(CPET)
+project(CPET VERSION 1.0.0)
 
 if( NOT CMAKE_BUILD_TYPE )
     message("Setting to Release")
@@ -7,6 +7,8 @@ if( NOT CMAKE_BUILD_TYPE )
 endif()
 
 set(CMAKE_CXX_STANDARD 17)
+
+configure_file(${PROJECT_SOURCE_DIR}/cmake/config.h.in ${PROJECT_SOURCE_DIR}/include/config.h)
 
 if( CMAKE_BUILD_TYPE MATCHES Debug )
   add_definitions(-DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG)

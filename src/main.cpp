@@ -14,6 +14,7 @@
 /* CPET HEADER FILES */
 #include "Calculator.h"
 #include "Exceptions.h"
+#include "config.h"
 
 std::optional<std::string> validPDBFile(
     const cxxopts::ParseResult& result) noexcept {
@@ -55,7 +56,11 @@ std::optional<int> validThreads(const cxxopts::ParseResult& result) noexcept {
 int main(int argc, char** argv) {
   spdlog::set_pattern("%v");
 
-  cxxopts::Options options("CPET", "Classical Protein Electric Field Topology");
+  cxxopts::Options options(
+      "cpet",
+      std::string("Classical Protein Electric Field Topology, version ") +
+          std::string(PROJECT_VER));
+
   options.add_options()(
       "d,debug", "Enable debugging",
       cxxopts::value<bool>()->default_value("false"))  // a bool parameter
