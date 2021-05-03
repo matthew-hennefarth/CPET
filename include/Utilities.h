@@ -49,6 +49,7 @@ InputIt find_if_ex(InputIt first, InputIt last, UnaryPredicate p) {
   if (auto loc = std::find_if(first, last, p); loc != last) {
     return loc;
   }
+  SPDLOG_ERROR("Could not find element in container");
   throw cpet::value_not_found("Could not find element in container");
 }
 

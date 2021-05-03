@@ -65,16 +65,9 @@ class AtomID {
       return false;
     }
 
-    for (const auto& arg : splitID) {
-      if (!isDouble(arg)) {
-        goto invalid_arg;
-      }
+    if (isVector(atomid) || isDouble(splitID[1])) {
+      return true;
     }
-
-    return true;
-  invalid_arg:
-    if (isDouble(splitID[1])) return true;
-
     return false;
   }
 
@@ -129,10 +122,10 @@ class AtomID {
       if (splitID.size() != 3) {
         position_.reset();
       } else {
-        try {
+        if (isVector()) {
           position_.emplace(std::stod(splitID[0]), std::stod(splitID[1]),
                             std::stod(splitID[2]));
-        } catch (const std::invalid_argument&) {
+        } else {
           position_.reset();
         }
       }
@@ -141,6 +134,18 @@ class AtomID {
   }
 
   [[nodiscard]] inline bool isConstant() const noexcept { return isConstant_; }
+
+  [[nodiscard]] inline bool isVector() const noexcept { return isVector(id); }
+
+  [[nodiscard]] static inline bool isVector(std::string_view atomid) noexcept {
+    auto splitID = split(atomid, ':');
+    for (const auto& arg : splitID) {
+      if (!isDouble(arg)) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   std::string id;
 
