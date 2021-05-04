@@ -87,7 +87,6 @@ System::System(std::vector<PointCharge> pc, const Option& options)
 }
 
 Eigen::Vector3d System::electricFieldAt(const Eigen::Vector3d& position) const {
-  SPDLOG_DEBUG("Computing field at {}...", position.transpose());
   Eigen::Vector3d result(0, 0, 0);
 
   Eigen::Vector3d d;
@@ -98,7 +97,6 @@ Eigen::Vector3d System::electricFieldAt(const Eigen::Vector3d& position) const {
     result += ((pc.charge * d) / (dNorm * dNorm * dNorm));
   }
   result *= (1.0 / (4.0 * M_PI * PERM_SPACE));
-  SPDLOG_DEBUG("Field is {}", result.transpose());
   return result;
 }
 
@@ -176,10 +174,19 @@ PathSample System::sampleElectricFieldTopologyIn_(const Volume& region) const
   const int maxSteps = region.randomDistance(STEP_SIZE);
 
   Eigen::Vector3d finalPosition = initialPosition;
+  SPDLOG_DEBUG("Initial position {}", initialPosition.transpose());
   int steps = 0;
 
-  while (region.isInside(finalPosition) && ++steps < maxSteps)
+  while (region.isInside(finalPosition) && ++steps < maxSteps) {
     finalPosition = nextPoint_(finalPosition);
+    SPDLOG_DEBUG("Updated position: {}", finalPosition.transpose());
+  }
+
+  SPDLOG_DEBUG("Initial position {}", initialPosition.transpose());
+  SPDLOG_DEBUG("Final position: {}", finalPosition.transpose());
+  SPDLOG_DEBUG("Num of steps: {}", steps);
+  SPDLOG_DEBUG("Distance between end and start: {}",
+               (finalPosition - initialPosition).norm());
 
   return {(finalPosition - initialPosition).norm(),
           (curvatureAt_(finalPosition) + curvatureAt_(initialPosition)) / 2.0};
@@ -187,21 +194,39 @@ PathSample System::sampleElectricFieldTopologyIn_(const Volume& region) const
 
 double System::curvatureAt_(const Eigen::Vector3d& alpha_0) const noexcept {
   SPDLOG_DEBUG("Calculating curvature of field at {}", alpha_0.transpose());
-  Eigen::Vector3d alpha_prime = electricFieldAt(alpha_0);
+
   Eigen::Vector3d alpha_1 = nextPoint_(alpha_0);
+  Eigen::Vector3d alpha_2 = nextPoint_(alpha_1);
 
-  /* Measures how much "time" we spent going forward */
-  /* delta alpha/delta t = E, in the limit of delta t -> 0 */
-  /* then we have delta alpha/E = delta t */
-  double delta_t = (alpha_1 - alpha_0).norm() / alpha_prime.norm();
+  Eigen::Vector3d alpha_0_prime = alpha_1 - alpha_0;
+  Eigen::Vector3d alpha_1_prime = alpha_2 - alpha_1;
 
-  /* Simple directional derivative of the electric field in that direction */
-  Eigen::Vector3d alpha_prime_prime =
-      (electricFieldAt(alpha_1) - alpha_prime) / delta_t;
+  Eigen::Vector3d alpha_0_prime_prime = alpha_1_prime - alpha_0_prime;
 
-  double alpha_prime_norm = alpha_prime.norm();
+  double alpha_prime_norm = alpha_0_prime.norm();
 
-  return (alpha_prime.cross(alpha_prime_prime)).norm() /
+  return (alpha_0_prime.cross(alpha_0_prime_prime)).norm() /
          (alpha_prime_norm * alpha_prime_norm * alpha_prime_norm);
+
+  // The difference between these two methods is generally small, but I trust
+  // the first method more so.
+
+  // Eigen::Vector3d alpha_prime = electricFieldAt(alpha_0);
+
+  // Measures how much "time" we spent going forward
+  // delta alpha/delta t = E, in the limit of delta t -> 0
+  // then we have delta alpha/E = delta t
+  // double delta_t = (alpha_1 - alpha_0).norm() / alpha_prime.norm();
+
+  // Simple directional derivative of the electric field in that direction
+  // Eigen::Vector3d alpha_prime_prime =
+  // (electricFieldAt(alpha_1) - alpha_prime) / delta_t;
+
+  // alpha_prime_norm = alpha_prime.norm();
+
+  // double curvature_1 = (alpha_prime.cross(alpha_prime_prime)).norm() /
+  // (alpha_prime_norm * alpha_prime_norm * alpha_prime_norm);
+
+  // SPDLOG_ERROR("Difference: {}", curvature_0-curvature_1);
 }
 
