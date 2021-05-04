@@ -6,8 +6,8 @@
 
 /* C++ STL HEADER FILES */
 #include <random>
-#include <vector>
 #include <string>
+#include <vector>
 
 /* EXTERNAL LIBRARY HEADER FILES */
 #include "Eigen/Dense"
@@ -29,6 +29,14 @@ class Box : public Volume {
 
   [[nodiscard]] inline const double& maxDim() const noexcept override {
     return *std::max_element(sides_.begin(), sides_.end());
+  }
+
+  [[nodiscard]] inline double diagonal() const noexcept {
+    double diag = 0;
+    for (const auto& dim : sides_) {
+      diag += dim * dim;
+    }
+    return sqrt(diag);
   }
 
   [[nodiscard]] inline bool isInside(
@@ -66,7 +74,7 @@ class Box : public Volume {
   [[nodiscard]] inline int randomDistance(
       double stepSize) const noexcept override {
     std::uniform_int_distribution<int> distribution(
-        1, static_cast<int>(maxDim() / stepSize));
+        1, static_cast<int>(diagonal() / stepSize));
     return distribution(*randomNumberGenerator());
   }
 
