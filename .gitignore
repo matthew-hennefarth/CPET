@@ -45,6 +45,7 @@ _deps
 *.out
 *.app
 
+include/config.h
 bin/
 build/
 .ccls
