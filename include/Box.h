@@ -36,7 +36,7 @@ class Box : public Volume {
     for (const auto& dim : sides_) {
       diag += dim * dim;
     }
-    return sqrt(diag);
+    return sqrt(4*diag);
   }
 
   [[nodiscard]] inline bool isInside(
