@@ -207,26 +207,5 @@ double System::curvatureAt_(const Eigen::Vector3d& alpha_0) const noexcept {
 
   return (alpha_0_prime.cross(alpha_0_prime_prime)).norm() /
          (alpha_prime_norm * alpha_prime_norm * alpha_prime_norm);
-
-  // The difference between these two methods is generally small, but I trust
-  // the first method more so.
-
-  // Eigen::Vector3d alpha_prime = electricFieldAt(alpha_0);
-
-  // Measures how much "time" we spent going forward
-  // delta alpha/delta t = E, in the limit of delta t -> 0
-  // then we have delta alpha/E = delta t
-  // double delta_t = (alpha_1 - alpha_0).norm() / alpha_prime.norm();
-
-  // Simple directional derivative of the electric field in that direction
-  // Eigen::Vector3d alpha_prime_prime =
-  // (electricFieldAt(alpha_1) - alpha_prime) / delta_t;
-
-  // alpha_prime_norm = alpha_prime.norm();
-
-  // double curvature_1 = (alpha_prime.cross(alpha_prime_prime)).norm() /
-  // (alpha_prime_norm * alpha_prime_norm * alpha_prime_norm);
-
-  // SPDLOG_ERROR("Difference: {}", curvature_0-curvature_1);
 }
 
