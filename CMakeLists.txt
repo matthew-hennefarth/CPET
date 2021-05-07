@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.11)
-project(CPET VERSION 0.0.0)
+project(CPET VERSION 0.1.0)
 
 if( NOT CMAKE_BUILD_TYPE )
   message("Setting to CMAKE_BUILD_TYPE to Release")
@@ -35,20 +35,11 @@ CPMAddPackage(
   NAME eigen
   GIT_REPOSITORY https://gitlab.com/libeigen/eigen
   GIT_TAG origin/master
-  OPTIONS "EIGEN_BUILD_DOC NO" "BUILD_TESTING NO" ""
+  OPTIONS "EIGEN_BUILD_DOC NO" "BUILD_TESTING NO" 
 )
-CPMAddPackage(
-  GITHUB_REPOSITORY jarro2783/cxxopts
-  GIT_TAG origin/master
-)
-CPMAddPackage(
-  GITHUB_REPOSITORY gabime/spdlog
-  VERSION 1.8.5
-)
-CPMAddPackage(
-  GITHUB_REPOSITORY copperspice/cs_libguarded
-  GIT_TAG origin/master
-)
+CPMAddPackage("gh:jarro2783/cxxopts#master")
+CPMAddPackage("gh:gabime/spdlog@1.8.5")
+CPMAddPackage("gh:copperspice/cs_libguarded#master")
 
 #----[Source]----
 add_subdirectory(src)

@@ -6,10 +6,6 @@ Note that libraries are included as git submodules, and do not need to be instal
 - CMake Version >= 3.11
 - Clang Version >= 12.0.0 or GCC Version >= 9.3.0
 - C++ Standard >= 17
-- Eigen
-- cs_libguarded
-- cxxopts
-- spdlog
 
 ## Installation
 ### Download Binaries
@@ -34,6 +30,13 @@ Then, go into the project and make a build directory, `mkdir build` and go into 
     make
 
 This should create the executable, `cpet`, in `CPET/bin` to be used.
+
+## Uses
+This code uses the following C++ libraries:
+- Eigen
+- cs_libguarded
+- cxxopts
+- spdlog
 
 ## Usage
 Calling `cpet -h` will output the various options available. What is always needed is a pdb file and an options file. The pdb file should contain the partial atomic charges in the occupancy column (columns 55-60) for each atom. I recommend using the [Atomic Charge Calculate II](https://acc2.ncbr.muni.cz/) for generating partial atomic charges, and it will place the charges in the occupancy column automatically. The options file will tell the program what to compute and how.
