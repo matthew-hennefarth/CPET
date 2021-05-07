@@ -11,6 +11,7 @@
 
 /* EXTERNAL LIBRARY HEADER FILES */
 #include "Eigen/Dense"
+#include "spdlog/spdlog.h"
 
 /* CPET HEADER FILES */
 #include "Exceptions.h"
@@ -22,7 +23,8 @@ class Box : public Volume {
   explicit inline Box(const std::array<double, 3>& sides) : sides_(sides) {
     for (const auto& val : sides_) {
       if (val < 0) {
-        throw cpet::value_error("Invalid value: " + std::to_string(val));
+        SPDLOG_ERROR("Invalid value for box side length {}", val);
+        throw cpet::value_error("Invalid value for box side length");
       }
     }
   }

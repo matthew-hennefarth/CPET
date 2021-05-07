@@ -16,14 +16,8 @@ include(cmake/Cache.cmake)
 configure_file(${PROJECT_SOURCE_DIR}/cmake/config.h.in ${PROJECT_SOURCE_DIR}/include/config.h)
 
 if( CMAKE_BUILD_TYPE MATCHES Debug )
-  add_definitions(-DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG)
-  #  set(ENABLE_CLANG_TIDY ON)
-  #set(ENABLE_INCLUDE_WHAT_YOU_USE ON)
-  # Set the binary output
   set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin/Debug )
 else()
-  add_definitions(-DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_INFO)
-  # Set the binary output
   set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin/ )
 endif()
 

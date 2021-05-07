@@ -12,9 +12,6 @@
 #include <string>
 #include <vector>
 
-/* EXTERNAL LIBRARY HEADER FILES */
-#include "spdlog/spdlog.h"
-
 /* CPET HEADER FILES */
 #include "Exceptions.h"
 
@@ -32,24 +29,13 @@ void forEachLineIn(const std::string& file,
 
 std::vector<std::string> split(std::string_view str, char delim);
 
-[[nodiscard]] bool isDouble(const std::string& str) noexcept;
-
-template <class T>
-void filter(std::vector<T>& list, const T& remove = T()) noexcept(true) {
-  for (typename std::vector<T>::size_type i = 0; i < list.size(); i++) {
-    if (list[i] == remove) {
-      list.erase(list.begin() + static_cast<long>(i));
-      i--;
-    }
-  }
-}
+[[nodiscard]] bool isDouble(std::string str) noexcept;
 
 template <class InputIt, class UnaryPredicate>
 InputIt find_if_ex(InputIt first, InputIt last, UnaryPredicate p) {
   if (auto loc = std::find_if(first, last, p); loc != last) {
     return loc;
   }
-  SPDLOG_ERROR("Could not find element in container");
   throw cpet::value_not_found("Could not find element in container");
 }
 

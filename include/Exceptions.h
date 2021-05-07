@@ -5,35 +5,39 @@
 #define EXCEPTIONS_H
 
 /* C++ STL HEADER FILES */
+#include <iostream>
 #include <stdexcept>
 #include <string>
 
-#include <iostream>
+namespace cpet {
 
-namespace cpet{
-    class value_error : std::runtime_error {
-        public:
-            explicit value_error(const std::string& what_arg) : std::runtime_error(what_arg){std::cerr << what_arg;}
+class exception : std::runtime_error {
+ public:
+  explicit exception(const std::string& what_arg)
+      : std::runtime_error(what_arg) {}
+  explicit exception(const char* what_arg) : std::runtime_error(what_arg) {}
+};
 
-            explicit value_error(const char * what_arg) : std::runtime_error(what_arg){std::cerr << what_arg;}
-    };
+class value_error : cpet::exception {
+ public:
+  explicit value_error(const std::string& what_arg)
+      : cpet::exception(what_arg) {}
+  explicit value_error(const char* what_arg) : cpet::exception(what_arg) {}
+};
 
-    class value_not_found : std::runtime_error {
-        public:
-            explicit value_not_found(const std::string& what_arg) : std::runtime_error(what_arg){}
+class value_not_found : cpet::exception {
+ public:
+  explicit value_not_found(const std::string& what_arg)
+      : cpet::exception(what_arg) {}
+  explicit value_not_found(const char* what_arg) : cpet::exception(what_arg) {}
+};
 
-            explicit value_not_found(const char * what_arg) : std::runtime_error(what_arg){}
-    };
+class io_error : cpet::exception {
+ public:
+  explicit io_error(const std::string& what_arg) : cpet::exception(what_arg) {}
+  explicit io_error(const char* what_arg) : cpet::exception(what_arg) {}
+};
 
-    class io_error : std::runtime_error {
-        public:
-            explicit io_error(const std::string& what_arg) : std::runtime_error(what_arg){}
+}  // namespace cpet
 
-            explicit io_error(const char * what_arg) : std::runtime_error(what_arg){}
-    };
-
-
-
-}
-
-#endif //EXCEPTIONS_H
+#endif  // EXCEPTIONS_H
