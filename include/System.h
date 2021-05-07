@@ -12,9 +12,9 @@
 #include <vector>
 
 /* EXTERNAL LIBRARY HEADER FILES */
-#include "Eigen/Dense"
-#include "spdlog/fmt/ostr.h"
-#include "spdlog/spdlog.h"
+#include <Eigen/Dense>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/spdlog.h>
 
 /* CPET HEADER FILES */
 #include "Option.h"

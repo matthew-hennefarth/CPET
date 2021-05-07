@@ -7,9 +7,9 @@
 #include <string>
 
 /* EXTERNAL LIBRARY HEADER FILES */
-#include <cxxopts.hpp>
 #include <spdlog/sinks/stdout_sinks.h>
 #include <spdlog/spdlog.h>
+#include <cxxopts.hpp>
 
 /* CPET HEADER FILES */
 #include "Calculator.h"
