@@ -42,7 +42,7 @@ class Box : public Volume {
   [[nodiscard]] inline bool isInside(
       const Eigen::Vector3d& position) const noexcept override {
     for (size_t i = 0; i < 3; i++) {
-      if (abs(position[static_cast<long>(i)]) >= sides_[i]) {
+      if (abs(position[static_cast<long>(i)]) >= sides_.at(i)) {
         return false;
       }
     }
@@ -84,7 +84,10 @@ class Box : public Volume {
 
   [[nodiscard]] inline std::vector<Eigen::Vector3d> partition(
       const std::array<int, 3>& density) const noexcept override {
-    double x, y, z;
+    double x{0};
+    double y{0};
+    double z{0};
+   
     std::vector<Eigen::Vector3d> result;
 
     result.reserve(static_cast<size_t>(density[0] * density[1] * density[2]));
@@ -110,8 +113,8 @@ class Box : public Volume {
       std::array<std::uniform_real_distribution<double>, 3>& distribution)
       const noexcept {
     for (size_t i = 0; i < distribution.size(); i++) {
-      distribution[i] =
-          std::uniform_real_distribution<double>(-1 * sides_[i], sides_[i]);
+      distribution.at(i) =
+          std::uniform_real_distribution<double>(-1 * sides_.at(i), sides_.at(i));
     }
   }
 

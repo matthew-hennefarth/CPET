@@ -17,6 +17,14 @@
 #include "Exceptions.h"
 #include "Utilities.h"
 
+constexpr int MIN_PDB_LINE_LENGTH = 26;
+constexpr int PDB_CHAIN_START = 21;
+constexpr int PDB_CHAIN_WIDTH = 2;
+constexpr int PDB_RESNUM_START = 22;
+constexpr int PDB_RESNUM_WIDTH = 4;
+constexpr int PDB_ATOMID_START = 12;
+constexpr int PDB_ATOMID_WIDTH = 4;
+
 class AtomID {
  public:
   enum class Constants { origin, e1, e2 };
@@ -37,6 +45,8 @@ class AtomID {
   inline AtomID(const AtomID&) = default;
 
   inline AtomID(AtomID&&) = default;
+
+  inline ~AtomID() = default;
 
   inline AtomID& operator=(const AtomID&) = default;
 
@@ -61,12 +71,8 @@ class AtomID {
   [[nodiscard]] static inline bool validID(std::string_view atomid) noexcept {
     auto splitID = split(atomid, ':');
 
-    if (splitID.size() != 3) {
+    if (splitID.size() != 3 || !isVector(atomid) || !isDouble(splitID[1])) {
       return false;
-    }
-
-    if (isVector(atomid) || isDouble(splitID[1])) {
-      return true;
     }
     return false;
   }
@@ -104,11 +110,13 @@ class AtomID {
   }
 
   [[nodiscard]] static inline AtomID generateID(const std::string& pdbLine) {
-    if (pdbLine.size() < 26) {
+    if (pdbLine.size() < MIN_PDB_LINE_LENGTH) {
       throw cpet::value_error("Invalid pdb line: " + pdbLine);
     }
-    std::string result = pdbLine.substr(21, 2) + ":" + pdbLine.substr(22, 4) +
-                         ":" + pdbLine.substr(12, 4);
+    std::string result =
+        pdbLine.substr(PDB_CHAIN_START, PDB_CHAIN_WIDTH) + ":" +
+        pdbLine.substr(PDB_RESNUM_START, PDB_RESNUM_WIDTH) + ":" +
+        pdbLine.substr(PDB_ATOMID_START, PDB_ATOMID_WIDTH);
 
     result.erase(remove(begin(result), end(result), ' '), end(result));
     return AtomID(result);
@@ -139,12 +147,21 @@ class AtomID {
 
   [[nodiscard]] static inline bool isVector(std::string_view atomid) noexcept {
     auto splitID = split(atomid, ':');
+    if (splitID.size() != 3) {
+      return false;
+    }
+
+    return std::all_of(splitID.begin(), splitID.end(),
+                       [](const std::string& str) { return isDouble(str); });
+
+    /*
     for (const auto& arg : splitID) {
       if (!isDouble(arg)) {
         return false;
       }
     }
     return true;
+    */
   }
 
   std::string id;

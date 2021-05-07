@@ -22,13 +22,15 @@ struct PointCharge {
                      AtomID aid) noexcept
       : coordinate(coord), charge(q), id(std::move(aid)) {}
 
-  inline PointCharge(PointCharge&&) = default;
+  PointCharge(PointCharge&&) = default;
 
-  inline PointCharge(const PointCharge&) = default;
+  PointCharge(const PointCharge&) = default;
 
   inline PointCharge& operator=(const PointCharge&) noexcept = default;
 
   inline PointCharge& operator=(PointCharge&&) noexcept = default;
+
+  ~PointCharge() = default;
 
   [[nodiscard]] static inline auto find(
       const std::vector<PointCharge>& pointCharges, const AtomID& id)
@@ -36,6 +38,6 @@ struct PointCharge {
     return find_if_ex(begin(pointCharges), end(pointCharges),
                       [&id](const auto& pc) { return pc.id == id; });
   }
-};
+} __attribute__((aligned(128)));
 
 #endif  // POINTCHARGE_H

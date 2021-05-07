@@ -17,7 +17,11 @@ class Volume {
 
   Volume(const Volume &) = default;
 
+  Volume(Volume&&) = default;
+
   Volume &operator=(const Volume &) = default;
+  
+  Volume &operator=(Volume&&) = default;
 
   virtual ~Volume() = default;
 

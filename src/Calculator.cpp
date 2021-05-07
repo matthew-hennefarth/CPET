@@ -5,8 +5,8 @@
 #include <fstream>
 
 /* EXTERNAL LIBRARY HEADER FILES */
-#include "spdlog/sinks/stdout_sinks.h"
 #include "spdlog/fmt/ostr.h"
+#include "spdlog/sinks/stdout_sinks.h"
 #include "spdlog/spdlog.h"
 
 /* CPET HEADER FILES */
@@ -15,6 +15,13 @@
 #include "Instrumentation.h"
 #include "System.h"
 #include "Utilities.h"
+
+constexpr int PDB_XCOORD_START = 31;
+constexpr int PDB_YCOORD_START = 39;
+constexpr int PDB_ZCOORD_START = 47;
+constexpr int PDB_CHARGE_START = 55;
+constexpr int PDB_COORD_WIDTH = 8;
+constexpr int PDB_CHARGE_WIDTH = 8;
 
 Calculator::Calculator(std::string proteinFile, const std::string& optionFile,
                        std::string chargesFile, int nThreads)
@@ -118,11 +125,13 @@ void Calculator::loadPointChargeTrajectory_() {
       pointChargeTrajectory_.push_back(tmpHolder);
       tmpHolder.clear();
     } else if (line.rfind("ATOM", 0) == 0 || line.rfind("HETATM", 0) == 0) {
-      tmpHolder.emplace_back(Eigen::Vector3d({std::stod(line.substr(31, 8)),
-                                              std::stod(line.substr(39, 8)),
-                                              std::stod(line.substr(47, 8))}),
-                             std::stod(line.substr(55, 8)),
-                             AtomID::generateID(line));
+      tmpHolder.emplace_back(
+          Eigen::Vector3d(
+              {std::stod(line.substr(PDB_XCOORD_START, PDB_COORD_WIDTH)),
+               std::stod(line.substr(PDB_YCOORD_START, PDB_COORD_WIDTH)),
+               std::stod(line.substr(PDB_ZCOORD_START, PDB_COORD_WIDTH))}),
+          std::stod(line.substr(PDB_CHARGE_START, PDB_CHARGE_WIDTH)),
+          AtomID::generateID(line));
     }
   });
   if (!tmpHolder.empty()) {

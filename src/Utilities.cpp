@@ -45,7 +45,7 @@ std::vector<std::string> split(std::string_view str, char delim) {
 }
 
 bool isDouble(const std::string& str) noexcept {
-  double result;
+  double result{0};
   auto i = std::istringstream(str);
 
   i >> result;

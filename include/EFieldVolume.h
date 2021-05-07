@@ -23,8 +23,11 @@ struct EFieldVolume {
 
   std::vector<Eigen::Vector3d> points;
 
-  EFieldVolume(std::unique_ptr<Volume> vol, std::array<int, 3> density) noexcept
-      : volume(std::move(vol)), sampleDensity(density) {
+  bool showPlot;
+
+  EFieldVolume(std::unique_ptr<Volume> vol, std::array<int, 3> density,
+               bool plot = false) noexcept
+      : volume(std::move(vol)), sampleDensity(density), showPlot(plot) {
     points = volume->partition(sampleDensity);
   }
 
@@ -32,16 +35,19 @@ struct EFieldVolume {
     std::string result = volume->type() + '_';
 
     for (size_t i = 0; i < sampleDensity.size() - 1; i++) {
-      result += std::to_string(sampleDensity[i]) + '-';
+      result += std::to_string(sampleDensity.at(i)) + '-';
     }
-    result += std::to_string(sampleDensity[sampleDensity.size() - 1]);
+    result += std::to_string(sampleDensity.at(sampleDensity.size() - 1));
 
     return result;
   }
 
   [[nodiscard]] inline std::string details() const noexcept {
-    return ("Sample Density: " + std::to_string(sampleDensity[0]) + ' ' + std::to_string(sampleDensity[1]) + ' ' + std::to_string(sampleDensity[2]) + "; Volume: " + volume->description() );
+    return ("Sample Density: " + std::to_string(sampleDensity[0]) + ' ' +
+            std::to_string(sampleDensity[1]) + ' ' +
+            std::to_string(sampleDensity[2]) +
+            "; Volume: " + volume->description());
   }
-};
+} __attribute__((packed)) __attribute__((aligned(64)));
 
 #endif  // EFIELDVOLUME_H

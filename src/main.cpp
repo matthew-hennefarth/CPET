@@ -9,6 +9,7 @@
 /* EXTERNAL LIBRARY HEADER FILES */
 #include <spdlog/sinks/stdout_sinks.h>
 #include <spdlog/spdlog.h>
+
 #include <cxxopts.hpp>
 
 /* CPET HEADER FILES */
@@ -17,8 +18,8 @@
 #include "config.h"
 
 std::optional<std::string> validPDBFile(
-    const cxxopts::ParseResult& result) noexcept {
-  if (result.count("protein")) {
+    const cxxopts::ParseResult& result) {
+  if (result.count("protein") != 0) {
     if (std::filesystem::exists(result["protein"].as<std::string>())) {
       return result["protein"].as<std::string>();
     }
@@ -27,8 +28,8 @@ std::optional<std::string> validPDBFile(
 }
 
 std::optional<std::string> validOptionFile(
-    const cxxopts::ParseResult& result) noexcept {
-  if (result.count("options")) {
+    const cxxopts::ParseResult& result) {
+  if (result.count("options") != 0) {
     if (std::filesystem::exists(result["options"].as<std::string>())) {
       return result["options"].as<std::string>();
     }
@@ -37,7 +38,7 @@ std::optional<std::string> validOptionFile(
 }
 
 std::optional<std::string> validChargeFile(
-    const cxxopts::ParseResult& result) noexcept {
+    const cxxopts::ParseResult& result) {
   if (!result["charges"].as<std::string>().empty()) {
     if (!std::filesystem::exists(result["charges"].as<std::string>())) {
       return std::nullopt;
@@ -46,7 +47,7 @@ std::optional<std::string> validChargeFile(
   return result["charges"].as<std::string>();
 }
 
-std::optional<int> validThreads(const cxxopts::ParseResult& result) noexcept {
+std::optional<int> validThreads(const cxxopts::ParseResult& result) {
   if (result["threads"].as<int>() > 0) {
     return result["threads"].as<int>();
   }
@@ -60,28 +61,28 @@ int main(int argc, char** argv) {
       "cpet",
       std::string("Classical Protein Electric Field Topology, version ") +
           std::string(PROJECT_VER));
+    options.add_options()(
+        "d,debug", "Enable debugging",
+        cxxopts::value<bool>()->default_value("false"))  // a bool parameter
+        ("p,protein", "PDB", cxxopts::value<std::string>())(
+            "o,options", "Option file", cxxopts::value<std::string>())(
+            "c,charges", "Partial atomic charge definitions",
+            cxxopts::value<std::string>()->default_value(""))(
+            "t,threads", "Number of threads",
+            cxxopts::value<int>()->default_value("1"))(
+            "O,out", "Output file",
+            cxxopts::value<std::string>()->default_value(""))("h,help",
+                                                              "Print usage")(
+            "v,verbose", "Verbose output",
+            cxxopts::value<bool>()->default_value("false"));
 
-  options.add_options()(
-      "d,debug", "Enable debugging",
-      cxxopts::value<bool>()->default_value("false"))  // a bool parameter
-      ("p,protein", "PDB", cxxopts::value<std::string>())(
-          "o,options", "Option file", cxxopts::value<std::string>())(
-          "c,charges", "Partial atomic charge definitions",
-          cxxopts::value<std::string>()->default_value(""))(
-          "t,threads", "Number of threads",
-          cxxopts::value<int>()->default_value("1"))(
-          "O,out", "Output file",
-          cxxopts::value<std::string>()->default_value(""))("h,help",
-                                                            "Print usage")(
-          "v,verbose", "Verbose output",
-          cxxopts::value<bool>()->default_value("false"));
-
-  std::unique_ptr<cxxopts::ParseResult> tmp_result = nullptr;
+  std::unique_ptr<cxxopts::ParseResult> tmp_result{nullptr};
   try {
     tmp_result =
         std::make_unique<cxxopts::ParseResult>(options.parse(argc, argv));
-  } catch (cxxopts::OptionParseException) {
+  } catch (cxxopts::OptionParseException& e) {
     SPDLOG_ERROR("Invalid parameters...");
+    SPDLOG_ERROR(e.what());
     SPDLOG_WARN(options.help());
     return 1;
   }
@@ -91,6 +92,7 @@ int main(int argc, char** argv) {
   spdlog::set_level(spdlog::level::debug);
   spdlog::set_pattern("[%s %#] [%l] %v");
 #else
+  
   if (result["debug"].as<bool>()) {
     spdlog::set_level(spdlog::level::debug);
     spdlog::set_pattern("[%s %#] [%l] %v");
@@ -104,12 +106,11 @@ int main(int argc, char** argv) {
 
 #endif
 
-  if (result.count("help")) {
+  if (result.count("help") != 0) {
     SPDLOG_WARN(options.help());
     return 1;
   }
 
-  // TODO there has to be a better way of doing this...template or something
   std::optional<std::string> proteinFile;
   if (!(proteinFile = validPDBFile(result))) {
     SPDLOG_ERROR("Invalid protein file");
@@ -146,7 +147,7 @@ int main(int argc, char** argv) {
       c.setOutputFilePrefix(result["out"].as<std::string>());
     }
     c.compute();
-  } catch (cpet::value_error exc) {
+  } catch (cpet::value_error& exc) {
     // catch anything thrown within try block that derives from std::exception
     SPDLOG_ERROR("BOI");
   }

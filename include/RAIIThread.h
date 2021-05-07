@@ -31,7 +31,7 @@ class RAIIThread {
 
   inline void detach() { thread_.detach(); }
 
-  inline bool joinable() const noexcept { return thread_.joinable(); }
+  [[nodiscard]] inline bool joinable() const noexcept { return thread_.joinable(); }
 
   [[nodiscard]] inline std::thread::id get_id() const noexcept {
     return thread_.get_id();

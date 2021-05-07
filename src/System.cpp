@@ -15,7 +15,7 @@
 #include "RAIIThread.h"
 #include "System.h"
 
-#define PERM_SPACE 0.0055263495
+constexpr double PERM_SPACE = 0.0055263495;
 
 System::System(std::vector<PointCharge> pc, const Option& options)
     : pointCharges_(std::move(pc)) {
@@ -72,7 +72,7 @@ System::System(std::vector<PointCharge> pc, const Option& options)
 
   SPDLOG_DEBUG("Constructing basis matrix...");
   for (size_t i = 0; i < basis.size(); i++) {
-    basisMatrix_.block(0, static_cast<Eigen::Index>(i), 3, 1) = basis[i];
+    basisMatrix_.block(0, static_cast<Eigen::Index>(i), 3, 1) = basis.at(i);
   }
   if (basisMatrix_.determinant() == 0) {
     SPDLOG_ERROR("Basis is not linearly independent");
@@ -88,15 +88,18 @@ System::System(std::vector<PointCharge> pc, const Option& options)
 
 Eigen::Vector3d System::electricFieldAt(const Eigen::Vector3d& position) const {
   Eigen::Vector3d result(0, 0, 0);
+  constexpr double TO_V_PER_ANG = (1.0 / (4.0 * M_PI * PERM_SPACE));
 
   Eigen::Vector3d d;
-  double dNorm;
+  double dNorm{0};
+
+
   for (const auto& pc : pointCharges_) {
     d = (position - pc.coordinate);
     dNorm = d.norm();
     result += ((pc.charge * d) / (dNorm * dNorm * dNorm));
   }
-  result *= (1.0 / (4.0 * M_PI * PERM_SPACE));
+  result *= TO_V_PER_ANG;
   return result;
 }
 
@@ -113,10 +116,10 @@ std::vector<PathSample> System::electricFieldTopologyIn(
   if (numOfThreads == 1) {
     SPDLOG_DEBUG("Single thread...");
     int samples = topologicalRegion.numberOfSamples;
-    while (samples-- > 0)
+    while (samples-- > 0) {
       sampleResults.emplace_back(
           sampleElectricFieldTopologyIn_(*topologicalRegion.volume));
-
+    }
     SPDLOG_INFO("{} Points calculated", topologicalRegion.numberOfSamples);
   } else {
     SPDLOG_DEBUG("Multi-threads: {}", numOfThreads);

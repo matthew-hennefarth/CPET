@@ -34,7 +34,7 @@ struct PathSample {
     os << ps.distance << ',' << ps.curvature;
     return os;
   }
-};
+} __attribute__((aligned(16)));
 
 class System {
  public:
@@ -46,7 +46,7 @@ class System {
   [[nodiscard]] std::vector<PathSample> electricFieldTopologyIn(
       int numOfThreads, const TopologyRegion& topologicalRegion);
 
-  inline void transformToUserSpace() noexcept {
+  inline void transformToUserSpace() {
     translateSystemToCenter_();
     transformToUserBasis_();
   }
@@ -68,7 +68,7 @@ class System {
   [[nodiscard]] double curvatureAt_(
       const Eigen::Vector3d& alpha_0) const noexcept;
 
-  PathSample sampleElectricFieldTopologyIn_(
+  [[nodiscard]] PathSample sampleElectricFieldTopologyIn_(
       const Volume& region) const noexcept;
 
   inline void forEachPointCharge_(
@@ -76,23 +76,23 @@ class System {
     std::for_each(begin(pointCharges_), end(pointCharges_), func);
   }
 
-  inline void translateSystemTo_(const Eigen::Vector3d& position) noexcept {
+  inline void translateSystemTo_(const Eigen::Vector3d& position) {
     forEachPointCharge_(
         [&position](PointCharge& pc) { pc.coordinate -= position; });
   }
 
-  inline void translateSystemToCenter_() noexcept {
+  inline void translateSystemToCenter_() {
     SPDLOG_DEBUG("Translating to the center");
     SPDLOG_INFO("[center] ==>> {}", center_.transpose());
     translateSystemTo_(center_);
   }
 
-  inline void translateSystemToOrigin_() noexcept {
+  inline void translateSystemToOrigin_() {
     SPDLOG_DEBUG("Translating to the Origin");
     translateSystemTo_(-1 * (center_));
   }
 
-  inline void transformToUserBasis_() noexcept {
+  inline void transformToUserBasis_() {
     SPDLOG_DEBUG("Translating to user basis");
 
     Eigen::Matrix3d inverse = basisMatrix_.inverse();
@@ -103,7 +103,7 @@ class System {
     });
   }
 
-  inline void transformToDefaultBasis_() noexcept {
+  inline void transformToDefaultBasis_() {
     SPDLOG_DEBUG("Translating to default basis");
     forEachPointCharge_([this](PointCharge& pc) {
       pc.coordinate = basisMatrix_ * pc.coordinate;
