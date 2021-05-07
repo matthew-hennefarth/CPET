@@ -59,7 +59,7 @@ include(cmake/CPM.cmake)
 
 CPMAddPackage(
   NAME eigen
-  GIT_REPOSITORY https://gitlab.com/libeigen/eigen
+  GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
   GIT_TAG origin/master
   OPTIONS "EIGEN_BUILD_DOC NO" "BUILD_TESTING NO" 
 )
