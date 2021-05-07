@@ -144,7 +144,8 @@ std::vector<double> Calculator::loadChargesFile_() const {
   std::vector<double> realCharges;
   forEachLineIn(chargeFile_, [&realCharges](const std::string& line) {
     if (line.rfind("ATOM", 0) == 0 || line.rfind("HETATM", 0) == 0) {
-      realCharges.emplace_back(std::stod(line.substr(55, 8)));
+      realCharges.emplace_back(
+          std::stod(line.substr(PDB_CHARGE_START, PDB_CHARGE_WIDTH)));
     }
   });
   return realCharges;
@@ -156,14 +157,6 @@ void Calculator::fixCharges_() {
 
   for (auto& structure : pointChargeTrajectory_) {
     if (structure.size() != realCharges.size()) {
-      // auto it = find(pointChargeTrajectory_.begin(),
-      // pointChargeTrajectory_.end(), structure);
-      // auto index = static_cast<int>(it - pointChargeTrajectory_.begin());
-      // SPDLOG_ERROR(
-      //"Inconsistent number of point charges in trajectory structure {} and "
-      //"in charge "
-      //"file",
-      // index);
       SPDLOG_ERROR("Structure size: {}, number of charges: {}",
                    structure.size(), realCharges.size());
       throw cpet::value_error(

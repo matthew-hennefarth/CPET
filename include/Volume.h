@@ -17,16 +17,16 @@ class Volume {
 
   Volume(const Volume &) = default;
 
-  Volume(Volume&&) = default;
+  Volume(Volume &&) = default;
 
   Volume &operator=(const Volume &) = default;
-  
-  Volume &operator=(Volume&&) = default;
+
+  Volume &operator=(Volume &&) = default;
 
   virtual ~Volume() = default;
 
-  [[nodiscard]] virtual bool isInside(const Eigen::Vector3d &position) const
-      noexcept(true) = 0;
+  [[nodiscard]] virtual bool isInside(
+      const Eigen::Vector3d &position) const = 0;
 
   [[nodiscard]] virtual const double &maxDim() const noexcept = 0;
 

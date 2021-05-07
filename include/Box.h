@@ -40,7 +40,7 @@ class Box : public Volume {
   }
 
   [[nodiscard]] inline bool isInside(
-      const Eigen::Vector3d& position) const noexcept override {
+      const Eigen::Vector3d& position) const override {
     for (size_t i = 0; i < 3; i++) {
       if (abs(position[static_cast<long>(i)]) >= sides_.at(i)) {
         return false;

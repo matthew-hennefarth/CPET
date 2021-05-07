@@ -15,7 +15,7 @@
 
 class Timer {
  public:
-  inline Timer() noexcept : { Start(); }
+  inline Timer() noexcept { Start(); }
 
   inline Timer(const Timer&) = delete;
   
