@@ -8,6 +8,8 @@ endif()
 
 set(CMAKE_CXX_STANDARD 17)
 
+set(CMAKE_NO_SYSTEM_FROM_IMPORTED OFF)
+
 configure_file(${PROJECT_SOURCE_DIR}/cmake/config.h.in ${PROJECT_SOURCE_DIR}/include/config.h)
 
 if( CMAKE_BUILD_TYPE MATCHES Debug )
@@ -24,5 +26,10 @@ endif()
 include(cmake/compilerWarnings.cmake)
 include(cmake/sanitizers.cmake)
 include(cmake/StandardCmake.cmake)
+include(cmake/linkExternal.cmake)
 
+#----------------------------------------------[EXTERNAL LIBRARIES]----------------------------------------
+add_subdirectory(submodules)
+
+#----[Source]----
 add_subdirectory(src)

@@ -6,9 +6,9 @@
 #include <cmath>
 
 /* EXTERNAL LIBRARY HEADER FILES */
-#include "cs_libguarded/cs_plain_guarded.h"
-#include "spdlog/fmt/ostr.h"
-#include "spdlog/sinks/stdout_sinks.h"
+#include <cs_plain_guarded.h>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/sinks/stdout_sinks.h>
 
 /* CPET HEADER FILES */
 #include "Instrumentation.h"

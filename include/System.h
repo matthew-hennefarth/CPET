@@ -112,18 +112,9 @@ class System {
 
   [[nodiscard]] inline Eigen::Vector3d nextPoint_(
       const Eigen::Vector3d& pos) const noexcept {
-    /* From Wikipedia */
     Eigen::Vector3d f = electricFieldAt(pos);
     f = f / f.norm();
     return (pos + STEP_SIZE*f);
-
-    /* Runge Kutta Order 4 */
-    //Eigen::Vector3d u1 = STEP_SIZE * electricFieldAt(pos);
-    //Eigen::Vector3d u2 = STEP_SIZE * electricFieldAt(pos + (0.5 * u1));
-    //Eigen::Vector3d u3 = STEP_SIZE * electricFieldAt(pos + (0.5 * u2));
-    //Eigen::Vector3d u4 = STEP_SIZE * electricFieldAt(pos + u3);
-
-    //return (pos + (1.0 / 6.0) * (u1 + (2*u2) + (2*u3) + u4));
   }
 
   std::vector<PointCharge> pointCharges_;
