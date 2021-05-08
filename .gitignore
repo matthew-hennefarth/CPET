@@ -45,6 +45,9 @@ _deps
 *.out
 *.app
 
+# MacOS
+.DS_Store
+
 include/config.h
 bin/
 build/
