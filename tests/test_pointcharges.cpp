@@ -69,6 +69,21 @@ TEST(AtomID, AssignWithString) {
                cpet::value_error);
 }
 
+TEST(AtomID, AssignStringToVector) {
+  AtomID a("106:102:108");
+  Eigen::Vector3d a_vector = {106, 102, 108};
+
+  ASSERT_TRUE(a.position());
+  ASSERT_TRUE(a.isVector());
+  EXPECT_FALSE(a.isConstant());
+  EXPECT_EQ(a.position(), a_vector);
+  
+  ASSERT_NO_THROW(a = "GF:254:C107");
+  EXPECT_FALSE(a.isConstant());
+  EXPECT_FALSE(a.position());
+  EXPECT_FALSE(a.isVector());
+}
+
 TEST(AtomID, ConstructVector) {
   ASSERT_NO_THROW(AtomID("105:1:200"));
 
@@ -87,9 +102,63 @@ TEST(AtomID, ConstructVector) {
   EXPECT_EQ(b.position(), b_vector);
 }
 
-TEST(AtomID, AssignVector) {}
+TEST(AtomID, AssignVectorToString) {
+  AtomID a("D:115:C101");
+  ASSERT_FALSE(a.position());
+  EXPECT_FALSE(a.isVector());
+  EXPECT_FALSE(a.isConstant());
+  a = "106:102:108";
+  EXPECT_TRUE(a.isVector());
+  ASSERT_TRUE(a.position());
+  Eigen::Vector3d a_vector = {106, 102, 108};
+  EXPECT_EQ(a.position(), a_vector);
+  EXPECT_FALSE(a.isConstant());
+}
 
-TEST(AtomID, Constants) {}
+TEST(AtomID, OriginConstants) {
+  AtomID a(AtomID::Constants::origin);
+  EXPECT_TRUE(a.isConstant());
+  EXPECT_TRUE(a.isVector());
+  ASSERT_TRUE(a.position());
+  EXPECT_EQ(a.position(), Eigen::Vector3d({0,0,0}));
+}
+
+TEST(AtomID, e1Constants) {
+  AtomID a(AtomID::Constants::e1);
+  EXPECT_TRUE(a.isConstant());
+  EXPECT_TRUE(a.isVector());
+  ASSERT_TRUE(a.position());
+  EXPECT_EQ(a.position(), Eigen::Vector3d({1,0,0}));
+}
+
+TEST(AtomID, e2Constants) {
+  AtomID a(AtomID::Constants::e2);
+  EXPECT_TRUE(a.isConstant());
+  EXPECT_TRUE(a.isVector());
+  ASSERT_TRUE(a.position());
+  EXPECT_EQ(a.position(), Eigen::Vector3d({0,1,0}));
+}
+
+TEST(AtomID, AssignStringToConstant) {
+  AtomID a(AtomID::Constants::e2);
+  ASSERT_TRUE(a.isConstant());
+  a = "D:5:C100";
+  EXPECT_FALSE(a.isConstant());
+  EXPECT_FALSE(a.isVector());
+  EXPECT_FALSE(a.position());
+}
+
+TEST(AtomID, AssignVectorToConstant) {
+  AtomID a(AtomID::Constants::e2);
+  ASSERT_TRUE(a.isConstant());
+  ASSERT_EQ(a.position(), Eigen::Vector3d({0,1,0}));
+
+  a = "105.3:-303.00:299";
+  EXPECT_FALSE(a.isConstant());
+  EXPECT_TRUE(a.isVector());
+  EXPECT_TRUE(a.position());
+  EXPECT_EQ(a.position(), Eigen::Vector3d({105.3, -303.00, 299}));
+}
 
 // test atomid
 // test pointcharges (some of the basic functionalities...)

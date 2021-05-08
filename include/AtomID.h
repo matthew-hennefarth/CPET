@@ -103,6 +103,7 @@ class AtomID {
   inline void setID(const std::string& newID) {
     if (validID(newID)) {
       id_ = newID;
+      position_.reset();
     } else {
       throw cpet::value_error("Invalid AtomID " + newID);
     }
