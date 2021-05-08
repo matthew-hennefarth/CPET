@@ -54,6 +54,7 @@ class AtomID {
 
   inline AtomID& operator=(const std::string& rhs) {
     setID(rhs);
+    isConstant_ = false;
     return *this;
   }
 
