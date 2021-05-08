@@ -76,7 +76,7 @@ void Calculator::computeTopology_() const {
 void Calculator::computeEField_() const {
   std::vector<std::vector<Eigen::Vector3d>> results;
   for (const auto& point : option_.calculateEFieldPoints) {
-    SPDLOG_INFO("=~=~=~=~[Field at {}]=~=~=~=~", point.id);
+    SPDLOG_INFO("=~=~=~=~[Field at {}]=~=~=~=~", point.ID());
     std::vector<Eigen::Vector3d> fieldTrajectoryAtPoint;
 
     for (size_t i = 0; i < systems_.size(); i++) {
@@ -198,7 +198,7 @@ void Calculator::writeEFieldResults_(
   if (outFile.is_open()) {
     outFile << '#' << proteinFile_ << '\n';
     for (size_t i = 0; i < results.size(); i++) {
-      outFile << '#' << option_.calculateEFieldPoints[i].id << '\n';
+      outFile << '#' << option_.calculateEFieldPoints[i].ID() << '\n';
       for (const Eigen::Vector3d& field : results[i]) {
         outFile << field.transpose() << '\n';
       }

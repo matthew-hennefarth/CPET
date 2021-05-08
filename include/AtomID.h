@@ -30,15 +30,15 @@ class AtomID {
   enum class Constants { origin, e1, e2 };
 
   explicit inline AtomID(Constants other_id)
-      : id(decodeConstant_(other_id)), isConstant_(true) {
+      : isConstant_(true), id_(decodeConstant_(other_id)) {
     if (!validID()) {
-      throw cpet::value_error("Invalid atom id: " + id);
+      throw cpet::value_error("Invalid atom id: " + id_);
     }
   }
 
-  explicit inline AtomID(std::string other_id) : id(std::move(other_id)) {
+  explicit inline AtomID(std::string other_id) : id_(std::move(other_id)) {
     if (!validID()) {
-      throw cpet::value_error("Invalid atom ID: " + id);
+      throw cpet::value_error("Invalid atom ID: " + id_);
     }
   }
 
@@ -58,35 +58,35 @@ class AtomID {
   }
 
   inline AtomID& operator=(AtomID::Constants c) {
-    id = decodeConstant_(c);
+    id_ = decodeConstant_(c);
     if (!validID()) {
-      throw cpet::value_error("Invalid AtomID specification: " + id);
+      throw cpet::value_error("Invalid AtomID specification: " + id_);
     }
     isConstant_ = true;
     return *this;
   }
 
-  [[nodiscard]] inline bool validID() const noexcept { return validID(id); }
+  [[nodiscard]] inline bool validID() const noexcept { return validID(id_); }
 
   [[nodiscard]] static inline bool validID(std::string_view atomid) noexcept {
     auto splitID = split(atomid, ':');
 
-    if (splitID.size() != 3 || !isVector(atomid) || !isDouble(splitID[1])) {
-      return false;
+    if (splitID.size() == 3 && (isVector(atomid) || isDouble(splitID[1]))) {
+      return true;
     }
     return false;
   }
 
   [[nodiscard]] inline bool operator==(const std::string& rhs) const noexcept {
-    return (id == rhs);
+    return (id_ == rhs);
   }
 
   [[nodiscard]] inline bool operator==(Constants c) const noexcept {
-    return (id == decodeConstant_(c));
+    return (id_ == decodeConstant_(c));
   }
 
   [[nodiscard]] inline bool operator==(const AtomID& rhs) const noexcept {
-    return (id == rhs.id);
+    return (id_ == rhs.id_);
   }
 
   [[nodiscard]] inline bool operator!=(const std::string& rhs) const noexcept {
@@ -97,22 +97,21 @@ class AtomID {
     return !(*this == c);
   }
 
-  [[nodiscard]] inline std::string& getID() noexcept { return id; }
-
-  [[nodiscard]] inline const std::string& getID() const noexcept { return id; }
+  [[nodiscard]] inline const std::string& ID() const noexcept { return id_; }
 
   inline void setID(const std::string& newID) {
     if (validID(newID)) {
-      id = newID;
+      id_ = newID;
     } else {
-      throw cpet::value_error("Invalid AtomID: " + newID);
+      throw cpet::value_error("Invalid AtomID " + newID);
     }
   }
 
   [[nodiscard]] static inline AtomID generateID(const std::string& pdbLine) {
     if (pdbLine.size() < MIN_PDB_LINE_LENGTH) {
-      throw cpet::value_error("Invalid pdb line: " + pdbLine);
+      throw cpet::value_error("pdb line to short: " + pdbLine);
     }
+
     std::string result =
         pdbLine.substr(PDB_CHAIN_START, PDB_CHAIN_WIDTH) + ":" +
         pdbLine.substr(PDB_RESNUM_START, PDB_RESNUM_WIDTH) + ":" +
@@ -125,7 +124,7 @@ class AtomID {
   [[nodiscard]] inline std::optional<Eigen::Vector3d> position()
       const noexcept {
     if (!position_) {
-      auto splitID = split(id, ':');
+      auto splitID = split(id_, ':');
 
       if (splitID.size() != 3) {
         position_.reset();
@@ -143,7 +142,7 @@ class AtomID {
 
   [[nodiscard]] inline bool isConstant() const noexcept { return isConstant_; }
 
-  [[nodiscard]] inline bool isVector() const noexcept { return isVector(id); }
+  [[nodiscard]] inline bool isVector() const noexcept { return isVector(id_); }
 
   [[nodiscard]] static inline bool isVector(std::string_view atomid) noexcept {
     auto splitID = split(atomid, ':');
@@ -153,21 +152,11 @@ class AtomID {
 
     return std::all_of(splitID.begin(), splitID.end(),
                        [](const std::string& str) { return isDouble(str); });
-
-    /*
-    for (const auto& arg : splitID) {
-      if (!isDouble(arg)) {
-        return false;
-      }
-    }
-    return true;
-    */
   }
-
-  std::string id;
 
  private:
   bool isConstant_ = false;
+  std::string id_;
   mutable std::optional<Eigen::Vector3d> position_;
 
   [[nodiscard]] static inline std::string decodeConstant_(Constants c) {
