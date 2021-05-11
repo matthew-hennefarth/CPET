@@ -87,6 +87,7 @@ void Calculator::computeEField_() const {
       } else {
         location =
             PointCharge::find(pointChargeTrajectory_[i], point)->coordinate;
+        location = systems_[i].transformToUserSpace(location);
       }
 
       Eigen::Vector3d field = systems_[i].electricFieldAt(location);

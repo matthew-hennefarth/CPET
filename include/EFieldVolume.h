@@ -48,6 +48,6 @@ struct EFieldVolume {
             std::to_string(sampleDensity[2]) +
             "; Volume: " + volume->description());
   }
-} __attribute__((packed)) __attribute__((aligned(64)));
+}; 
 
 #endif  // EFIELDVOLUME_H

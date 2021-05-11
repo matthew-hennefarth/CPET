@@ -12,9 +12,10 @@
 #include <vector>
 
 /* EXTERNAL LIBRARY HEADER FILES */
-#include <Eigen/Dense>
 #include <spdlog/fmt/ostr.h>
 #include <spdlog/spdlog.h>
+
+#include <Eigen/Dense>
 
 /* CPET HEADER FILES */
 #include "Option.h"
@@ -49,6 +50,14 @@ class System {
   inline void transformToUserSpace() {
     translateSystemToCenter_();
     transformToUserBasis_();
+  }
+
+  [[nodiscard]] inline Eigen::Vector3d transformToUserSpace(
+      Eigen::Vector3d vec) const noexcept(true) {
+    vec -= center_;
+    Eigen::Matrix3d inverse = basisMatrix_.inverse();
+    vec = inverse * vec;
+    return vec;
   }
 
   [[nodiscard]] Eigen::Vector3d center() const { return center_; }
@@ -114,7 +123,7 @@ class System {
       const Eigen::Vector3d& pos) const noexcept {
     Eigen::Vector3d f = electricFieldAt(pos);
     f = f / f.norm();
-    return (pos + STEP_SIZE*f);
+    return (pos + STEP_SIZE * f);
   }
 
   std::vector<PointCharge> pointCharges_;

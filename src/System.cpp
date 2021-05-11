@@ -82,7 +82,7 @@ System::System(std::vector<PointCharge> pc, const Option& options)
   SPDLOG_DEBUG("Removing point charges with charge of 0...");
   pointCharges_.erase(
       remove_if(begin(pointCharges_), end(pointCharges_),
-                [](const auto& pc) { return pc.charge == 0.0; }),
+                [](const auto& p) { return p.charge == 0.0; }),
       end(pointCharges_));
 }
 
@@ -148,8 +148,8 @@ std::vector<PathSample> System::electricFieldTopologyIn(
       for (int i = 0; i < numOfThreads; i++) {
         workers.emplace_back([&samples, &shared_vector, &topologicalRegion,
                               this]() {
-          auto thread_logger = spdlog::get("Thread");
-          thread_logger->info("Spinning up...");
+          auto this_thread_logger = spdlog::get("Thread");
+          this_thread_logger->info("Spinning up...");
           int completed = 0;
           while (samples-- > 0) {
             auto s = sampleElectricFieldTopologyIn_(*topologicalRegion.volume);
@@ -159,7 +159,7 @@ std::vector<PathSample> System::electricFieldTopologyIn(
             }
             completed++;
           }
-          thread_logger->info("{} Points calculated", completed);
+          this_thread_logger->info("{} Points calculated", completed);
         });
       }
     }

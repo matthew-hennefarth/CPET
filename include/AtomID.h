@@ -169,6 +169,8 @@ class AtomID {
         return "1:0:0";
       case AtomID::Constants::e2:
         return "0:1:0";
+      default:
+        throw cpet::value_error("Cannot decode constant");
     }
   }
 };

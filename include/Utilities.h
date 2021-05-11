@@ -11,6 +11,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <memory>
 
 /* CPET HEADER FILES */
 #include "Exceptions.h"
