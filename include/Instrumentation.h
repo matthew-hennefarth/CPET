@@ -11,14 +11,22 @@
 #include <utility>
 
 /* EXTERNAL LIBRARY HEADER FILES */
-#include "spdlog/spdlog.h"
+#include <spdlog/spdlog.h>
 
 class Timer {
  public:
-  inline Timer() noexcept : func_([](const float) {}) { Start(); }
+  inline Timer() noexcept { Start(); }
+
+  inline Timer(const Timer&) = delete;
+  
+  inline Timer(Timer&&) = delete;
+
+  inline Timer& operator=(const Timer&) = delete;
+
+  inline Timer& operator=(Timer&&) = delete;
 
   explicit inline Timer(std::shared_ptr<spdlog::logger> logger) noexcept
-      : logger_(std::move(logger)), func_([](const float) {}) {
+      : logger_(std::move(logger)) {
     Start();
   }
 
@@ -28,7 +36,7 @@ class Timer {
     Start();
   }
 
-  ~Timer() noexcept {
+  ~Timer() {
     end_ = std::chrono::steady_clock::now();
     duration_ = end_ - start_;
 
@@ -51,6 +59,6 @@ class Timer {
 
   std::shared_ptr<spdlog::logger> logger_{nullptr};
 
-  std::function<void(const float)> func_;
+  std::function<void(const float)> func_{[](const float){}};
 };
 #endif  // INSTRUMENTATION_H

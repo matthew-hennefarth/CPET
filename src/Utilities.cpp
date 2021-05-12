@@ -38,14 +38,14 @@ std::vector<std::string> split(std::string_view str, char delim) {
   }
 
   result.emplace_back(str.substr(start, str.size()));
-
-  filter(result);
-
+  result.erase(remove(result.begin(), result.end(), ""), result.end());
   return result;
 }
 
-bool isDouble(const std::string& str) noexcept {
-  double result;
+bool isDouble(std::string str) noexcept {
+  double result{0};
+  /* This removes the trailing whitespace */
+  str.erase(str.find_last_not_of(" \t\n\r\f\v") + 1);
   auto i = std::istringstream(str);
 
   i >> result;

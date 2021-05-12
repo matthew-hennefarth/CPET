@@ -17,24 +17,45 @@ void Option::loadOptionsFromFile_(const std::string& optionFile) {
   forEachLineIn(optionFile, [this](const std::string& line) {
     if (line.substr(0, 5) == "align") {
       std::vector<std::string> info = split(line.substr(5), ' ');
+      if (info.empty() || info.size() == 2) {
+        throw cpet::invalid_option(
+            "Invalid Option: align expects 1 or 3 identifiers");
+      }
       centerID = info[0];
       if (info.size() > 1) {
         direction1ID = info[1];
         direction2ID = info[2];
       }
+
     } else if (line.substr(0, 8) == "topology") {
       std::vector<std::string> info = split(line.substr(8), ' ');
+      if (info.size() < 5) {
+        throw cpet::invalid_option(
+            "Invalid Option: topology expects 5 parameters");
+      }
       if (info[0] == "box") {
         std::array<double, 3> dims = {std::stod(info[1]), std::stod(info[2]),
                                       std::stod(info[3])};
-
+        int samples = std::stoi(info[4]);
+        for (const auto& d : dims) {
+          if (d <= 0) {
+            throw cpet::invalid_option(
+                "Invalid Option: box dimensions should be positive valued");
+          }
+        }
+        if (samples < 0) {
+          throw cpet::invalid_option(
+              "Invalid Option: topology samples should be non-negative");
+        }
         calculateEFieldTopology.emplace_back(std::make_unique<Box>(dims),
                                              std::stoi(info[4]));
+      } else {
+        throw cpet::invalid_option("Invalid Option: unknown volume");
       }
     } else if (line.substr(0, 5) == "field") {
       std::vector<std::string> info = split(line.substr(5), ' ');
       calculateEFieldPoints.emplace_back(info[0]);
-    } else if (line.substr(0, 4) == "plot") {
+    } else if (line.substr(0, 4) == "plot3d") {
       std::vector<std::string> info = split(line.substr(4), ' ');
       if (info[0] == "box") {
         std::array<double, 3> dims = {std::stod(info[1]), std::stod(info[2]),

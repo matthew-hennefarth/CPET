@@ -4,8 +4,10 @@
 #ifndef POINTCHARGE_H
 #define POINTCHARGE_H
 
+#include <vector>
+
 /* EXTERNAL LIBRARY HEADER FILES */
-#include "Eigen/Dense"
+#include <Eigen/Dense>
 
 /* CPET HEADER FILES */
 #include "AtomID.h"
@@ -22,13 +24,20 @@ struct PointCharge {
                      AtomID aid) noexcept
       : coordinate(coord), charge(q), id(std::move(aid)) {}
 
-  inline PointCharge(PointCharge&&) = default;
+  PointCharge(PointCharge&&) = default;
 
-  inline PointCharge(const PointCharge&) = default;
+  PointCharge(const PointCharge&) = default;
 
   inline PointCharge& operator=(const PointCharge&) noexcept = default;
 
   inline PointCharge& operator=(PointCharge&&) noexcept = default;
+
+  [[nodiscard]] inline bool operator==(const PointCharge& pc) const {
+    return (coordinate == pc.coordinate) && (charge == pc.charge) &&
+           (id == pc.id);
+  }
+
+  ~PointCharge() = default;
 
   [[nodiscard]] static inline auto find(
       const std::vector<PointCharge>& pointCharges, const AtomID& id)
@@ -36,6 +45,6 @@ struct PointCharge {
     return find_if_ex(begin(pointCharges), end(pointCharges),
                       [&id](const auto& pc) { return pc.id == id; });
   }
-};
+} __attribute__((aligned(128)));
 
 #endif  // POINTCHARGE_H

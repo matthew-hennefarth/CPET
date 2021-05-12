@@ -11,26 +11,34 @@
 #include <type_traits>
 #include <utility>
 
-#include "Eigen/Dense"
+#include <Eigen/Dense>
 
 /* CPET HEADER FILES */
 #include "Exceptions.h"
 #include "Utilities.h"
+
+constexpr int MIN_PDB_LINE_LENGTH = 26;
+constexpr int PDB_CHAIN_START = 21;
+constexpr int PDB_CHAIN_WIDTH = 2;
+constexpr int PDB_RESNUM_START = 22;
+constexpr int PDB_RESNUM_WIDTH = 4;
+constexpr int PDB_ATOMID_START = 12;
+constexpr int PDB_ATOMID_WIDTH = 4;
 
 class AtomID {
  public:
   enum class Constants { origin, e1, e2 };
 
   explicit inline AtomID(Constants other_id)
-      : id(decodeConstant_(other_id)), isConstant_(true) {
+      : isConstant_(true), id_(decodeConstant_(other_id)) {
     if (!validID()) {
-      throw cpet::value_error("Invalid atom id: " + id);
+      throw cpet::value_error("Invalid atom id: " + id_);
     }
   }
 
-  explicit inline AtomID(std::string other_id) : id(std::move(other_id)) {
+  explicit inline AtomID(std::string other_id) : id_(std::move(other_id)) {
     if (!validID()) {
-      throw cpet::value_error("Invalid atom ID: " + id);
+      throw cpet::value_error("Invalid atom ID: " + id_);
     }
   }
 
@@ -38,56 +46,48 @@ class AtomID {
 
   inline AtomID(AtomID&&) = default;
 
+  inline ~AtomID() = default;
+
   inline AtomID& operator=(const AtomID&) = default;
 
   inline AtomID& operator=(AtomID&&) = default;
 
   inline AtomID& operator=(const std::string& rhs) {
     setID(rhs);
+    isConstant_ = false;
     return *this;
   }
 
   inline AtomID& operator=(AtomID::Constants c) {
-    id = decodeConstant_(c);
+    id_ = decodeConstant_(c);
     if (!validID()) {
-      throw cpet::value_error("Invalid AtomID specification: " + id);
+      throw cpet::value_error("Invalid AtomID specification: " + id_);
     }
     isConstant_ = true;
     return *this;
   }
 
-  [[nodiscard]] inline bool validID() const noexcept { return validID(id); }
+  [[nodiscard]] inline bool validID() const noexcept { return validID(id_); }
 
   [[nodiscard]] static inline bool validID(std::string_view atomid) noexcept {
     auto splitID = split(atomid, ':');
 
-    if (splitID.size() != 3) {
-      return false;
+    if (splitID.size() == 3 && (isVector(atomid) || isDouble(splitID[1]))) {
+      return true;
     }
-
-    for (const auto& arg : splitID) {
-      if (!isDouble(arg)) {
-        goto invalid_arg;
-      }
-    }
-
-    return true;
-  invalid_arg:
-    if (isDouble(splitID[1])) return true;
-
     return false;
   }
 
   [[nodiscard]] inline bool operator==(const std::string& rhs) const noexcept {
-    return (id == rhs);
+    return (id_ == rhs);
   }
 
   [[nodiscard]] inline bool operator==(Constants c) const noexcept {
-    return (id == decodeConstant_(c));
+    return (id_ == decodeConstant_(c));
   }
 
   [[nodiscard]] inline bool operator==(const AtomID& rhs) const noexcept {
-    return (id == rhs.id);
+    return (id_ == rhs.id_);
   }
 
   [[nodiscard]] inline bool operator!=(const std::string& rhs) const noexcept {
@@ -98,24 +98,26 @@ class AtomID {
     return !(*this == c);
   }
 
-  [[nodiscard]] inline std::string& getID() noexcept { return id; }
-
-  [[nodiscard]] inline const std::string& getID() const noexcept { return id; }
+  [[nodiscard]] inline const std::string& ID() const noexcept { return id_; }
 
   inline void setID(const std::string& newID) {
     if (validID(newID)) {
-      id = newID;
+      id_ = newID;
+      position_.reset();
     } else {
-      throw cpet::value_error("Invalid AtomID: " + newID);
+      throw cpet::value_error("Invalid AtomID " + newID);
     }
   }
 
   [[nodiscard]] static inline AtomID generateID(const std::string& pdbLine) {
-    if (pdbLine.size() < 26) {
-      throw cpet::value_error("Invalid pdb line: " + pdbLine);
+    if (pdbLine.size() < MIN_PDB_LINE_LENGTH) {
+      throw cpet::value_error("pdb line to short: " + pdbLine);
     }
-    std::string result = pdbLine.substr(21, 2) + ":" + pdbLine.substr(22, 4) +
-                         ":" + pdbLine.substr(12, 4);
+
+    std::string result =
+        pdbLine.substr(PDB_CHAIN_START, PDB_CHAIN_WIDTH) + ":" +
+        pdbLine.substr(PDB_RESNUM_START, PDB_RESNUM_WIDTH) + ":" +
+        pdbLine.substr(PDB_ATOMID_START, PDB_ATOMID_WIDTH);
 
     result.erase(remove(begin(result), end(result), ' '), end(result));
     return AtomID(result);
@@ -124,15 +126,15 @@ class AtomID {
   [[nodiscard]] inline std::optional<Eigen::Vector3d> position()
       const noexcept {
     if (!position_) {
-      auto splitID = split(id, ':');
+      auto splitID = split(id_, ':');
 
       if (splitID.size() != 3) {
         position_.reset();
       } else {
-        try {
+        if (isVector()) {
           position_.emplace(std::stod(splitID[0]), std::stod(splitID[1]),
                             std::stod(splitID[2]));
-        } catch (const std::invalid_argument&) {
+        } else {
           position_.reset();
         }
       }
@@ -142,10 +144,21 @@ class AtomID {
 
   [[nodiscard]] inline bool isConstant() const noexcept { return isConstant_; }
 
-  std::string id;
+  [[nodiscard]] inline bool isVector() const noexcept { return isVector(id_); }
+
+  [[nodiscard]] static inline bool isVector(std::string_view atomid) noexcept {
+    auto splitID = split(atomid, ':');
+    if (splitID.size() != 3) {
+      return false;
+    }
+
+    return std::all_of(splitID.begin(), splitID.end(),
+                       [](const std::string& str) { return isDouble(str); });
+  }
 
  private:
   bool isConstant_ = false;
+  std::string id_;
   mutable std::optional<Eigen::Vector3d> position_;
 
   [[nodiscard]] static inline std::string decodeConstant_(Constants c) {
@@ -156,6 +169,8 @@ class AtomID {
         return "1:0:0";
       case AtomID::Constants::e2:
         return "0:1:0";
+      default:
+        throw cpet::value_error("Cannot decode constant");
     }
   }
 };

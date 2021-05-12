@@ -1,0 +1,11 @@
+---
+Checks:          '*,-fuchsia-*,-google-*,-zircon-*,-abseil-*,-modernize-use-trailing-return-type,-llvm*'
+HeaderFilterRegex: '\/include\/'
+FormatStyle:     none
+CheckOptions:
+  - key: misc-non-private-member-variables-in-classes.IgnorePublicMemberVariables
+    value: true
+  - key: readability-magic-numbers.IgnorePowersOf2IntegerValues
+    value: true
+  - key: readability-magic-numbers.IgnoreAllFloatingPointValues
+    value: true

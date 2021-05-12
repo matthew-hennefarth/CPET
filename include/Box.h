@@ -6,11 +6,12 @@
 
 /* C++ STL HEADER FILES */
 #include <random>
-#include <vector>
 #include <string>
+#include <vector>
 
 /* EXTERNAL LIBRARY HEADER FILES */
-#include "Eigen/Dense"
+#include <Eigen/Dense>
+#include <spdlog/spdlog.h>
 
 /* CPET HEADER FILES */
 #include "Exceptions.h"
@@ -22,7 +23,8 @@ class Box : public Volume {
   explicit inline Box(const std::array<double, 3>& sides) : sides_(sides) {
     for (const auto& val : sides_) {
       if (val < 0) {
-        throw cpet::value_error("Invalid value: " + std::to_string(val));
+        SPDLOG_ERROR("Invalid value for box side length {}", val);
+        throw cpet::value_error("Invalid value for box side length");
       }
     }
   }
@@ -31,10 +33,18 @@ class Box : public Volume {
     return *std::max_element(sides_.begin(), sides_.end());
   }
 
+  [[nodiscard]] inline double diagonal() const noexcept {
+    double diag = 0;
+    for (const auto& dim : sides_) {
+      diag += dim * dim;
+    }
+    return sqrt(4*diag);
+  }
+
   [[nodiscard]] inline bool isInside(
-      const Eigen::Vector3d& position) const noexcept override {
+      const Eigen::Vector3d& position) const override {
     for (size_t i = 0; i < 3; i++) {
-      if (abs(position[static_cast<long>(i)]) >= sides_[i]) {
+      if (abs(position[static_cast<long>(i)]) >= sides_.at(i)) {
         return false;
       }
     }
@@ -66,7 +76,7 @@ class Box : public Volume {
   [[nodiscard]] inline int randomDistance(
       double stepSize) const noexcept override {
     std::uniform_int_distribution<int> distribution(
-        1, static_cast<int>(maxDim() / stepSize));
+        1, static_cast<int>(diagonal() / stepSize));
     return distribution(*randomNumberGenerator());
   }
 
@@ -76,7 +86,10 @@ class Box : public Volume {
 
   [[nodiscard]] inline std::vector<Eigen::Vector3d> partition(
       const std::array<int, 3>& density) const noexcept override {
-    double x, y, z;
+    double x{0};
+    double y{0};
+    double z{0};
+   
     std::vector<Eigen::Vector3d> result;
 
     result.reserve(static_cast<size_t>(density[0] * density[1] * density[2]));
@@ -102,8 +115,8 @@ class Box : public Volume {
       std::array<std::uniform_real_distribution<double>, 3>& distribution)
       const noexcept {
     for (size_t i = 0; i < distribution.size(); i++) {
-      distribution[i] =
-          std::uniform_real_distribution<double>(-1 * sides_[i], sides_[i]);
+      distribution.at(i) =
+          std::uniform_real_distribution<double>(-1 * sides_.at(i), sides_.at(i));
     }
   }
 

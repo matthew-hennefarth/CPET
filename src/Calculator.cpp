@@ -5,8 +5,8 @@
 #include <fstream>
 
 /* EXTERNAL LIBRARY HEADER FILES */
-#include "spdlog/sinks/stdout_sinks.h"
 #include "spdlog/fmt/ostr.h"
+#include "spdlog/sinks/stdout_sinks.h"
 #include "spdlog/spdlog.h"
 
 /* CPET HEADER FILES */
@@ -15,6 +15,13 @@
 #include "Instrumentation.h"
 #include "System.h"
 #include "Utilities.h"
+
+constexpr int PDB_XCOORD_START = 31;
+constexpr int PDB_YCOORD_START = 39;
+constexpr int PDB_ZCOORD_START = 47;
+constexpr int PDB_CHARGE_START = 55;
+constexpr int PDB_COORD_WIDTH = 8;
+constexpr int PDB_CHARGE_WIDTH = 8;
 
 Calculator::Calculator(std::string proteinFile, const std::string& optionFile,
                        std::string chargesFile, int nThreads)
@@ -48,14 +55,15 @@ void Calculator::compute() {
 void Calculator::computeTopology_() const {
   for (size_t i = 0; i < systems_.size(); i++) {
     SPDLOG_INFO("=~=~=~=~[Trajectory {}]=~=~=~=~", i);
-    System sys(pointChargeTrajectory_[i], option_);
-    sys.transformToUserSpace();
+    const System&  sys = systems_.at(i);
+    sys.printCenterAndBasis();
 
     for (const auto& region : option_.calculateEFieldTopology) {
       SPDLOG_INFO("======[Sampling topology]======");
-      SPDLOG_INFO("[Volume ] ==>> {}", region.volume->description());
-      SPDLOG_INFO("[Npoints] ==>> {}", region.numberOfSamples);
-      SPDLOG_INFO("[Threads] ==>> {}", numberOfThreads_);
+      SPDLOG_INFO("[Volume ]   ==>> {}", region.volume->description());
+      SPDLOG_INFO("[Npoints]   ==>> {}", region.numberOfSamples);
+      SPDLOG_INFO("[Threads]   ==>> {}", numberOfThreads_);
+      SPDLOG_INFO("[STEP SIZE] ==>> {}", STEP_SIZE);
       std::vector<PathSample> results;
       {
         Timer t;
@@ -69,7 +77,7 @@ void Calculator::computeTopology_() const {
 void Calculator::computeEField_() const {
   std::vector<std::vector<Eigen::Vector3d>> results;
   for (const auto& point : option_.calculateEFieldPoints) {
-    SPDLOG_INFO("=~=~=~=~[Field at {}]=~=~=~=~", point.id);
+    SPDLOG_INFO("=~=~=~=~[Field at {}]=~=~=~=~", point.ID());
     std::vector<Eigen::Vector3d> fieldTrajectoryAtPoint;
 
     for (size_t i = 0; i < systems_.size(); i++) {
@@ -80,7 +88,10 @@ void Calculator::computeEField_() const {
       } else {
         location =
             PointCharge::find(pointChargeTrajectory_[i], point)->coordinate;
+        location = systems_[i].transformToUserSpace(location);
       }
+
+      systems_[i].printCenterAndBasis();
 
       Eigen::Vector3d field = systems_[i].electricFieldAt(location);
       SPDLOG_INFO("Field: {} [{}]", field.transpose(), field.norm());
@@ -97,6 +108,7 @@ void Calculator::computeVolume_() const {
     volumeResults.reserve(systems_.size());
 
     for (const auto& system : systems_) {
+      system.printCenterAndBasis();
       std::vector<Eigen::Vector3d> tmpSystemResults;
       tmpSystemResults.reserve(volume.points.size());
 
@@ -118,11 +130,13 @@ void Calculator::loadPointChargeTrajectory_() {
       pointChargeTrajectory_.push_back(tmpHolder);
       tmpHolder.clear();
     } else if (line.rfind("ATOM", 0) == 0 || line.rfind("HETATM", 0) == 0) {
-      tmpHolder.emplace_back(Eigen::Vector3d({std::stod(line.substr(31, 8)),
-                                              std::stod(line.substr(39, 8)),
-                                              std::stod(line.substr(47, 8))}),
-                             std::stod(line.substr(55, 8)),
-                             AtomID::generateID(line));
+      tmpHolder.emplace_back(
+          Eigen::Vector3d(
+              {std::stod(line.substr(PDB_XCOORD_START, PDB_COORD_WIDTH)),
+               std::stod(line.substr(PDB_YCOORD_START, PDB_COORD_WIDTH)),
+               std::stod(line.substr(PDB_ZCOORD_START, PDB_COORD_WIDTH))}),
+          std::stod(line.substr(PDB_CHARGE_START, PDB_CHARGE_WIDTH)),
+          AtomID::generateID(line));
     }
   });
   if (!tmpHolder.empty()) {
@@ -135,7 +149,8 @@ std::vector<double> Calculator::loadChargesFile_() const {
   std::vector<double> realCharges;
   forEachLineIn(chargeFile_, [&realCharges](const std::string& line) {
     if (line.rfind("ATOM", 0) == 0 || line.rfind("HETATM", 0) == 0) {
-      realCharges.emplace_back(std::stod(line.substr(55, 8)));
+      realCharges.emplace_back(
+          std::stod(line.substr(PDB_CHARGE_START, PDB_CHARGE_WIDTH)));
     }
   });
   return realCharges;
@@ -147,14 +162,6 @@ void Calculator::fixCharges_() {
 
   for (auto& structure : pointChargeTrajectory_) {
     if (structure.size() != realCharges.size()) {
-      // auto it = find(pointChargeTrajectory_.begin(),
-      // pointChargeTrajectory_.end(), structure);
-      // auto index = static_cast<int>(it - pointChargeTrajectory_.begin());
-      // SPDLOG_ERROR(
-      //"Inconsistent number of point charges in trajectory structure {} and "
-      //"in charge "
-      //"file",
-      // index);
       SPDLOG_ERROR("Structure size: {}, number of charges: {}",
                    structure.size(), realCharges.size());
       throw cpet::value_error(
@@ -196,7 +203,7 @@ void Calculator::writeEFieldResults_(
   if (outFile.is_open()) {
     outFile << '#' << proteinFile_ << '\n';
     for (size_t i = 0; i < results.size(); i++) {
-      outFile << '#' << option_.calculateEFieldPoints[i].id << '\n';
+      outFile << '#' << option_.calculateEFieldPoints[i].ID() << '\n';
       for (const Eigen::Vector3d& field : results[i]) {
         outFile << field.transpose() << '\n';
       }

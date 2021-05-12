@@ -9,7 +9,7 @@
 #include <vector>
 
 /* EXTERNAL LIBRARY HEADER FILES */
-#include "Eigen/Dense"
+#include <Eigen/Dense>
 
 class Volume {
  public:
@@ -17,12 +17,16 @@ class Volume {
 
   Volume(const Volume &) = default;
 
+  Volume(Volume &&) = default;
+
   Volume &operator=(const Volume &) = default;
+
+  Volume &operator=(Volume &&) = default;
 
   virtual ~Volume() = default;
 
-  [[nodiscard]] virtual bool isInside(const Eigen::Vector3d &position) const
-      noexcept(true) = 0;
+  [[nodiscard]] virtual bool isInside(
+      const Eigen::Vector3d &position) const = 0;
 
   [[nodiscard]] virtual const double &maxDim() const noexcept = 0;
 

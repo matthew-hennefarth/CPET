@@ -23,6 +23,6 @@ struct TopologyRegion {
     return "Samples: " + std::to_string(numberOfSamples) +
            "; Volume: " + volume->description();
   }
-};
+} __attribute__((aligned(16)));
 
 #endif  // TOPOLOGYREGION_H

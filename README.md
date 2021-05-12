@@ -1,15 +1,10 @@
 # Classical Protein Electric Field Topology
 Tool used to compute the classical electric field from a protein structure (or structures) as well as sample topological data.
 
-## Requirements
-Note that libraries are included as git submodules, and do not need to be installed seperately (see Installation below)
+## System Requirements
 - CMake Version >= 3.11
 - Clang Version >= 12.0.0 or GCC Version >= 9.3.0
 - C++ Standard >= 17
-- Eigen
-- cs_libguarded
-- cxxopts
-- spdlog
 
 ## Installation
 ### Download Binaries
@@ -22,12 +17,8 @@ you will have to compile from source (see below).
 ### Compile from source
 Download source code from latest [release](https://github.com/matthew-hennefarth/CPET/releases/download/v0.0.0/Full-CPET-Source.tar). Or, for latest (possible unstable), clone this repository and the submodules using
 
-    git clone --recursive https://github.com/matthew-hennefarth/CPET.git
+    git clone https://github.com/matthew-hennefarth/CPET.git
              
-or, if using ssh,
-
-    git clone --recursive git@github.com:matthew-hennefarth/CPET.git
-     
 Then, go into the project and make a build directory, `mkdir build` and go into this directory, `cd build`. We will then run cmake to build the binary.
 
     cmake ../
@@ -136,3 +127,11 @@ The additional options (beyond `-o` and `-p` one can specify are
 - `-v`
 
 `-d`, `-h`, and `-v` are boolean flags which signal 'debug', 'help message', and 'verbose' respectively. `-c` specifies an alternative file from which to reference the partial atomic charges for each atom. Again, the charges should be in the occupancy column. `-t` tells the program the number of threads to use when computing topological quantities. Note that there is ONLY parallizability for the `topology` keyword in the options file. `-O` specifies an alternative output file prefix. Note that if this is not specified, then the default file prefix will be the pdb file from the `-p` option.
+
+## Uses
+This code uses the following C++ libraries:
+- Eigen
+- cs_libguarded
+- cxxopts
+- spdlog
+

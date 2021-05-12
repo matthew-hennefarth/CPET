@@ -9,15 +9,17 @@
 #include <vector>
 
 /* EXTERNAL LIBRARY HEADER FILES */
-#include "Eigen/Dense"
+#include <Eigen/Dense>
 
 /* CPET HEADER FILES */
 #include "AtomID.h"
-#include "TopologyRegion.h"
 #include "EFieldVolume.h"
+#include "TopologyRegion.h"
 
 class Option {
  public:
+  Option() = default;
+
   explicit Option(const std::string& optionFile);
 
   AtomID centerID{AtomID::Constants::origin};

@@ -6,16 +6,16 @@
 #include <cmath>
 
 /* EXTERNAL LIBRARY HEADER FILES */
-#include "cs_libguarded/cs_plain_guarded.h"
-#include "spdlog/fmt/ostr.h"
-#include "spdlog/sinks/stdout_sinks.h"
+#include <cs_plain_guarded.h>
+#include <spdlog/fmt/ostr.h>
+#include <spdlog/sinks/stdout_sinks.h>
 
 /* CPET HEADER FILES */
 #include "Instrumentation.h"
 #include "RAIIThread.h"
 #include "System.h"
 
-#define PERM_SPACE 0.0055263495
+constexpr double PERM_SPACE = 0.0055263495;
 
 System::System(std::vector<PointCharge> pc, const Option& options)
     : pointCharges_(std::move(pc)) {
@@ -72,7 +72,7 @@ System::System(std::vector<PointCharge> pc, const Option& options)
 
   SPDLOG_DEBUG("Constructing basis matrix...");
   for (size_t i = 0; i < basis.size(); i++) {
-    basisMatrix_.block(0, static_cast<Eigen::Index>(i), 3, 1) = basis[i];
+    basisMatrix_.block(0, static_cast<Eigen::Index>(i), 3, 1) = basis.at(i);
   }
   if (basisMatrix_.determinant() == 0) {
     SPDLOG_ERROR("Basis is not linearly independent");
@@ -82,28 +82,29 @@ System::System(std::vector<PointCharge> pc, const Option& options)
   SPDLOG_DEBUG("Removing point charges with charge of 0...");
   pointCharges_.erase(
       remove_if(begin(pointCharges_), end(pointCharges_),
-                [](const auto& pc) { return pc.charge == 0.0; }),
+                [](const auto& p) { return p.charge == 0.0; }),
       end(pointCharges_));
 }
 
 Eigen::Vector3d System::electricFieldAt(const Eigen::Vector3d& position) const {
-  SPDLOG_DEBUG("Computing field at {}...", position.transpose());
   Eigen::Vector3d result(0, 0, 0);
+  constexpr double TO_V_PER_ANG = (1.0 / (4.0 * M_PI * PERM_SPACE));
 
   Eigen::Vector3d d;
-  double dNorm;
+  double dNorm{0};
+
+
   for (const auto& pc : pointCharges_) {
     d = (position - pc.coordinate);
     dNorm = d.norm();
     result += ((pc.charge * d) / (dNorm * dNorm * dNorm));
   }
-  result *= (1.0 / (4.0 * M_PI * PERM_SPACE));
-  SPDLOG_DEBUG("Field is {}", result.transpose());
+  result *= TO_V_PER_ANG;
   return result;
 }
 
 std::vector<PathSample> System::electricFieldTopologyIn(
-    int numOfThreads, const TopologyRegion& topologicalRegion) {
+    int numOfThreads, const TopologyRegion& topologicalRegion) const {
   std::vector<PathSample> sampleResults;
   sampleResults.reserve(static_cast<size_t>(topologicalRegion.numberOfSamples));
 
@@ -115,10 +116,10 @@ std::vector<PathSample> System::electricFieldTopologyIn(
   if (numOfThreads == 1) {
     SPDLOG_DEBUG("Single thread...");
     int samples = topologicalRegion.numberOfSamples;
-    while (samples-- > 0)
+    while (samples-- > 0) {
       sampleResults.emplace_back(
           sampleElectricFieldTopologyIn_(*topologicalRegion.volume));
-
+    }
     SPDLOG_INFO("{} Points calculated", topologicalRegion.numberOfSamples);
   } else {
     SPDLOG_DEBUG("Multi-threads: {}", numOfThreads);
@@ -147,8 +148,8 @@ std::vector<PathSample> System::electricFieldTopologyIn(
       for (int i = 0; i < numOfThreads; i++) {
         workers.emplace_back([&samples, &shared_vector, &topologicalRegion,
                               this]() {
-          auto thread_logger = spdlog::get("Thread");
-          thread_logger->info("Spinning up...");
+          auto this_thread_logger = spdlog::get("Thread");
+          this_thread_logger->info("Spinning up...");
           int completed = 0;
           while (samples-- > 0) {
             auto s = sampleElectricFieldTopologyIn_(*topologicalRegion.volume);
@@ -158,7 +159,7 @@ std::vector<PathSample> System::electricFieldTopologyIn(
             }
             completed++;
           }
-          thread_logger->info("{} Points calculated", completed);
+          this_thread_logger->info("{} Points calculated", completed);
         });
       }
     }
@@ -176,10 +177,19 @@ PathSample System::sampleElectricFieldTopologyIn_(const Volume& region) const
   const int maxSteps = region.randomDistance(STEP_SIZE);
 
   Eigen::Vector3d finalPosition = initialPosition;
+  SPDLOG_DEBUG("Initial position {}", initialPosition.transpose());
   int steps = 0;
 
-  while (region.isInside(finalPosition) && ++steps < maxSteps)
+  while (region.isInside(finalPosition) && ++steps < maxSteps) {
     finalPosition = nextPoint_(finalPosition);
+    SPDLOG_DEBUG("Updated position: {}", finalPosition.transpose());
+  }
+
+  SPDLOG_DEBUG("Initial position {}", initialPosition.transpose());
+  SPDLOG_DEBUG("Final position: {}", finalPosition.transpose());
+  SPDLOG_DEBUG("Num of steps: {}", steps);
+  SPDLOG_DEBUG("Distance between end and start: {}",
+               (finalPosition - initialPosition).norm());
 
   return {(finalPosition - initialPosition).norm(),
           (curvatureAt_(finalPosition) + curvatureAt_(initialPosition)) / 2.0};
@@ -187,21 +197,18 @@ PathSample System::sampleElectricFieldTopologyIn_(const Volume& region) const
 
 double System::curvatureAt_(const Eigen::Vector3d& alpha_0) const noexcept {
   SPDLOG_DEBUG("Calculating curvature of field at {}", alpha_0.transpose());
-  Eigen::Vector3d alpha_prime = electricFieldAt(alpha_0);
+
   Eigen::Vector3d alpha_1 = nextPoint_(alpha_0);
+  Eigen::Vector3d alpha_2 = nextPoint_(alpha_1);
 
-  /* Measures how much "time" we spent going forward */
-  /* delta alpha/delta t = E, in the limit of delta t -> 0 */
-  /* then we have delta alpha/E = delta t */
-  double delta_t = (alpha_1 - alpha_0).norm() / alpha_prime.norm();
+  Eigen::Vector3d alpha_0_prime = alpha_1 - alpha_0;
+  Eigen::Vector3d alpha_1_prime = alpha_2 - alpha_1;
 
-  /* Simple directional derivative of the electric field in that direction */
-  Eigen::Vector3d alpha_prime_prime =
-      (electricFieldAt(alpha_1) - alpha_prime) / delta_t;
+  Eigen::Vector3d alpha_0_prime_prime = alpha_1_prime - alpha_0_prime;
 
-  double alpha_prime_norm = alpha_prime.norm();
+  double alpha_prime_norm = alpha_0_prime.norm();
 
-  return (alpha_prime.cross(alpha_prime_prime)).norm() /
+  return (alpha_0_prime.cross(alpha_0_prime_prime)).norm() /
          (alpha_prime_norm * alpha_prime_norm * alpha_prime_norm);
 }
 
