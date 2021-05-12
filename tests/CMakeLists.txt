@@ -11,9 +11,6 @@ target_link_libraries_system(runUnitTests spdlog::spdlog cxxopts Eigen3::Eigen C
 target_link_libraries(runUnitTests Threads::Threads)
 
 include(GoogleTest)
-gtest_discover_tests(runUnitTests)
+gtest_discover_tests(runUnitTests 
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
-add_test(
-    NAME runUnitTests
-    COMMAND runUnitTests
-)

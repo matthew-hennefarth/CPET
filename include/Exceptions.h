@@ -38,6 +38,11 @@ class io_error : cpet::exception {
   explicit io_error(const char* what_arg) : cpet::exception(what_arg) {}
 };
 
+class invalid_option : cpet::exception {
+ public:
+  explicit invalid_option(const std::string& what_arg) : cpet::exception(what_arg) {}
+  explicit invalid_option(const char* what_arg) : cpet::exception(what_arg) {}
+};
 }  // namespace cpet
 
 #endif  // EXCEPTIONS_H
