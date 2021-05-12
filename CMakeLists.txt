@@ -63,7 +63,7 @@ CPMAddPackage("gh:copperspice/cs_libguarded#master")
 
 #----- TESTING
 
-option(ENABLE_TESTING "Enable creation of CPET tests." ON)
+option(ENABLE_TESTING "Enable creation of CPET tests." OFF)
 if(ENABLE_TESTING)
   include(CTest)
   message("Building tests.")
