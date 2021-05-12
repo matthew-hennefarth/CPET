@@ -1,14 +1,14 @@
 #include <gtest/gtest.h>
 
+#include <Eigen/Core>
 #include <exception>
 #include <iostream>
 #include <string>
 #include <vector>
 
-#include <Eigen/Core>
-
 #include "AtomID.h"
 #include "Exceptions.h"
+#include "PointCharge.h"
 
 TEST(AtomID, GenerateFromPDB) {
   const std::vector<std::string> pdbLines = {
@@ -56,7 +56,7 @@ TEST(AtomID, ConstructWithString) {
 
 TEST(AtomID, AssignWithString) {
   AtomID a("D:115:C101");
-  
+
   ASSERT_EQ(a.ID(), "D:115:C101");
   a = "D:2:H117";
   ASSERT_EQ(a.ID(), "D:2:H117");
@@ -77,7 +77,7 @@ TEST(AtomID, AssignStringToVector) {
   ASSERT_TRUE(a.isVector());
   EXPECT_FALSE(a.isConstant());
   EXPECT_EQ(a.position(), a_vector);
-  
+
   ASSERT_NO_THROW(a = "GF:254:C107");
   EXPECT_FALSE(a.isConstant());
   EXPECT_FALSE(a.position());
@@ -120,7 +120,7 @@ TEST(AtomID, OriginConstants) {
   EXPECT_TRUE(a.isConstant());
   EXPECT_TRUE(a.isVector());
   ASSERT_TRUE(a.position());
-  EXPECT_EQ(a.position(), Eigen::Vector3d({0,0,0}));
+  EXPECT_EQ(a.position(), Eigen::Vector3d({0, 0, 0}));
 }
 
 TEST(AtomID, e1Constants) {
@@ -128,7 +128,7 @@ TEST(AtomID, e1Constants) {
   EXPECT_TRUE(a.isConstant());
   EXPECT_TRUE(a.isVector());
   ASSERT_TRUE(a.position());
-  EXPECT_EQ(a.position(), Eigen::Vector3d({1,0,0}));
+  EXPECT_EQ(a.position(), Eigen::Vector3d({1, 0, 0}));
 }
 
 TEST(AtomID, e2Constants) {
@@ -136,7 +136,7 @@ TEST(AtomID, e2Constants) {
   EXPECT_TRUE(a.isConstant());
   EXPECT_TRUE(a.isVector());
   ASSERT_TRUE(a.position());
-  EXPECT_EQ(a.position(), Eigen::Vector3d({0,1,0}));
+  EXPECT_EQ(a.position(), Eigen::Vector3d({0, 1, 0}));
 }
 
 TEST(AtomID, AssignStringToConstant) {
@@ -151,7 +151,7 @@ TEST(AtomID, AssignStringToConstant) {
 TEST(AtomID, AssignVectorToConstant) {
   AtomID a(AtomID::Constants::e2);
   ASSERT_TRUE(a.isConstant());
-  ASSERT_EQ(a.position(), Eigen::Vector3d({0,1,0}));
+  ASSERT_EQ(a.position(), Eigen::Vector3d({0, 1, 0}));
 
   a = "105.3:-303.00:299";
   EXPECT_FALSE(a.isConstant());
@@ -160,5 +160,22 @@ TEST(AtomID, AssignVectorToConstant) {
   EXPECT_EQ(a.position(), Eigen::Vector3d({105.3, -303.00, 299}));
 }
 
-// test atomid
+TEST(PointCharge, find) {
+  PointCharge pc1{Eigen::Vector3d{3.0, 2.0, 2.5}, 1.0, AtomID{"A:4:CD"}};
+  PointCharge pc2{Eigen::Vector3d{3.5, 1.0, 3.5}, 1.0, AtomID{"C:35:SG\'"}};
+  PointCharge pc3{Eigen::Vector3d{-1.0, 0.92, 6.5}, 1.0, AtomID{"A:45:C100"}};
+  PointCharge pc4{Eigen::Vector3d{4.23, 8.0, -2.5}, 1.0, AtomID{"B:200:HB"}};
+
+  std::vector<PointCharge> system = {pc1, pc2, pc3, pc4};
+
+  EXPECT_EQ(*PointCharge::find(system, AtomID{"C:35:SG\'"}), pc2);
+  EXPECT_EQ(*PointCharge::find(system, AtomID{"A:4:CD"}), pc1);
+  EXPECT_EQ(*PointCharge::find(system, AtomID{"B:200:HB"}), pc4);
+
+  EXPECT_THROW((void)PointCharge::find(system, AtomID("C:35:SG")),
+               cpet::value_not_found);
+  EXPECT_THROW((void)PointCharge::find(system, AtomID("D:54:C102")),
+               cpet::value_not_found);
+}
+
 // test pointcharges (some of the basic functionalities...)

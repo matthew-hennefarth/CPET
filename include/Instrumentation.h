@@ -47,11 +47,7 @@ class Timer {
     } else {
       logger_->info("Timer: {} sec", sec);
     }
-    try {
-      func_(sec);
-    } catch(...) {
-      SPDLOG_ERROR("ERROR LEAVING TIMER SCOPE");
-    }
+    func_(sec);
   }
 
   inline void Start() noexcept { start_ = std::chrono::steady_clock::now(); }
@@ -63,6 +59,6 @@ class Timer {
 
   std::shared_ptr<spdlog::logger> logger_{nullptr};
 
-  std::function<void(const float)> func_;
+  std::function<void(const float)> func_{[](const float){}};
 };
 #endif  // INSTRUMENTATION_H

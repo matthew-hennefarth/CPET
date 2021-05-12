@@ -55,14 +55,15 @@ void Calculator::compute() {
 void Calculator::computeTopology_() const {
   for (size_t i = 0; i < systems_.size(); i++) {
     SPDLOG_INFO("=~=~=~=~[Trajectory {}]=~=~=~=~", i);
-    System sys(pointChargeTrajectory_[i], option_);
-    sys.transformToUserSpace();
+    const System&  sys = systems_.at(i);
+    sys.printCenterAndBasis();
 
     for (const auto& region : option_.calculateEFieldTopology) {
       SPDLOG_INFO("======[Sampling topology]======");
-      SPDLOG_INFO("[Volume ] ==>> {}", region.volume->description());
-      SPDLOG_INFO("[Npoints] ==>> {}", region.numberOfSamples);
-      SPDLOG_INFO("[Threads] ==>> {}", numberOfThreads_);
+      SPDLOG_INFO("[Volume ]   ==>> {}", region.volume->description());
+      SPDLOG_INFO("[Npoints]   ==>> {}", region.numberOfSamples);
+      SPDLOG_INFO("[Threads]   ==>> {}", numberOfThreads_);
+      SPDLOG_INFO("[STEP SIZE] ==>> {}", STEP_SIZE);
       std::vector<PathSample> results;
       {
         Timer t;
@@ -90,6 +91,8 @@ void Calculator::computeEField_() const {
         location = systems_[i].transformToUserSpace(location);
       }
 
+      systems_[i].printCenterAndBasis();
+
       Eigen::Vector3d field = systems_[i].electricFieldAt(location);
       SPDLOG_INFO("Field: {} [{}]", field.transpose(), field.norm());
       fieldTrajectoryAtPoint.emplace_back(field);
@@ -105,6 +108,7 @@ void Calculator::computeVolume_() const {
     volumeResults.reserve(systems_.size());
 
     for (const auto& system : systems_) {
+      system.printCenterAndBasis();
       std::vector<Eigen::Vector3d> tmpSystemResults;
       tmpSystemResults.reserve(volume.points.size());
 

@@ -30,6 +30,11 @@ struct PointCharge {
 
   inline PointCharge& operator=(PointCharge&&) noexcept = default;
 
+  [[nodiscard]] inline bool operator==(const PointCharge& pc) const {
+    return (coordinate == pc.coordinate) && (charge == pc.charge) &&
+           (id == pc.id);
+  }
+
   ~PointCharge() = default;
 
   [[nodiscard]] static inline auto find(

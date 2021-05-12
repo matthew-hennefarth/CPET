@@ -45,7 +45,7 @@ class System {
       const Eigen::Vector3d& position) const;
 
   [[nodiscard]] std::vector<PathSample> electricFieldTopologyIn(
-      int numOfThreads, const TopologyRegion& topologicalRegion);
+      int numOfThreads, const TopologyRegion& topologicalRegion) const;
 
   inline void transformToUserSpace() {
     translateSystemToCenter_();
@@ -59,6 +59,13 @@ class System {
     vec = inverse * vec;
     return vec;
   }
+  
+  inline void printCenterAndBasis() const {
+    SPDLOG_INFO("[center] ==>> {}", center_.transpose());
+    SPDLOG_INFO("[User Basis]");
+    SPDLOG_INFO(basisMatrix_.transpose());
+  }
+
 
   [[nodiscard]] Eigen::Vector3d center() const { return center_; }
   [[nodiscard]] Eigen::Matrix3d basisMatrix() const { return basisMatrix_; }
@@ -92,7 +99,7 @@ class System {
 
   inline void translateSystemToCenter_() {
     SPDLOG_DEBUG("Translating to the center");
-    SPDLOG_INFO("[center] ==>> {}", center_.transpose());
+    SPDLOG_DEBUG("[center] ==>> {}", center_.transpose());
     translateSystemTo_(center_);
   }
 
@@ -105,8 +112,8 @@ class System {
     SPDLOG_DEBUG("Translating to user basis");
 
     Eigen::Matrix3d inverse = basisMatrix_.inverse();
-    SPDLOG_INFO("[User Basis]");
-    SPDLOG_INFO(inverse);
+    SPDLOG_DEBUG("[User Basis]");
+    SPDLOG_DEBUG(inverse);
     forEachPointCharge_([&inverse](PointCharge& pc) {
       pc.coordinate = inverse * pc.coordinate;
     });

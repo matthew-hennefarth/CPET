@@ -1,6 +1,6 @@
 include_directories( ${PROJECT_SOURCE_DIR}/include )
 
-add_executable(runUnitTests test_utilities.cpp test_volume.cpp test_pointcharges.cpp ../src/Utilities.cpp)
+add_executable(runUnitTests test_utilities.cpp test_volume.cpp test_pointcharges.cpp test_option.cpp ../src/Utilities.cpp ../src/Option.cpp)
 set_target_properties( runUnitTests PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin/test )
 target_compile_definitions(runUnitTests PRIVATE -DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_OFF)
 

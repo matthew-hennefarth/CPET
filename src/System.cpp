@@ -104,7 +104,7 @@ Eigen::Vector3d System::electricFieldAt(const Eigen::Vector3d& position) const {
 }
 
 std::vector<PathSample> System::electricFieldTopologyIn(
-    int numOfThreads, const TopologyRegion& topologicalRegion) {
+    int numOfThreads, const TopologyRegion& topologicalRegion) const {
   std::vector<PathSample> sampleResults;
   sampleResults.reserve(static_cast<size_t>(topologicalRegion.numberOfSamples));
 
