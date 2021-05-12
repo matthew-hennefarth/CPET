@@ -8,7 +8,7 @@ Tool used to compute the classical electric field from a protein structure (or s
 
 ## Installation
 ### Download Binaries
-Binaries (version 0.0.0) are available for [Linux](https://github.com/matthew-hennefarth/CPET/releases/download/v0.0.0/cpet_Linux-x86_64) (x86_64 with gcc >= 9.3) and [MacOSX](https://github.com/matthew-hennefarth/CPET/releases/download/v0.0.0/cpet_MacOSX-ARM64) (ARM 64, 'Apple Silicon'). If you receive an error such as 
+Binaries (version 0.0.0) are available for [Linux](https://github.com/matthew-hennefarth/CPET/releases/download/v0.1.0/cpet_Linux-x86_64) (x86_64 with gcc >= 9.3) and [MacOSX](https://github.com/matthew-hennefarth/CPET/releases/download/v0.1.0/cpet_MacOSX-ARM64) (ARM 64, 'Apple Silicon'). If you receive an error such as 
 
     /usr/lib64/libstdc++.so.6: version `GLIBCXX_3.4.26' not found
 
