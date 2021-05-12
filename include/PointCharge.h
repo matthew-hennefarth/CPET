@@ -4,8 +4,10 @@
 #ifndef POINTCHARGE_H
 #define POINTCHARGE_H
 
+#include <vector>
+
 /* EXTERNAL LIBRARY HEADER FILES */
-#include "Eigen/Dense"
+#include <Eigen/Dense>
 
 /* CPET HEADER FILES */
 #include "AtomID.h"

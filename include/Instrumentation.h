@@ -11,7 +11,7 @@
 #include <utility>
 
 /* EXTERNAL LIBRARY HEADER FILES */
-#include "spdlog/spdlog.h"
+#include <spdlog/spdlog.h>
 
 class Timer {
  public:

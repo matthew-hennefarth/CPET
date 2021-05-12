@@ -138,7 +138,6 @@ int main(int argc, char** argv) {
     SPDLOG_WARN(options.help());
     return 1;
   }
-
   /* Begin the actual program here */
   try {
     Calculator c(proteinFile.value(), optionFile.value(), chargesFile.value(),
@@ -147,9 +146,13 @@ int main(int argc, char** argv) {
       c.setOutputFilePrefix(result["out"].as<std::string>());
     }
     c.compute();
-  } catch (cpet::value_error& exc) {
-    // catch anything thrown within try block that derives from std::exception
-    SPDLOG_ERROR("BOI");
+  } catch (const cpet::exception& exc) {
+    SPDLOG_ERROR(exc.what());
+    return 1;
+  } catch (const std::exception& exc) {
+    SPDLOG_ERROR("Unknown exception occured while running");
+    SPDLOG_ERROR(exc.what());
+    return 1;
   }
 
   return 0;

@@ -11,7 +11,7 @@
 #include <utility>
 #include <vector>
 
-#include "Eigen/Dense"
+#include <Eigen/Dense>
 
 /* CPET HEADER FILES */
 #include "Volume.h"
@@ -23,7 +23,7 @@ struct EFieldVolume {
 
   std::vector<Eigen::Vector3d> points;
 
-  bool showPlot;
+  bool showPlot{false};
 
   EFieldVolume(std::unique_ptr<Volume> vol, std::array<int, 3> density,
                bool plot = false) noexcept

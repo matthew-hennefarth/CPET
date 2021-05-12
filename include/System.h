@@ -14,7 +14,6 @@
 /* EXTERNAL LIBRARY HEADER FILES */
 #include <spdlog/fmt/ostr.h>
 #include <spdlog/spdlog.h>
-
 #include <Eigen/Dense>
 
 /* CPET HEADER FILES */
@@ -59,13 +58,12 @@ class System {
     vec = inverse * vec;
     return vec;
   }
-  
+
   inline void printCenterAndBasis() const {
     SPDLOG_INFO("[center] ==>> {}", center_.transpose());
     SPDLOG_INFO("[User Basis]");
     SPDLOG_INFO(basisMatrix_.transpose());
   }
-
 
   [[nodiscard]] Eigen::Vector3d center() const { return center_; }
   [[nodiscard]] Eigen::Matrix3d basisMatrix() const { return basisMatrix_; }

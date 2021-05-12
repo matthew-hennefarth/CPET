@@ -11,7 +11,7 @@
 #include <type_traits>
 #include <utility>
 
-#include "Eigen/Dense"
+#include <Eigen/Dense>
 
 /* CPET HEADER FILES */
 #include "Exceptions.h"
