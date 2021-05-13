@@ -117,6 +117,9 @@ void Calculator::computeVolume_() const {
       }
 
       volumeResults.push_back(tmpSystemResults);
+      if (volume.showPlot) {
+        volume.plot(tmpSystemResults);
+      }
     }
     writeVolumeResults_(volumeResults, volume);
   }

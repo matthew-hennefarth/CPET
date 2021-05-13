@@ -55,8 +55,8 @@ void Option::loadOptionsFromFile_(const std::string& optionFile) {
     } else if (line.substr(0, 5) == "field") {
       std::vector<std::string> info = split(line.substr(5), ' ');
       calculateEFieldPoints.emplace_back(info[0]);
-    } else if (line.substr(0, 4) == "plot3d") {
-      std::vector<std::string> info = split(line.substr(4), ' ');
+    } else if (line.substr(0, 6) == "plot3d") {
+      std::vector<std::string> info = split(line.substr(6), ' ');
       if (info[0] == "box") {
         std::array<double, 3> dims = {std::stod(info[1]), std::stod(info[2]),
                                       std::stod(info[3])};

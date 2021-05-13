@@ -23,10 +23,10 @@ struct EFieldVolume {
 
   std::vector<Eigen::Vector3d> points;
 
-  bool showPlot{false};
+  bool showPlot{true};
 
   EFieldVolume(std::unique_ptr<Volume> vol, std::array<int, 3> density,
-               bool plot = false) noexcept
+               bool plot = true) noexcept
       : volume(std::move(vol)), sampleDensity(density), showPlot(plot) {
     points = volume->partition(sampleDensity);
   }
@@ -48,6 +48,8 @@ struct EFieldVolume {
             std::to_string(sampleDensity[2]) +
             "; Volume: " + volume->description());
   }
-}; 
 
+  void plot(const std::vector<Eigen::Vector3d>& electricField) const; 
+
+};
 #endif  // EFIELDVOLUME_H
