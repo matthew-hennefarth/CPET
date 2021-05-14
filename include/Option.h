@@ -7,6 +7,7 @@
 /* C++ STL HEADER FILES */
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 /* EXTERNAL LIBRARY HEADER FILES */
 #include <Eigen/Dense>
@@ -35,7 +36,12 @@ class Option {
   std::vector<EFieldVolume> calculateEFieldVolumes;
 
  private:
-  void loadOptionsFromFile_(const std::string& optionFile);
+  std::vector<std::string> simpleOptions_;
+  std::unordered_map<std::string, std::vector<std::string>> blockOptions_;
+
+  void loadOptionsDataFromFile_(const std::string& optionFile);
+  void parseSimpleOptions_();
+  void parseBlockOptions_();
 };
 
 #endif  // OPTION_H

@@ -13,7 +13,7 @@ else()
   target_compile_definitions(cpet PRIVATE -DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_INFO)
 endif()
 # Link external libraries
-target_link_libraries_system(cpet PUBLIC spdlog::spdlog cxxopts Eigen3::Eigen CsLibGuarded matplot)
+target_link_libraries_system(cpet PUBLIC spdlog::spdlog cxxopts Eigen3::Eigen CsLibGuarded)
 
 #target_link_libraries(cpet PUBLIC spdlog::spdlog)
 #target_link_libraries(cpet PUBLIC cxxopts)
