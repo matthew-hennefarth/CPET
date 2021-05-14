@@ -15,7 +15,7 @@ Binaries (version 0.1.0) are available for [Linux](https://github.com/matthew-he
 you will have to compile from source (see below).
 
 ### Compile from source
-Download source code from latest [release](https://github.com/matthew-hennefarth/CPET/releases/download/v0.0.0/Full-CPET-Source.tar). Or, for latest (possible unstable), clone this repository and the submodules using
+Download or clone this repository using
 
     git clone https://github.com/matthew-hennefarth/CPET.git
              
