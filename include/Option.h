@@ -134,6 +134,10 @@ class Option {
                                 {TOPOLOGY_KEY, &Option::parseTopologySimple_},
                                 {FIELD_KEY, &Option::parseFieldSimple_},
                                 {PLOT_3D_KEY, &Option::parsePlot3dSimple_}};
-};
 
+  std::unordered_map<std::string,
+                     void (Option::*)(
+                         const std::vector<std::vector<std::string>>&)>
+      parseBlockOptionsMap_;
+};
 #endif  // OPTION_H

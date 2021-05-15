@@ -7,7 +7,7 @@ include_directories( ${PROJECT_SOURCE_DIR}/include )
 #---------------------------------------------------[Main Executable]---------------------------------------------------
 add_executable(cpet ${SOURCE_FILES})
 if( CMAKE_BUILD_TYPE STREQUAL "Debug" )
-  target_link_libraries(cpet project_options project_warnings)
+  target_link_libraries(cpet PRIVATE project_options project_warnings)
   target_compile_definitions(cpet PRIVATE -DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG)
 else()
   target_compile_definitions(cpet PRIVATE -DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_INFO)
