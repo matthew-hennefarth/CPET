@@ -54,6 +54,10 @@ randomNumberGenerator() noexcept {
   return std::string{str.data(), strEnd};
 }
 
+[[nodiscard]] inline bool startswith(std::string_view str, std::string_view str2) {
+  return str.rfind(str2, 0) != std::string::npos;
+}
+
 void forEachLineIn(const std::string& file,
                    const std::function<void(const std::string&)>& func);
 
