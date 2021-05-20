@@ -47,11 +47,11 @@ TEST(Box, Partition) {
 
   std::vector<Eigen::Vector3d> expected_partition;
   double x = -1 * sides[0];
-  while (x < sides[0]) {
+  while (x <= sides[0]) {
     double y = -1 * sides[1];
-    while (y < sides[1]) {
+    while (y <= sides[1]) {
       double z = -1 * sides[2];
-      while (z < sides[2]) {
+      while (z <= sides[2]) {
         expected_partition.emplace_back(x, y, z);
         z += static_cast<double>(static_cast<float>(sides[2] / density[2]));
       }

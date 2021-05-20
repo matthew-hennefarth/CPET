@@ -53,6 +53,12 @@ option(CPM_USE_LOCAL_PACKAGES "Try `find_package` before downloading dependencie
 include(cmake/CPM.cmake)
 
 CPMAddPackage(
+    NAME matplotplusplus
+    GITHUB_REPOSITORY matthew-hennefarth/matplotplusplus
+    GIT_TAG origin/fix-build-pedantic
+)
+
+CPMAddPackage(
   NAME eigen
   GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
   GIT_TAG origin/master

@@ -95,11 +95,11 @@ class Box : public Volume {
     result.reserve(static_cast<size_t>(density[0] * density[1] * density[2]));
 
     x = -1 * sides_[0];
-    while (x < sides_[0]) {
+    while (x <= sides_[0]) {
       y = -1 * sides_[1];
-      while (y < sides_[1]) {
+      while (y <= sides_[1]) {
         z = -1 * sides_[2];
-        while (z < sides_[2]) {
+        while (z <= sides_[2]) {
           result.emplace_back(x, y, z);
           z += static_cast<double>(static_cast<float>(sides_[2] / density[2]));
         }
