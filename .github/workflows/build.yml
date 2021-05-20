@@ -20,10 +20,6 @@ on:
       - '**/CMakeLists.txt'
       - '.github/workflows/build.yml'
 
-env:
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: Debug
-
 jobs:
   Build:
     name: ${{ matrix.config.name }}
@@ -36,8 +32,8 @@ jobs:
           - {
             name: "Ubuntu/18.04/Static/X64/Release",
             os: ubuntu-18.04,
-            config: Release,
-            cmake_extra_args: "-DCMAKE_C_COMPILER=/usr/bin/gcc-10 -DCMAKE_CXX_COMPILER=/usr/bin/g++-10  -DCMAKE_CXX_FLAGS=\"-O2\"",
+            config: Debug,
+            cmake_extra_args: "-DCMAKE_C_COMPILER=/usr/bin/gcc-10 -DCMAKE_CXX_COMPILER=/usr/bin/g++-10  -DENABLE_TESTING=ON",
             sudocmd: "sudo",
             artifact_name: "Linux",
             cores: 2,
@@ -45,8 +41,8 @@ jobs:
           - {
             name: "MacOSX/10.15/Static/X64/Release",
             os: macos-10.15,
-            config: Release,
-            cmake_extra_args: "-DCMAKE_CXX_FLAGS=\"-O2\"",
+            config: Debug,
+            cmake_extra_args: "-DENABLE_TESTING=ON",
             sudocmd: "sudo",
             artifact_name: "MacOSX",
             cores: 4,
@@ -61,8 +57,8 @@ jobs:
         cmake .. ${{ matrix.config.cmake_extra_args }} -DCMAKE_BUILD_TYPE=${{ matrix.config.config }}
     - name: Build
       working-directory: ./build
-      run: cmake --build . --parallel ${{ matrix.config.cores }} --config ${{ matrix.config.config }}
+      run: make
     - name: Test
       working-directory: ./build
-      run: ctest --parallel ${{ matrix.config.cores }} -C ${{ matrix.config.config }}
+      run: ctest --parallel ${{ matrix.config.cores }}
       
