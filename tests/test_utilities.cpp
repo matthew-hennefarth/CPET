@@ -112,3 +112,94 @@ TEST(find_if_ex, ElementMissing) {
                cpet::value_not_found);
 }
 
+TEST(lstrip, NormalLstrips) {
+  std::string str = "  the big grey fox was hungry";
+  EXPECT_EQ(lstrip(str), "the big grey fox was hungry");
+  EXPECT_EQ(lstrip(str, " \tt"), "he big grey fox was hungry");
+  EXPECT_EQ(lstrip(str, "the"), str);
+
+  str = "aaa;## hello there general kenobii    ";
+  EXPECT_EQ(lstrip(str), str);
+  EXPECT_EQ(lstrip(str, "a"), ";## hello there general kenobii    ");
+  EXPECT_EQ(lstrip(str, "a;# "), "hello there general kenobii    ");
+}
+
+TEST(lstrip, EmptyString) {
+  ASSERT_NO_THROW(auto s = lstrip(""));
+  EXPECT_EQ(lstrip(""), "");
+  EXPECT_EQ(lstrip("", "abcdefghijklmnopqrstuvwxyz1234567890"), "");
+}
+
+TEST(rstrip, NormalRstrip) {
+  std::string str = "    the big grey fox was hungry";
+  EXPECT_EQ(rstrip(str), str);
+  EXPECT_EQ(rstrip(str, "yr"), "    the big grey fox was hung");
+  EXPECT_EQ(rstrip(str, " \try"), "    the big grey fox was hung");
+
+  str = "aaa;## hello there general kenobii;# my comment  ";
+
+  EXPECT_EQ(rstrip(str), "aaa;## hello there general kenobii;# my comment");
+  EXPECT_EQ(rstrip(str, "#"), str);
+  EXPECT_EQ(rstrip(str, "t \tn"),
+            "aaa;## hello there general kenobii;# my comme");
+}
+
+TEST(rstrip, EmptyString) {
+  ASSERT_NO_THROW(auto s = rstrip(""));
+  EXPECT_EQ(rstrip(""), "");
+  EXPECT_EQ(rstrip("", "abcdefghijklmnopqrstuvwxyz1234567890"), "");
+}
+
+TEST(removeAfter, NormalRemoveAfter) {
+  std::string str = "what is the big deal? #we place comments here...";
+
+  EXPECT_EQ(removeAfter(str, "#"), "what is the big deal? ");
+  EXPECT_EQ(removeAfter(str), "what");
+  EXPECT_EQ(removeAfter(str, "p?"), "what is the big deal");
+  EXPECT_EQ(removeAfter(str, "zy"), str);
+
+  str = "   hello there general kenobi;#";
+  EXPECT_EQ(removeAfter(str), "");
+  EXPECT_EQ(removeAfter(str, "#"), "   hello there general kenobi;");
+  EXPECT_EQ(removeAfter(str, "#;"), "   hello there general kenobi");
+}
+
+TEST(removeAfter, EmptyString) {
+  ASSERT_NO_THROW(auto s = removeAfter(""));
+  EXPECT_EQ(removeAfter(""), "");
+  EXPECT_EQ(removeAfter("", "abcdefghijklmnopqrstuvwxyz1234567890"), "");
+}
+
+TEST(starts_with, NormalStartsWith) {
+  std::string str = "I would like to greet you";
+
+  EXPECT_TRUE(startswith(str, "I"));
+  EXPECT_TRUE(startswith(str,str));
+  EXPECT_TRUE(startswith(str, "I would like"));
+  EXPECT_FALSE(startswith(str, "would"));
+  EXPECT_FALSE(startswith(str, " would like to greet you"));
+  EXPECT_FALSE(startswith(str, "I would like to greet you today"));
+
+
+  str = "  %suprise";
+  EXPECT_TRUE(startswith(str, "  "));
+  EXPECT_TRUE(startswith(str, "  %s"));
+  EXPECT_FALSE(startswith(str, "suprise"));
+  EXPECT_FALSE(startswith(str, " %suprise"));
+  EXPECT_FALSE(startswith(str, "  %suprise my dude")); 
+}
+
+TEST(startswith, EmptyString) {
+  ASSERT_NO_THROW(auto b = startswith("", "abcd"));
+  EXPECT_FALSE(startswith("", "abcd"));
+  EXPECT_TRUE(startswith("", ""));
+  EXPECT_FALSE(startswith("", " "));
+
+  ASSERT_NO_THROW(auto b = startswith("abcd", ""));
+  EXPECT_TRUE(startswith("abcd", ""));
+  EXPECT_TRUE(startswith("kenobi", ""));
+  EXPECT_TRUE(startswith(" hello", ""));
+
+  EXPECT_TRUE(startswith("", ""));
+}
+

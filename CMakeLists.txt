@@ -54,8 +54,8 @@ include(cmake/CPM.cmake)
 
 CPMAddPackage(
     NAME matplotplusplus
-    GITHUB_REPOSITORY matthew-hennefarth/matplotplusplus
-    GIT_TAG origin/fix-build-pedantic
+    GITHUB_REPOSITORY alandefreitas/matplotplusplus
+    GIT_TAG origin/master
 )
 
 CPMAddPackage(
