@@ -56,6 +56,9 @@ CPMAddPackage(
     NAME matplotplusplus
     GITHUB_REPOSITORY alandefreitas/matplotplusplus
     GIT_TAG origin/master
+    OPTIONS "BUILD_WITH_PEDANTIC_WARNINGS NO" 
+            "BUILD_WITH_SANITIZERS NO"
+            "BUILD_HIGH_RESOLUTION_WORLD_MAP NO"
 )
 
 CPMAddPackage(

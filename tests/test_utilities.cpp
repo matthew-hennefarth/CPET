@@ -174,19 +174,18 @@ TEST(starts_with, NormalStartsWith) {
   std::string str = "I would like to greet you";
 
   EXPECT_TRUE(startswith(str, "I"));
-  EXPECT_TRUE(startswith(str,str));
+  EXPECT_TRUE(startswith(str, str));
   EXPECT_TRUE(startswith(str, "I would like"));
   EXPECT_FALSE(startswith(str, "would"));
   EXPECT_FALSE(startswith(str, " would like to greet you"));
   EXPECT_FALSE(startswith(str, "I would like to greet you today"));
-
 
   str = "  %suprise";
   EXPECT_TRUE(startswith(str, "  "));
   EXPECT_TRUE(startswith(str, "  %s"));
   EXPECT_FALSE(startswith(str, "suprise"));
   EXPECT_FALSE(startswith(str, " %suprise"));
-  EXPECT_FALSE(startswith(str, "  %suprise my dude")); 
+  EXPECT_FALSE(startswith(str, "  %suprise my dude"));
 }
 
 TEST(startswith, EmptyString) {
