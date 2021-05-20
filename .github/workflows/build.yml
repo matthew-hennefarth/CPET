@@ -1,4 +1,4 @@
-name: CPET
+name: CPET-Test
 
 on:
   push:
