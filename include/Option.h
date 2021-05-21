@@ -63,7 +63,8 @@ class Option {
   }
 
   inline void parseTopologySimple_(const std::vector<std::string>& options) {
-    if (options.size() < 5) {
+    constexpr size_t MIN_PARSE_TOKENS = 5;
+    if (options.size() < MIN_PARSE_TOKENS) {
       throw cpet::invalid_option(
           "Invalid Option: topology expects 5 parameters");
     }
@@ -94,34 +95,21 @@ class Option {
   }
 
   void parsePlot3dSimple_(const std::vector<std::string>& options) {
-    bool plot = false;
-    if (options.empty()) {
+    constexpr bool plot = true;
+    if (options.size() < 7) {
       throw cpet::invalid_option(
           "Invalid Option: plot3d expects at least 7 options");
     }
-    std::vector<std::string> regionOptions;
-
-    if (options[0] == "show") {
-      plot = true;
-      regionOptions =
-          std::vector<std::string>(options.begin() + 1, options.end());
-    } else {
-      regionOptions = options;
-    }
-    if (regionOptions.size() < 7) {
-      throw cpet::invalid_option(
-          "Invalid Option: not enough options specified for plot3d, expected "
-          "8");
-    }
     if (regionOptions[0] == "box") {
-      std::array<double, 3> dims = {std::stod(regionOptions[1]),
+      const std::array<double, 3> dims = {std::stod(regionOptions[1]),
                                     std::stod(regionOptions[2]),
                                     std::stod(regionOptions[3])};
       calculateEFieldVolumes.emplace_back(
           std::make_unique<Box>(dims),
           std::array<int, 3>{std::stoi(regionOptions[4]),
                              std::stoi(regionOptions[5]),
-                             std::stoi(regionOptions[6])});
+                             std::stoi(regionOptions[6])},
+          plot);
     } else {
       throw cpet::invalid_option(
           "Invalid Option: Unknown volume specified for plot3d");

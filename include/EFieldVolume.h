@@ -10,6 +10,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <optional>
 
 #include <Eigen/Dense>
 
@@ -23,10 +24,10 @@ struct EFieldVolume {
 
   std::vector<Eigen::Vector3d> points;
 
-  bool showPlot{true};
+  bool showPlot{false};
 
   EFieldVolume(std::unique_ptr<Volume> vol, std::array<int, 3> density,
-               bool plot = true) noexcept
+               bool plot = false) noexcept
       : volume(std::move(vol)), sampleDensity(density), showPlot(plot) {
     points = volume->partition(sampleDensity);
   }
@@ -49,7 +50,20 @@ struct EFieldVolume {
             "; Volume: " + volume->description());
   }
 
-  void plot(const std::vector<Eigen::Vector3d>& electricField) const; 
+  inline void output(const std::string& outputFile) {
+    if (!outputFile.empty()) {
+      output_ = outputFile;
+    }
+  }
 
-};
+  [[nodiscard]] const std::optional<std::string>& output() const noexcept {
+    return output_;
+  }
+
+  void plot(const std::vector<Eigen::Vector3d>& electricField) const;
+
+ private:
+  std::optional<std::string> output_{std::nullopt};
+
+} __attribute__((packed));
 #endif  // EFIELDVOLUME_H

@@ -72,10 +72,7 @@ class AtomID {
   [[nodiscard]] static inline bool validID(std::string_view atomid) noexcept {
     auto splitID = split(atomid, ':');
 
-    if (splitID.size() == 3 && (isVector(atomid) || isDouble(splitID[1]))) {
-      return true;
-    }
-    return false;
+    return splitID.size() == 3 && (isVector(atomid) || isDouble(splitID[1]));
   }
 
   [[nodiscard]] inline bool operator==(const std::string& rhs) const noexcept {

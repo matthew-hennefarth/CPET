@@ -4,6 +4,7 @@
 #ifndef POINTCHARGE_H
 #define POINTCHARGE_H
 
+#include <utility>
 #include <vector>
 
 /* EXTERNAL LIBRARY HEADER FILES */
@@ -20,9 +21,9 @@ struct PointCharge {
 
   AtomID id;
 
-  inline PointCharge(const Eigen::Vector3d& coord, double q,
+  inline PointCharge(Eigen::Vector3d  coord, double q,
                      AtomID aid) noexcept
-      : coordinate(coord), charge(q), id(std::move(aid)) {}
+      : coordinate(std::move(coord)), charge(q), id(std::move(aid)) {}
 
   PointCharge(PointCharge&&) = default;
 

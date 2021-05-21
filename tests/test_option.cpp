@@ -2,12 +2,13 @@
 
 #include <filesystem>
 #include <string>
-#include <iostream>
+#include <array>
 
 #include <Eigen/Dense>
 
 #include "Exceptions.h"
 #include "Option.h"
+#include "EFieldVolume.h"
 
 TEST(Option, SimpleField) {
   ASSERT_TRUE(std::filesystem::exists("Data/valid_options/simple_field"));
@@ -173,4 +174,64 @@ TEST(Option, TopoInvalidVolume) {
   ASSERT_TRUE(std::filesystem::exists(options_file));
 
   EXPECT_THROW(auto option = Option{options_file}, cpet::invalid_option);
+}
+
+TEST(Option, Plot3DSimpleValid) {
+  std::string options_file = "Data/valid_options/plot3d_simple_valid";
+  ASSERT_TRUE(std::filesystem::exists(options_file));
+
+  Option option;
+  ASSERT_NO_THROW(option = Option{options_file});
+  ASSERT_EQ(options.calculateEFieldVolumes.size(), 1);
+
+  EFieldVolume& efv = options.calculateEFieldVolumes[0];
+
+  EXPECT_TRUE(efv.showPlot);
+  EXPECT_FALSE(efv.points.empty());
+  EXPECT_EQ(efv.sampleDensity, std::array<int, 3>{3, 4, 3});
+  EXPECT_EQ(efv.volume->type(), "box");
+  EXPECT_FLOAT_EQ(efv.volume->maxDim(), 1.4);
+
+  EXPECT_FALSE(efv.option());
+
+  EXPECT_TRUE(option.calculateEFieldPoints.empty());
+  EXPECT_TRUE(options.calculateEFieldTopology.empty());
+}
+
+TEST(Option, Plot3DSimpleBoxInvalid_5Params) {
+  std::string options_file = "Data/invalid_options/plot3d_simple_box_5_params";
+  ASSERT_TRUE(std::filesystem::exists(options_file));
+
+  EXPECT_THROW(auto o = Option{options_file}, cpet::invalid_option);
+}
+
+TEST(Option, Plot3dBlockBoxValid) {
+  std::string options_file = "Data/valid_options/plot3d_block_valid";
+  ASSERT_TRUE(std::filesystem::exists(options_file));
+
+  Option option;
+  ASSERT_NO_THROW(option = Option{options_file});
+  ASSERT_EQ(options.calculateEFieldVolumes.size(), 2);
+
+  EFieldVolume& efv0 = options.calculateEFieldVolumes[0];
+  EFieldVolume& efv1 = options.calculateEFieldVolumes[1];
+
+  EXPECT_TRUE(efv0.showPlot);
+  EXPECT_FALSE(efv1.showPlot);
+
+  EXPECT_FALSE(efv0.points.empty());
+  EXPECT_FALSE(efv1.points.empty());
+
+  EXPECT_EQ(efv0.sampleDensity, std::array<int, 3>{5, 4, 5});
+  EXPECT_EQ(efv1.sampleDensity, std::array<int, 3>{3, 3, 2});
+
+  EXPECT_EQ(efv0.volume->type(), "box");
+  EXPECT_EQ(efv1.volume->type(), "box");
+
+  EXPECT_FLOAT_EQ(efv0.volume->maxDim(), 1.2);
+  EXPECT_FLOAT_EQ(efv1.volume->maxDim(), 1.3);
+
+  ASSERT_TRUE(efv.option());
+  EXPECT_FALSE(efv.option());
+  EXPECT_EQ(*efv.option(), "my3dvolume.dat");
 }

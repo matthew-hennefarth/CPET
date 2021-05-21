@@ -92,7 +92,7 @@ class Box : public Volume {
    
     std::vector<Eigen::Vector3d> result;
 
-    result.reserve(static_cast<size_t>(density[0] * density[1] * density[2]));
+    result.reserve(density[0] * density[1] * density[2]);
 
     x = -1 * sides_[0];
     while (x <= sides_[0]) {

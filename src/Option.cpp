@@ -120,7 +120,7 @@ void Option::parseSimpleOptions_() {
 }
 void Option::parseBlockOptions_() {
   SPDLOG_DEBUG("Parsing block options");
-  for (const auto& [key, lines] : blockOptions_) {
-  }
+//  for (const auto& [key, lines] : blockOptions_) {
+//  }
 }
 

@@ -25,12 +25,12 @@ class Timer {
 
   inline Timer& operator=(Timer&&) = delete;
 
-  explicit inline Timer(std::shared_ptr<spdlog::logger> logger) noexcept
+  [[maybe_unused]] explicit inline Timer(std::shared_ptr<spdlog::logger> logger) noexcept
       : logger_(std::move(logger)) {
     Start();
   }
 
-  inline Timer(std::shared_ptr<spdlog::logger> logger,
+  [[maybe_unused]] inline Timer(std::shared_ptr<spdlog::logger> logger,
                std::function<void(const float)> func) noexcept
       : logger_(std::move(logger)), func_(std::move(func)) {
     Start();
@@ -59,6 +59,6 @@ class Timer {
 
   std::shared_ptr<spdlog::logger> logger_{nullptr};
 
-  std::function<void(const float)> func_{[](const float){}};
+  std::function<void(const float)> func_{[](const float /*unused*/){}};
 };
 #endif  // INSTRUMENTATION_H
