@@ -2,11 +2,12 @@
 Tool used to compute the classical electric field from a protein structure (or structures) as well as sample topological data.
 
 ## System Requirements
-- CMake Version >= 3.11
+- CMake (Version 3.11 or higher)
 - Clang Version >= 12.0.0 or GCC Version >= 9.3.0
-- C++ Standard >= 17
+- gnuplot (only for plotting)
 
 ## Installation
+Make sure that
 ### Download Binaries
 Binaries (version 0.1.0) are available for [Linux](https://github.com/matthew-hennefarth/CPET/releases/download/v0.1.0/cpet_Linux-x86_64) (x86_64 with gcc >= 9.3) and [MacOSX](https://github.com/matthew-hennefarth/CPET/releases/download/v0.1.0/cpet_MacOSX-ARM64) (ARM 64, 'Apple Silicon'). If you receive an error such as 
 
@@ -128,10 +129,10 @@ The additional options (beyond `-o` and `-p` one can specify are
 
 `-d`, `-h`, and `-v` are boolean flags which signal 'debug', 'help message', and 'verbose' respectively. `-c` specifies an alternative file from which to reference the partial atomic charges for each atom. Again, the charges should be in the occupancy column. `-t` tells the program the number of threads to use when computing topological quantities. Note that there is ONLY parallizability for the `topology` keyword in the options file. `-O` specifies an alternative output file prefix. Note that if this is not specified, then the default file prefix will be the pdb file from the `-p` option.
 
-## Uses
+## Acknowledgements
 This code uses the following C++ libraries:
-- Eigen
-- cs_libguarded
-- cxxopts
-- spdlog
-
+- [Eigen](https://gitlab.com/libeigen/eigen)
+- [cs_libguarded](https://github.com/copperspice/cs_libguarded)
+- [cxxopts](https://github.com/jarro2783/cxxopts)
+- [spdlog](https://github.com/gabime/spdlog)
+- [matplotplusplus](https://github.com/alandefreitas/matplotplusplus)
