@@ -108,14 +108,13 @@ void Option::parseSimpleOptions_() {
     if (info.empty()) {
       continue;
     }
-
     std::string key = info.at(0);
     if (const auto func = parseSimpleOptionsMap_.find(key);
         func == parseSimpleOptionsMap_.end()) {
       SPDLOG_WARN("Unknown key in simple options {}", key);
     } else {
-      info.erase(info.begin()); /* pops first element */
-      (this->*(func->second))(info);
+      (this->*(func->second))(
+          std::vector<std::string>{info.begin() + 1, info.end()});
     }
   }
 }

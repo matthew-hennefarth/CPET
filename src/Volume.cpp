@@ -19,7 +19,7 @@ std::unique_ptr<Volume> makeBox(const std::vector<std::string>& options) {
     }
   }
   return std::make_unique<Box>(std::array<double, 3>{
-      std::stod(options[1]), std::stod(options[2]), std::stod(options[3])});
+      std::stod(options[0]), std::stod(options[1]), std::stod(options[2])});
 }
 
 const std::unordered_map<

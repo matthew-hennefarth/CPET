@@ -63,31 +63,25 @@ class Option {
   }
 
   inline void parseTopologySimple_(const std::vector<std::string>& options) {
-    constexpr size_t MIN_PARSE_TOKENS = 5;
+    constexpr size_t MIN_PARSE_TOKENS = 3;
     if (options.size() < MIN_PARSE_TOKENS) {
       throw cpet::invalid_option(
-          "Invalid Option: topology expects 5 parameters");
+          "Invalid Option: topology expects at least 3 parameters");
     }
-    if (options.at(0) == "box") {
-      std::array<double, 3> dims = {
-          std::stod(options[1]), std::stod(options[2]), std::stod(options[3])};
-      int samples = std::stoi(options[4]);
-      for (const auto& d : dims) {
-        if (d <= 0) {
-          throw cpet::invalid_option(
-              "Invalid Option: box dimensions should be positive valued");
-        }
-      }
-      if (samples < 0) {
-        throw cpet::invalid_option(
-            "Invalid Option: topology samples should be non-negative");
-      }
-      calculateEFieldTopology.emplace_back(std::make_unique<Box>(dims),
-                                           samples);
-    } else {
-      throw cpet::invalid_option("Invalid Option: unknown volume");
+    if (!isDouble(options[0])) {
+      throw cpet::invalid_option(
+          "Invalid Option: number of samples should be numeric");
     }
+    int samples = std::stoi(options[0]);
+    if (samples < 0) {
+      throw cpet::invalid_option(
+          "Invalid Option: topology samples should be non-negative");
+    }
+    std::unique_ptr<Volume> vol = Volume::generateVolume(
+        std::vector<std::string>{options.begin() + 1, options.end()});
+    calculateEFieldTopology.emplace_back(std::move(vol), samples);
   }
+
   inline void parseFieldSimple_(const std::vector<std::string>& options) {
     for (const auto& location : options) {
       calculateEFieldPoints.emplace_back(location);
@@ -98,8 +92,7 @@ class Option {
     calculateEFieldVolumes.emplace_back(EFieldVolume::fromSimple(options));
   }
 
-  inline void parsePlot3dBlock_(
-      const std::vector<std::string>& blockOptions) {
+  inline void parsePlot3dBlock_(const std::vector<std::string>& blockOptions) {
     calculateEFieldVolumes.emplace_back(EFieldVolume::fromBlock(blockOptions));
   }
 
