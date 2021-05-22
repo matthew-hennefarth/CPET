@@ -110,17 +110,24 @@ void Option::parseSimpleOptions_() {
     }
 
     std::string key = info.at(0);
-    if (parseSimpleOptionsMap_.find(key) == parseSimpleOptionsMap_.end()) {
+    if (const auto func = parseSimpleOptionsMap_.find(key);
+        func == parseSimpleOptionsMap_.end()) {
       SPDLOG_WARN("Unknown key in simple options {}", key);
     } else {
       info.erase(info.begin()); /* pops first element */
-      (this->*(parseSimpleOptionsMap_[key]))(info);
+      (this->*(func->second))(info);
     }
   }
 }
 void Option::parseBlockOptions_() {
   SPDLOG_DEBUG("Parsing block options");
-//  for (const auto& [key, lines] : blockOptions_) {
-//  }
+  for (const auto& [key, lines] : blockOptions_) {
+    if (const auto func = parseBlockOptionsMap_.find(key);
+        func == parseBlockOptionsMap_.end()) {
+      SPDLOG_WARN("Unknown key in block options {}", key);
+    } else {
+      (this->*(func->second))(lines);
+    }
+  }
 }
 

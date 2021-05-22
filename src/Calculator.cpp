@@ -110,18 +110,20 @@ void Calculator::computeVolume_() const {
     for (const auto& system : systems_) {
       system.printCenterAndBasis();
       std::vector<Eigen::Vector3d> tmpSystemResults;
-      tmpSystemResults.reserve(volume.points.size());
+      tmpSystemResults.reserve(volume.points().size());
 
-      for (const auto& position : volume.points) {
+      for (const auto& position : volume.points()) {
         tmpSystemResults.push_back(system.electricFieldAt(position));
       }
 
       volumeResults.push_back(tmpSystemResults);
-      if (volume.showPlot) {
+      if (volume.showPlot()) {
         volume.plot(tmpSystemResults);
       }
     }
-    writeVolumeResults_(volumeResults, volume);
+    if (volume.output()) {
+      volume.writeVolumeResults(systems_, volumeResults);
+    }
   }
 }
 
@@ -218,32 +220,3 @@ void Calculator::writeEFieldResults_(
   }
 }
 
-void Calculator::writeVolumeResults_(
-    const std::vector<std::vector<Eigen::Vector3d>>& results,
-    const EFieldVolume& volume) const {
-  std::string file = outputPrefix_ + '_' + volume.name() + ".volume";
-  std::ofstream outFile(file, std::ios::out);
-
-  const Eigen::IOFormat fmt(6, Eigen::DontAlignCols, " ", " ", "", "", "", "");
-  const Eigen::IOFormat commentFmt(6, 0, " ", "\n", "#", "");
-
-  if (outFile.is_open()) {
-    outFile << '#' << proteinFile_ << '\n';
-    outFile << '#' << volume.details() << '\n';
-    for (size_t i = 0; i < systems_.size(); i++) {
-      outFile << "#Frame " << i << '\n';
-      outFile << "#Center: " << systems_[i].center().transpose() << '\n';
-      outFile << "#Basis Matrix:\n"
-              << systems_[i].basisMatrix().format(commentFmt) << '\n';
-
-      for (size_t j = 0; j < results[i].size(); j++) {
-        outFile << volume.points[j].transpose().format(fmt) << ' '
-                << results[i][j].transpose().format(fmt) << '\n';
-      }
-    }
-    outFile << std::flush;
-  } else {
-    SPDLOG_ERROR("Could not open file {}", file);
-    throw cpet::io_error("Could not open file " + file);
-  }
-}

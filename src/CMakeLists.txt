@@ -1,4 +1,4 @@
-set( SOURCE_FILES main.cpp Utilities.cpp System.cpp Option.cpp Calculator.cpp EFieldVolume.cpp)
+set( SOURCE_FILES main.cpp Utilities.cpp System.cpp Option.cpp Calculator.cpp EFieldVolume.cpp Volume.cpp)
 include_directories( ${PROJECT_SOURCE_DIR}/include )
 
 #set(THREADS_PREFER_PTHREAD_FLAG ON)

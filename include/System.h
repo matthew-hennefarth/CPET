@@ -59,7 +59,7 @@ class System {
     return vec;
   }
 
-  constexpr void printCenterAndBasis() const {
+  inline void printCenterAndBasis() const noexcept {
     SPDLOG_INFO("[center] ==>> {}", this->center_.transpose());
     SPDLOG_INFO("[User Basis]");
     SPDLOG_INFO(this->basisMatrix_.transpose());
