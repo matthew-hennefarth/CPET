@@ -9,6 +9,7 @@
 #include <vector>
 #include <unordered_map>
 #include <memory>
+#include <utility>
 
 /* EXTERNAL LIBRARY HEADER FILES */
 #include <Eigen/Dense>
@@ -44,7 +45,7 @@ class Option {
 
  private:
   std::vector<std::string> simpleOptions_;
-  std::unordered_map<std::string, std::vector<std::string>> blockOptions_;
+  std::vector<std::pair<std::string, std::vector<std::string>>> blockOptions_;
 
   void loadOptionsDataFromFile_(const std::string& optionFile);
   void parseSimpleOptions_();

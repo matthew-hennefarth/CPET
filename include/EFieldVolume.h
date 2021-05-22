@@ -21,10 +21,14 @@
 class System;
 
 class EFieldVolume {
-  public:
+ public:
   EFieldVolume(std::unique_ptr<Volume> vol, std::array<int, 3> density,
-               bool plot = false) noexcept
-      : volume_(std::move(vol)), sampleDensity_(density), showPlot_(plot) {
+               bool plot = false,
+               const std::optional<std::string>& output = std::nullopt) noexcept
+      : volume_(std::move(vol)),
+        sampleDensity_(density),
+        showPlot_(plot),
+        output_(output) {
     points_ = volume_->partition(sampleDensity_);
   }
 
@@ -79,7 +83,7 @@ class EFieldVolume {
     }
   }
 
-  public:
+ public:
   [[nodiscard]] static EFieldVolume fromSimple(
       const std::vector<std::string>& options);
 

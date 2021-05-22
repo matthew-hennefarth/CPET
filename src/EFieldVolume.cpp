@@ -71,24 +71,67 @@ void EFieldVolume::writeVolumeResults(
 
 EFieldVolume EFieldVolume::fromSimple(const std::vector<std::string>& options) {
   constexpr bool plot = true;
-  if (options.size() < 7) {
+  constexpr size_t MIN_EFIELDVOLUME_OPTIONS = 5;
+
+  if (options.size() < MIN_EFIELDVOLUME_OPTIONS) {
     throw cpet::invalid_option(
-        "Invalid Option: plot3d expects at least 7 options");
+        "Invalid Option: plot3d expects at least 5 options");
   }
   std::unique_ptr<Volume> vol;
   std::array<int, 3> density;
 
-  if (options[0] == "box") {
-    const std::array<double, 3> dims = {
-        std::stod(options[1]), std::stod(options[2]), std::stod(options[3])};
-    vol = std::make_unique<Box>(dims);
-    density = {std::stoi(options[4]), std::stoi(options[5]),
-               std::stoi(options[6])};
-  } else {
-    throw cpet::invalid_option(
-        "Invalid Option: Unknown volume specified for plot3d");
+  for (size_t i = 0; i < 3; i++) {
+    if (!isDouble(options[i])) {
+      throw cpet::invalid_option(
+          "Invalid Option: plot3d expects density as numerics");
+    }
   }
+  density = {std::stoi(options[0]), std::stoi(options[1]),
+             std::stoi(options[2])};
+
+  vol = Volume::generateVolume(
+      std::vector<std::string>{options.begin() + 3, options.end()});
   return {std::move(vol), density, plot};
 }
 
-EFieldVolume EFieldVolume::fromBlock(const std::vector<std::string>& options) {}
+EFieldVolume EFieldVolume::fromBlock(const std::vector<std::string>& options) {
+  std::unique_ptr<Volume> vol;
+  std::array<int, 3> density;
+  bool plot = false;
+  std::optional<std::string> output;
+
+  constexpr const char* SHOW_PLOT_KEY = "show";
+  constexpr const char* VOLUME_KEY = "volume";
+  constexpr const char* DENSITY_KEY = "density";
+  constexpr const char* OUTPUT_KEY = "output";
+
+  for (const auto& line : options) {
+    auto tokens = split(line, ' ');
+    if (tokens.size() < 2) {
+      continue;
+    }
+    if (tokens[0] == SHOW_PLOT_KEY) {
+      plot = (tokens[1] == "true");
+    } else if (tokens[0] == VOLUME_KEY) {
+      vol = Volume::generateVolume(
+          std::vector<std::string>{tokens.begin() + 1, tokens.end()});
+    } else if (tokens[0] == DENSITY_KEY) {
+      if (tokens.size() < 4) {
+        throw cpet::invalid_option("Invalid Option: Density requires 3 ints");
+      }
+      for (size_t i = 0; i < 3; i++) {
+        if (!isDouble(tokens[1 + i])) {
+          throw cpet::invalid_option(
+              "Invalid Option: Density requires 3 ints, received non-numeric "
+              "type");
+        }
+      }
+      density = {std::stoi(tokens[1]), std::stoi(tokens[2]),
+                 std::stoi(tokens[3])};
+    } else if (tokens[0] == OUTPUT_KEY) {
+      output = tokens[1];
+    }
+  }
+
+  return {std::move(vol), density, plot, output};
+}

@@ -69,7 +69,8 @@ void Option::loadOptionsDataFromFile_(const std::string& optionFile) {
         blocktmp.emplace_back(line);
       }
 
-      this->blockOptions_.emplace(currentBlockKey, blocktmp);
+      blockOptions_.emplace_back(std::make_pair(currentBlockKey, blocktmp));
+
       /* Reset Temporary Holders */
       inBlock = false;
       currentBlockKey.clear();

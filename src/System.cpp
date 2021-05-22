@@ -90,7 +90,7 @@ Eigen::Vector3d System::electricFieldAt(const Eigen::Vector3d& position) const {
   constexpr double TO_V_PER_ANG = (1.0 / (4.0 * M_PI * PERM_SPACE));
 
   Eigen::Vector3d d;
-  double dNorm = NAN;
+  double dNorm = static_cast<double>(NAN);
   /* If we can speed this up, we should!! */
   for (const auto& pc : pointCharges_) {
     d = (position - pc.coordinate);
