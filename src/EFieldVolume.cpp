@@ -1,10 +1,15 @@
+// Copyright(c) 2020-Present, Matthew R. Hennefarth
+// Distributed under the MIT License (http://opensource.org/licenses/MIT)
 #include "EFieldVolume.h"
 
+/* C++ STL HEADER FILES */
 #include <utility>
 #include <fstream>
 
+/* EXTERNAL LIBRARY HEADER FILES */
 #include <matplot/matplot.h>
 
+/* CPET HEADER FILES */
 #include "System.h"
 #include "Box.h"
 
