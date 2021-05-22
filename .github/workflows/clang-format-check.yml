@@ -1,22 +1,12 @@
 name: Clang Format Check
 
 on: [push, pull_request]
-
 jobs:
-  formatting-check:
-    name: Formatting Check
+  clang-format-checking:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        path:
-          - 'src'
-          - 'include'
-          - 'tests'
     steps:
-    - uses: actions/checkout@v2
-    - name: Run clang-format style check for C/C++ programs.
-      uses: jidicula/clang-format-action@v3.4.0
-      with:
-        clang-format-version: '12'
-        check-path: ${{ matrix.path }}
-        fallback-style: Google
+      - uses: actions/checkout@v2
+      - uses: RafikFarhad/clang-format-github-action@v1.0.1
+        with:
+          sources: "include/**/*.h,src/**/*.cpp,test/**/*.cpp"
+          style: "Google"
