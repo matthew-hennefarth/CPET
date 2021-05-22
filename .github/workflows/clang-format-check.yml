@@ -1,27 +1,12 @@
 name: Clang Format Check
 
-<<<<<<< HEAD
-on: [pull_request]
-
-=======
 on: [push, pull_request]
->>>>>>> origin/v1.x
 jobs:
   clang-format-checking:
     runs-on: ubuntu-latest
     steps:
-<<<<<<< HEAD
-    - uses: actions/checkout@v2
-    - name: Run clang-format style check for C/C++ programs.
-      uses: jidicula/clang-format-action@v3.4.0
-      with:
-        clang-format-version: '12'
-        check-path: ${{ matrix.path }}
-        fallback-style: Google
-=======
       - uses: actions/checkout@v2
       - uses: RafikFarhad/clang-format-github-action@v1.0.1
         with:
           sources: "include/**/*.h,src/**/*.cpp,test/**/*.cpp"
           style: "Google"
->>>>>>> origin/v1.x
