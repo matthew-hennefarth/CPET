@@ -34,11 +34,10 @@ class Box : public Volume {
   }
 
   [[nodiscard]] inline double diagonal() const noexcept {
-    double diag = 0;
-    for (const auto& dim : sides_) {
-      diag += dim * dim;
-    }
-    return sqrt(4 * diag);
+    const double diag =
+        std::inner_product(sides_.begin(), sides_.end(), sides_.begin(), 0.0);
+
+    return 2 * sqrt(diag);
   }
 
   [[nodiscard]] inline bool isInside(
@@ -86,6 +85,13 @@ class Box : public Volume {
 
   [[nodiscard]] inline std::vector<Eigen::Vector3d> partition(
       const std::array<int, 3>& density) const noexcept override {
+    /* Prevents division by zero later */
+    for (const auto& dens : density) {
+      /* Replace by approx */
+      if (dens == 0.0) {
+        return {};
+      }
+    }
     double x{0};
     double y{0};
     double z{0};

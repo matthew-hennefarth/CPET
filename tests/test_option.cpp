@@ -238,3 +238,16 @@ TEST(Option, Plot3dBlockBoxValid) {
   EXPECT_FALSE(efv1.output());
   EXPECT_EQ(*efv0.output(), "my3dvolume.dat");
 }
+
+TEST(Option, InvalidPlot3dBlockBoxNoDensity) {
+  std::string options_file = "Data/invalid_options/plot3d_block_box_nodens";
+  ASSERT_TRUE(std::filesystem::exists(options_file));
+
+  EXPECT_THROW(auto o = Option{options_file}, cpet::invalid_option);
+}
+
+TEST(Option, InvalidPlot3dBlockNoVolume) {
+  std::string options_file = "Data/invalid_options/plot3d_block_novolume";
+  ASSERT_TRUE(std::filesystem::exists(options_file));
+  EXPECT_THROW(auto o = Option{options_file}, cpet::invalid_option);
+}

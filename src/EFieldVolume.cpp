@@ -100,8 +100,8 @@ EFieldVolume EFieldVolume::fromSimple(const std::vector<std::string>& options) {
 }
 
 EFieldVolume EFieldVolume::fromBlock(const std::vector<std::string>& options) {
-  std::unique_ptr<Volume> vol;
-  std::array<int, 3> density;
+  std::unique_ptr<Volume> vol{nullptr};
+  std::optional<std::array<int, 3>> density;
   bool plot = false;
   std::optional<std::string> output;
 
@@ -138,5 +138,14 @@ EFieldVolume EFieldVolume::fromBlock(const std::vector<std::string>& options) {
     }
   }
 
-  return {std::move(vol), density, plot, output};
+  if (!density) {
+    throw cpet::invalid_option(
+        "Invalid Option: No density specified for 3d plot");
+  }
+  if (vol == nullptr) {
+    throw cpet::invalid_option(
+        "Invalid Option: No volume specified for 3d plot");
+  }
+
+  return {std::move(vol), *density, plot, output};
 }
