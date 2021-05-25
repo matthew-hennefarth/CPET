@@ -30,7 +30,7 @@ TEST(Box, BasicProperties) {
   EXPECT_FALSE(b.isInside(point))
       << "Point " << point.transpose() << " within " << b.description();
 
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i < 100; i++) {
     EXPECT_TRUE(b.isInside(b.randomPoint()));
   }
 

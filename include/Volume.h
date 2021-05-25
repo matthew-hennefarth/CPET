@@ -37,7 +37,7 @@ class Volume {
 
   [[nodiscard]] virtual int randomDistance(double stepSize) const noexcept = 0;
 
-  [[nodiscard]] virtual std::string type() const noexcept = 0;
+  [[nodiscard]] virtual const std::string type() const noexcept = 0;
 
   [[nodiscard]] virtual std::vector<Eigen::Vector3d> partition(
       const std::array<int, 3> &density) const noexcept = 0;
