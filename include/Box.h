@@ -41,7 +41,7 @@ class Box : public Volume {
     const double diag =
         std::inner_product(sides_.begin(), sides_.end(), sides_.begin(), 0.0);
 
-    return 2.0 * sqrt(diag);
+    return 2 * sqrt(diag);
   }
 
   [[nodiscard]] inline bool isInside(
@@ -63,8 +63,8 @@ class Box : public Volume {
     };
 
     Eigen::Vector3d result;
-    std::transform(distribution.begin(), distribution.end(), result.begin(),
-                   getRandomNumber);
+    std::transform(distribution.begin(), distribution.end(),
+                   std::back_inserter(result), getRandomNumber);
     return result;
   }
 

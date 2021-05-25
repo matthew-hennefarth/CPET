@@ -55,15 +55,18 @@ class Calculator {
   void loadPointChargeTrajectory_();
 
   inline void createSystems_() {
-    systems_.reserve(pointChargeTrajectory_.size());
+    if (!systems_.empty()) {
+      systems_.clear();
+    }
 
     const auto make_system =
         [this](const std::vector<PointCharge>& trajectory) -> System {
       return System{trajectory, this->option_};
     };
 
+    systems_.reserve(pointChargeTrajectory_.size());
     std::transform(pointChargeTrajectory_.begin(), pointChargeTrajectory_.end(),
-                   systems_.begin(), make_system);
+                   std::back_inserter(systems_), make_system);
   }
 
   inline void transformSystems_() {

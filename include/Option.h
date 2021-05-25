@@ -84,7 +84,7 @@ class Option {
   }
 
   inline void parseFieldSimple_(const std::vector<std::string>& options) {
-    constexpr auto create_location = [](const std::string& location) {
+    constexpr auto create_location = [](const std::string& location) -> AtomID {
       return AtomID{location};
     };
     std::transform(options.begin(), options.end(),
