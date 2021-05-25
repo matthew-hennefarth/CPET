@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(CPET VERSION 0.1.0)
+project(CPET VERSION 0.2.0)
 include(cmake/PreventInSourceBuilds.cmake)
 include(cmake/StandardCmake.cmake)
 
