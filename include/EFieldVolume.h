@@ -12,6 +12,8 @@
 #include <vector>
 #include <optional>
 #include <unordered_map>
+#include <numeric>
+#include <assert.h>
 
 #include <Eigen/Dense>
 
@@ -24,21 +26,24 @@ class EFieldVolume {
  public:
   EFieldVolume(std::unique_ptr<Volume> vol, std::array<int, 3> density,
                bool plot = false,
-               const std::optional<std::string>& output = std::nullopt) noexcept
+               std::optional<std::string> output = std::nullopt) noexcept
       : volume_(std::move(vol)),
         sampleDensity_(density),
         showPlot_(plot),
-        output_(output) {
+        output_(std::move(output)) {
     points_ = volume_->partition(sampleDensity_);
   }
 
-  [[nodiscard]] inline std::string name() const noexcept {
-    std::string result = volume_->type() + '_';
+  [[nodiscard]] inline std::string name() const {
+    assert(!sampleDensity_.empty());
 
-    for (size_t i = 0; i < sampleDensity_.size() - 1; i++) {
-      result += std::to_string(sampleDensity_.at(i)) + '-';
-    }
-    result += std::to_string(sampleDensity_.at(sampleDensity_.size() - 1));
+    std::string result = std::accumulate(
+        sampleDensity_.begin(), sampleDensity_.end() - 1, volume_->type() + '_',
+        [](auto& res, const auto& density) {
+          return res += std::to_string(density) + '-';
+        });
+
+    result += std::to_string(*sampleDensity_.rbegin());
 
     return result;
   }
@@ -83,7 +88,6 @@ class EFieldVolume {
     }
   }
 
- public:
   [[nodiscard]] static EFieldVolume fromSimple(
       const std::vector<std::string>& options);
 
