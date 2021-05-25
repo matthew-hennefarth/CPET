@@ -44,7 +44,7 @@ class System {
       const Eigen::Vector3d& position) const;
 
   [[nodiscard]] std::vector<PathSample> electricFieldTopologyIn(
-      int numOfThreads, const TopologyRegion& topologicalRegion) const;
+      const int numOfThreads, const TopologyRegion& topologicalRegion) const;
 
   inline void transformToUserSpace() {
     translateSystemToCenter_();
@@ -52,11 +52,9 @@ class System {
   }
 
   [[nodiscard]] inline Eigen::Vector3d transformToUserSpace(
-      Eigen::Vector3d vec) const noexcept(true) {
-    vec -= center_;
-    Eigen::Matrix3d inverse = basisMatrix_.inverse();
-    vec = inverse * vec;
-    return vec;
+      const Eigen::Vector3d& vec) const noexcept {
+    const Eigen::Matrix3d inverse = basisMatrix_.inverse();
+    return inverse * (vec - center_);
   }
 
   inline void printCenterAndBasis() const noexcept {
@@ -65,8 +63,11 @@ class System {
     SPDLOG_INFO(this->basisMatrix_.transpose());
   }
 
-  [[nodiscard]] Eigen::Vector3d center() const { return center_; }
-  [[nodiscard]] Eigen::Matrix3d basisMatrix() const { return basisMatrix_; }
+  [[nodiscard]] Eigen::Vector3d center() const noexcept { return center_; }
+
+  [[nodiscard]] Eigen::Matrix3d basisMatrix() const noexcept {
+    return basisMatrix_;
+  }
 
  private:
   static inline void constructOrthonormalBasis_(
@@ -127,7 +128,7 @@ class System {
   [[nodiscard]] inline Eigen::Vector3d nextPoint_(
       const Eigen::Vector3d& pos) const noexcept {
     Eigen::Vector3d f = electricFieldAt(pos);
-    f = f / f.norm();
+    f /= f.norm();
     return (pos + STEP_SIZE * f);
   }
 
