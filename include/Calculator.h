@@ -7,6 +7,7 @@
 /* C++ STL HEADER FILES */
 #include <string>
 #include <vector>
+#include <algorithm>
 
 /* EXTERNAL LIBRARY HEADER FILES */
 #include <Eigen/Dense>
@@ -55,15 +56,19 @@ class Calculator {
 
   inline void createSystems_() {
     systems_.reserve(pointChargeTrajectory_.size());
-    for (const auto& trajectory : pointChargeTrajectory_) {
-      systems_.emplace_back(trajectory, option_);
-    }
+
+    const auto make_system =
+        [this](const std::vector<PointCharge>& trajectory) -> System {
+      return System{trajectory, this->option_};
+    };
+
+    std::transform(pointChargeTrajectory_.begin(), pointChargeTrajectory_.end(),
+                   systems_.begin(), make_system);
   }
 
   inline void transformSystems_() {
-    for (auto& system : systems_) {
-      system.transformToUserSpace();
-    }
+    std::for_each(systems_.begin(), systems_.end(),
+                  [](auto& system) { system.transformToUserSpace(); });
   }
 
   [[nodiscard]] std::vector<double> loadChargesFile_() const;
