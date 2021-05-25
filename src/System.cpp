@@ -209,4 +209,13 @@ double System::curvatureAt_(const Eigen::Vector3d& alpha_0) const noexcept {
   return (alpha_0_prime.cross(alpha_0_prime_prime)).norm() /
          (alpha_prime_norm * alpha_prime_norm * alpha_prime_norm);
 }
-
+std::vector<Eigen::Vector3d> System::computeElectricFieldIn(
+    const EFieldVolume& volume) const noexcept {
+  const auto compute_volume_in_system = [this](const Eigen::Vector3d& position) -> Eigen::Vector3d {
+    return this->electricFieldAt(position);
+  };
+  std::vector<Eigen::Vector3d> results;
+  results.reserve(volume.points().size());
+  std::transform(volume.points().begin(), volume.points().end(), std::back_inserter(results), compute_volume_in_system);
+  return results;
+}

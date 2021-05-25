@@ -69,6 +69,8 @@ class System {
     return basisMatrix_;
   }
 
+  [[nodiscard]] std::vector<Eigen::Vector3d> computeElectricFieldIn(const EFieldVolume& volume) const noexcept;
+
  private:
   static inline void constructOrthonormalBasis_(
       std::array<Eigen::Vector3d, 3>& basis) noexcept {

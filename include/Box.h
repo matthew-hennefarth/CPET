@@ -64,7 +64,7 @@ class Box : public Volume {
 
     Eigen::Vector3d result;
     std::transform(distribution.begin(), distribution.end(),
-                   std::back_inserter(result), getRandomNumber);
+                   result.begin(), getRandomNumber);
     return result;
   }
 
