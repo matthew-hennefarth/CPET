@@ -48,6 +48,10 @@ _deps
 # MacOS
 .DS_Store
 
+# IDES
+.vscode
+.idea
+
 include/config.h
 bin/
 build/

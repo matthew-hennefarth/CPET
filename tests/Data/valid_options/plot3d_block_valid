@@ -1,0 +1,13 @@
+align 1:4:3
+%plot3d
+  show true
+  volume box 1.2 1.2 1.2
+  density 5 4 5
+  output my3dvolume.dat
+end
+%plot3d
+  show false
+  volume box 1.3 1.3 1.3
+  density 3 3 2
+  output
+end

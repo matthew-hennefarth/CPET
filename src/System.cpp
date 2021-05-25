@@ -3,10 +3,10 @@
 
 /* C++ STL HEADER FILES */
 #include <array>
-#include <cmath>
 
 /* EXTERNAL LIBRARY HEADER FILES */
 #include <cs_plain_guarded.h>
+#include <math.h>
 #include <spdlog/fmt/ostr.h>
 #include <spdlog/sinks/stdout_sinks.h>
 
@@ -14,8 +14,6 @@
 #include "Instrumentation.h"
 #include "RAIIThread.h"
 #include "System.h"
-
-constexpr double PERM_SPACE = 0.0055263495;
 
 System::System(std::vector<PointCharge> pc, const Option& options)
     : pointCharges_(std::move(pc)) {
@@ -88,12 +86,12 @@ System::System(std::vector<PointCharge> pc, const Option& options)
 
 Eigen::Vector3d System::electricFieldAt(const Eigen::Vector3d& position) const {
   Eigen::Vector3d result(0, 0, 0);
+  constexpr double PERM_SPACE = 0.0055263495;
   constexpr double TO_V_PER_ANG = (1.0 / (4.0 * M_PI * PERM_SPACE));
 
   Eigen::Vector3d d;
-  double dNorm{0};
-
-
+  double dNorm = static_cast<double>(NAN);
+  /* If we can speed this up, we should!! */
   for (const auto& pc : pointCharges_) {
     d = (position - pc.coordinate);
     dNorm = d.norm();

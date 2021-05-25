@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.14)
 project(CPET VERSION 0.1.0)
 include(cmake/PreventInSourceBuilds.cmake)
 include(cmake/StandardCmake.cmake)
@@ -49,7 +49,17 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
 include(cmake/LinkExternalLibraries.cmake)
+option(CPM_USE_LOCAL_PACKAGES "Try `find_package` before downloading dependencies" ON)
 include(cmake/CPM.cmake)
+
+CPMAddPackage(
+    NAME matplotplusplus
+    GITHUB_REPOSITORY alandefreitas/matplotplusplus
+    GIT_TAG origin/master
+    OPTIONS "BUILD_WITH_PEDANTIC_WARNINGS NO" 
+            "BUILD_WITH_SANITIZERS NO"
+            "BUILD_HIGH_RESOLUTION_WORLD_MAP NO"
+)
 
 CPMAddPackage(
   NAME eigen

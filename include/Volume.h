@@ -7,6 +7,7 @@
 /* C++ STL HEADER FILES */
 #include <string>
 #include <vector>
+#include <memory>
 
 /* EXTERNAL LIBRARY HEADER FILES */
 #include <Eigen/Dense>
@@ -40,6 +41,9 @@ class Volume {
 
   [[nodiscard]] virtual std::vector<Eigen::Vector3d> partition(
       const std::array<int, 3> &density) const noexcept = 0;
+
+  public:
+    static std::unique_ptr<Volume> generateVolume(std::vector<std::string> options);
 };
 
 #endif  // VOLUME_H

@@ -1,0 +1,5 @@
+%plot3d
+  volume box 5 5 4
+  show true
+  output somefilename
+end

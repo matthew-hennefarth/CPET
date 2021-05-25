@@ -73,10 +73,6 @@ class Calculator {
 
   void writeEFieldResults_(
       const std::vector<std::vector<Eigen::Vector3d>>& results) const;
-
-  void writeVolumeResults_(
-      const std::vector<std::vector<Eigen::Vector3d>>& results,
-      const EFieldVolume& volume) const;
 };
 
 #endif  // CALCULATOR_H

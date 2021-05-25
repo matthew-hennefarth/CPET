@@ -1,0 +1,10 @@
+%plot3d
+  volume box 4 3 4
+  density 3 3 3 
+  show false
+end
+%plot3d
+  volume box
+  density 32 33 4
+  output other
+end

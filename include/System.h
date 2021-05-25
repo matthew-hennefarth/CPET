@@ -59,10 +59,10 @@ class System {
     return vec;
   }
 
-  inline void printCenterAndBasis() const {
-    SPDLOG_INFO("[center] ==>> {}", center_.transpose());
+  inline void printCenterAndBasis() const noexcept {
+    SPDLOG_INFO("[center] ==>> {}", this->center_.transpose());
     SPDLOG_INFO("[User Basis]");
-    SPDLOG_INFO(basisMatrix_.transpose());
+    SPDLOG_INFO(this->basisMatrix_.transpose());
   }
 
   [[nodiscard]] Eigen::Vector3d center() const { return center_; }
@@ -101,7 +101,7 @@ class System {
     translateSystemTo_(center_);
   }
 
-  inline void translateSystemToOrigin_() {
+  [[maybe_unused]] inline void translateSystemToOrigin_() {
     SPDLOG_DEBUG("Translating to the Origin");
     translateSystemTo_(-1 * (center_));
   }
@@ -117,7 +117,7 @@ class System {
     });
   }
 
-  inline void transformToDefaultBasis_() {
+  [[maybe_unused]] inline void transformToDefaultBasis_() {
     SPDLOG_DEBUG("Translating to default basis");
     forEachPointCharge_([this](PointCharge& pc) {
       pc.coordinate = basisMatrix_ * pc.coordinate;

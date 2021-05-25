@@ -34,11 +34,10 @@ class Box : public Volume {
   }
 
   [[nodiscard]] inline double diagonal() const noexcept {
-    double diag = 0;
-    for (const auto& dim : sides_) {
-      diag += dim * dim;
-    }
-    return sqrt(4*diag);
+    const double diag =
+        std::inner_product(sides_.begin(), sides_.end(), sides_.begin(), 0.0);
+
+    return 2 * sqrt(diag);
   }
 
   [[nodiscard]] inline bool isInside(
@@ -86,20 +85,28 @@ class Box : public Volume {
 
   [[nodiscard]] inline std::vector<Eigen::Vector3d> partition(
       const std::array<int, 3>& density) const noexcept override {
+    /* Prevents division by zero later */
+    for (const auto& dens : density) {
+      /* Replace by approx */
+      if (dens == 0.0) {
+        return {};
+      }
+    }
     double x{0};
     double y{0};
     double z{0};
-   
+
     std::vector<Eigen::Vector3d> result;
 
-    result.reserve(static_cast<size_t>(density[0] * density[1] * density[2]));
+    result.reserve(
+        static_cast<size_t>(abs(density[0] * density[1] * density[2])));
 
     x = -1 * sides_[0];
-    while (x < sides_[0]) {
+    while (x <= sides_[0]) {
       y = -1 * sides_[1];
-      while (y < sides_[1]) {
+      while (y <= sides_[1]) {
         z = -1 * sides_[2];
-        while (z < sides_[2]) {
+        while (z <= sides_[2]) {
           result.emplace_back(x, y, z);
           z += static_cast<double>(static_cast<float>(sides_[2] / density[2]));
         }
@@ -115,8 +122,8 @@ class Box : public Volume {
       std::array<std::uniform_real_distribution<double>, 3>& distribution)
       const noexcept {
     for (size_t i = 0; i < distribution.size(); i++) {
-      distribution.at(i) =
-          std::uniform_real_distribution<double>(-1 * sides_.at(i), sides_.at(i));
+      distribution.at(i) = std::uniform_real_distribution<double>(
+          -1 * sides_.at(i), sides_.at(i));
     }
   }
 
