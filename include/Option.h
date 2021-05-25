@@ -84,9 +84,11 @@ class Option {
   }
 
   inline void parseFieldSimple_(const std::vector<std::string>& options) {
-    for (const auto& location : options) {
-      calculateEFieldPoints.emplace_back(location);
-    }
+    constexpr auto create_location = [](const std::string& location) {
+      return AtomID{location};
+    };
+    std::transform(options.begin(), options.end(),
+                   std::back_inserter(calculateEFieldPoints), create_location);
   }
 
   inline void parsePlot3dSimple_(const std::vector<std::string>& options) {
