@@ -1,6 +1,6 @@
 The MIT License (MIT)
 
-Copyright (c) 2016 Gabi Melman.                                       
+Copyright (c) 2020 Matthew R. Hennefarth.                                       
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -32,3 +32,6 @@ and users must comply to its license: https://github.com/copperspice/cs_libguard
 
 This software depends on the eigen lib (Apache 2 License),
 and users must comply to its license: https://gitlab.com/libeigen/eigen/-/blob/master/COPYING.APACHE
+
+This software depends on the matplotplusplus lib (MIT License),
+and users must comply to its license: https://github.com/alandefreitas/matplotplusplus/blob/master/LICENSE
