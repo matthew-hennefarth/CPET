@@ -64,14 +64,14 @@ class Box : public Volume {
     };
 
     Eigen::Vector3d result;
-    std::transform(distribution.begin(), distribution.end(),
-                   result.begin(), getRandomNumber);
+    std::transform(distribution.begin(), distribution.end(), result.begin(),
+                   getRandomNumber);
     return result;
   }
 
   [[nodiscard]] inline std::string description() const noexcept override {
-
-    constexpr auto append_string = [](const std::string& sum, const double dim){
+    constexpr auto append_string = [](const std::string& sum,
+                                      const double dim) {
       return sum + ' ' + std::to_string(dim);
     };
 
