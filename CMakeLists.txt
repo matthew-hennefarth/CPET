@@ -45,6 +45,11 @@ enable_sanitizers(project_options)
 #--------------------------------------------[EXTERNAL LIBRARIES]---------------------------------------------
 option(ENABLE_STATIC_LINKING "Builds binary with static linkage." OFF)
 if(ENABLE_STATIC_LINKING)
+  if (APPLE)
+    # needed for libpng...need to find before the .a is required
+    find_package(ZLIB REQUIRED)
+  endif()
+  message("Turning off BUILD_SHARED_LIBS")
   set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
   set(BUILD_SHARED_LIBS OFF)
 endif()
