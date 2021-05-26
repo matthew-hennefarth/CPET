@@ -1,14 +1,13 @@
 cmake_minimum_required(VERSION 3.14)
 project(CPET VERSION 0.2.0)
-include(cmake/PreventInSourceBuilds.cmake)
-include(cmake/StandardCmake.cmake)
-
 if( NOT CMAKE_BUILD_TYPE )
   message("Setting to CMAKE_BUILD_TYPE to Release")
   set(CMAKE_BUILD_TYPE Release)
 endif()
-
 set(CMAKE_CXX_STANDARD 17)
+
+include(cmake/PreventInSourceBuilds.cmake)
+include(cmake/StandardCmake.cmake)
 
 # enable cache system
 include(cmake/Cache.cmake)
@@ -44,6 +43,11 @@ enable_sanitizers(project_options)
 # to enable these warnings/options
 
 #--------------------------------------------[EXTERNAL LIBRARIES]---------------------------------------------
+option(ENABLE_STATIC_LINKING "Builds binary with static linkage." OFF)
+if(ENABLE_STATIC_LINKING)
+  set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+  set(BUILD_SHARED_LIBS OFF)
+endif()
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)

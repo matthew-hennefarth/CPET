@@ -12,13 +12,12 @@ if( CMAKE_BUILD_TYPE STREQUAL "Debug" )
 else()
   target_compile_definitions(cpet PRIVATE -DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_INFO)
 endif()
+
+if(ENABLE_STATIC_LINKING)
+  target_link_libraries(cpet PUBLIC "-static")
+endif()
 # Link external libraries
 target_link_libraries_system(cpet PUBLIC spdlog::spdlog cxxopts Eigen3::Eigen CsLibGuarded matplot)
-
-#target_link_libraries(cpet PUBLIC spdlog::spdlog)
-#target_link_libraries(cpet PUBLIC cxxopts)
-#target_link_libraries(cpet PRIVATE Eigen3::Eigen)
-#target_link_libraries(cpet PUBLIC CsLibGuarded)
 
 # Link Normal libraries
 target_link_libraries(cpet PUBLIC Threads::Threads)
