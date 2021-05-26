@@ -37,11 +37,13 @@ class EFieldVolume {
   [[nodiscard]] inline std::string name() const {
     assert(!sampleDensity_.empty());
 
-    std::string result = std::accumulate(
+    constexpr auto append_density = [](const std::string& res, const int density) -> std::string {
+      return res + std::to_string(density) + '-';
+    };
+
+    auto result = std::accumulate(
         sampleDensity_.begin(), sampleDensity_.end() - 1, volume_->type() + '_',
-        [](auto& res, const auto& density) {
-          return res += std::to_string(density) + '-';
-        });
+        append_density);
 
     result += std::to_string(*sampleDensity_.rbegin());
 

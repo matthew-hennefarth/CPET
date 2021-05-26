@@ -28,7 +28,7 @@ void EFieldVolume::plot(
   for (size_t index = 0; index < 3; index++) {
     const auto extract_index =
         [&index](const Eigen::Vector3d& vector) -> double {
-      return vector[index];
+      return vector[static_cast<long>(index)];
     };
     std::transform(points_.begin(), points_.end(),
                    std::back_inserter(rotatedPositions.at(index)),

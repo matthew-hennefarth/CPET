@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <numeric>
 
 /* EXTERNAL LIBRARY HEADER FILES */
 #include <Eigen/Dense>
@@ -58,8 +59,8 @@ class Box : public Volume {
     std::array<std::uniform_real_distribution<double>, 3> distribution;
     initializeDistributions_(distribution);
     constexpr auto getRandomNumber =
-        [](std::uniform_real_distribution<double>& distribution) -> double {
-      return distribution(*(randomNumberGenerator()));
+        [](std::uniform_real_distribution<double>& dis) -> double {
+      return dis(*(randomNumberGenerator()));
     };
 
     Eigen::Vector3d result;
@@ -69,10 +70,13 @@ class Box : public Volume {
   }
 
   [[nodiscard]] inline std::string description() const noexcept override {
+
+    constexpr auto append_string = [](const std::string& sum, const double dim){
+      return sum + ' ' + std::to_string(dim);
+    };
+
     return std::accumulate(sides_.begin(), sides_.end(), std::string("Box:"),
-                           [](std::string& sum, const auto& dim) {
-                             return sum += " " + std::to_string(dim);
-                           });
+                           append_string);
   }
 
   [[nodiscard]] inline int randomDistance(
