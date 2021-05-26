@@ -29,7 +29,7 @@ TEST(AtomID, GenerateFromPDB) {
       "D:2:O110", "D:2:C111", "D:2:C112", "D:2:O113", "D:2:C114", "D:2:O115",
       "D:2:O116", "D:2:H117", "D:2:H118", "D:2:H119", "D:2:H120", "D:2:H121"};
   for (size_t i = 0; i < pdbLines.size(); i++) {
-    auto a = AtomID::generateID(pdbLines[i]);
+    auto a = cpet::AtomID::generateID(pdbLines[i]);
     ASSERT_EQ(a.ID(), ids[i]);
     ASSERT_FALSE(a.isConstant())
         << "id " << a.ID() << " should not be a constant";
@@ -38,24 +38,25 @@ TEST(AtomID, GenerateFromPDB) {
     ASSERT_FALSE(a.isVector()) << "id " << a.ID() << " should not be a vector";
   }
 
-  EXPECT_NO_THROW(auto a =
-                      AtomID::generateID("HETATM 5719 O110 PRE D   2 113.861"));
-  EXPECT_THROW(auto a = AtomID::generateID("HETATM 5719 O110 PRE D"),
+  EXPECT_NO_THROW(
+      auto a = cpet::AtomID::generateID("HETATM 5719 O110 PRE D   2 113.861"));
+  EXPECT_THROW(auto a = cpet::AtomID::generateID("HETATM 5719 O110 PRE D"),
                cpet::value_error);
 }
 
 TEST(AtomID, ConstructWithString) {
-  EXPECT_NO_THROW(AtomID("D:115:C101"));
-  EXPECT_THROW(AtomID("A:152"), cpet::value_error);
-  EXPECT_THROW(AtomID("A:hg2:f4"), cpet::value_error);
-  EXPECT_THROW(AtomID("A 115 C203"), cpet::value_error);
-  EXPECT_THROW(AtomID("HETATM 5725 O116 PRE D   2     109.671  98.566 109.167 "
-                      "-0.834  1.520"),
-               cpet::value_error);
+  EXPECT_NO_THROW(cpet::AtomID("D:115:C101"));
+  EXPECT_THROW(cpet::AtomID("A:152"), cpet::value_error);
+  EXPECT_THROW(cpet::AtomID("A:hg2:f4"), cpet::value_error);
+  EXPECT_THROW(cpet::AtomID("A 115 C203"), cpet::value_error);
+  EXPECT_THROW(
+      cpet::AtomID("HETATM 5725 O116 PRE D   2     109.671  98.566 109.167 "
+                   "-0.834  1.520"),
+      cpet::value_error);
 }
 
 TEST(AtomID, AssignWithString) {
-  AtomID a("D:115:C101");
+  cpet::AtomID a("D:115:C101");
 
   ASSERT_EQ(a.ID(), "D:115:C101");
   a = "D:2:H117";
@@ -70,7 +71,7 @@ TEST(AtomID, AssignWithString) {
 }
 
 TEST(AtomID, AssignStringToVector) {
-  AtomID a("106:102:108");
+  cpet::AtomID a("106:102:108");
   Eigen::Vector3d a_vector = {106, 102, 108};
 
   ASSERT_TRUE(a.position());
@@ -85,16 +86,16 @@ TEST(AtomID, AssignStringToVector) {
 }
 
 TEST(AtomID, ConstructVector) {
-  ASSERT_NO_THROW(AtomID("105:1:200"));
+  ASSERT_NO_THROW(cpet::AtomID("105:1:200"));
 
-  AtomID a("106:102:108");
+  cpet::AtomID a("106:102:108");
   Eigen::Vector3d a_vector = {106, 102, 108};
   EXPECT_TRUE(a.isVector());
   EXPECT_FALSE(a.isConstant());
   ASSERT_TRUE(a.position());
   EXPECT_EQ(a.position(), a_vector);
 
-  AtomID b("-45.2:35.1231:452.200");
+  cpet::AtomID b("-45.2:35.1231:452.200");
   Eigen::Vector3d b_vector = {-45.2, 35.1231, 452.200};
   EXPECT_TRUE(b.isVector());
   EXPECT_FALSE(b.isConstant());
@@ -103,7 +104,7 @@ TEST(AtomID, ConstructVector) {
 }
 
 TEST(AtomID, AssignVectorToString) {
-  AtomID a("D:115:C101");
+  cpet::AtomID a("D:115:C101");
   ASSERT_FALSE(a.position());
   EXPECT_FALSE(a.isVector());
   EXPECT_FALSE(a.isConstant());
@@ -116,7 +117,7 @@ TEST(AtomID, AssignVectorToString) {
 }
 
 TEST(AtomID, OriginConstants) {
-  AtomID a(AtomID::Constants::origin);
+  cpet::AtomID a(cpet::AtomID::Constants::origin);
   EXPECT_TRUE(a.isConstant());
   EXPECT_TRUE(a.isVector());
   ASSERT_TRUE(a.position());
@@ -124,7 +125,7 @@ TEST(AtomID, OriginConstants) {
 }
 
 TEST(AtomID, e1Constants) {
-  AtomID a(AtomID::Constants::e1);
+  cpet::AtomID a(cpet::AtomID::Constants::e1);
   EXPECT_TRUE(a.isConstant());
   EXPECT_TRUE(a.isVector());
   ASSERT_TRUE(a.position());
@@ -132,7 +133,7 @@ TEST(AtomID, e1Constants) {
 }
 
 TEST(AtomID, e2Constants) {
-  AtomID a(AtomID::Constants::e2);
+  cpet::AtomID a(cpet::AtomID::Constants::e2);
   EXPECT_TRUE(a.isConstant());
   EXPECT_TRUE(a.isVector());
   ASSERT_TRUE(a.position());
@@ -140,7 +141,7 @@ TEST(AtomID, e2Constants) {
 }
 
 TEST(AtomID, AssignStringToConstant) {
-  AtomID a(AtomID::Constants::e2);
+  cpet::AtomID a(cpet::AtomID::Constants::e2);
   ASSERT_TRUE(a.isConstant());
   a = "D:5:C100";
   EXPECT_FALSE(a.isConstant());
@@ -149,7 +150,7 @@ TEST(AtomID, AssignStringToConstant) {
 }
 
 TEST(AtomID, AssignVectorToConstant) {
-  AtomID a(AtomID::Constants::e2);
+  cpet::AtomID a(cpet::AtomID::Constants::e2);
   ASSERT_TRUE(a.isConstant());
   ASSERT_EQ(a.position(), Eigen::Vector3d({0, 1, 0}));
 
@@ -161,20 +162,24 @@ TEST(AtomID, AssignVectorToConstant) {
 }
 
 TEST(PointCharge, find) {
-  PointCharge pc1{Eigen::Vector3d{3.0, 2.0, 2.5}, 1.0, AtomID{"A:4:CD"}};
-  PointCharge pc2{Eigen::Vector3d{3.5, 1.0, 3.5}, 1.0, AtomID{"C:35:SG\'"}};
-  PointCharge pc3{Eigen::Vector3d{-1.0, 0.92, 6.5}, 1.0, AtomID{"A:45:C100"}};
-  PointCharge pc4{Eigen::Vector3d{4.23, 8.0, -2.5}, 1.0, AtomID{"B:200:HB"}};
+  cpet::PointCharge pc1{Eigen::Vector3d{3.0, 2.0, 2.5}, 1.0,
+                        cpet::AtomID{"A:4:CD"}};
+  cpet::PointCharge pc2{Eigen::Vector3d{3.5, 1.0, 3.5}, 1.0,
+                        cpet::AtomID{"C:35:SG\'"}};
+  cpet::PointCharge pc3{Eigen::Vector3d{-1.0, 0.92, 6.5}, 1.0,
+                        cpet::AtomID{"A:45:C100"}};
+  cpet::PointCharge pc4{Eigen::Vector3d{4.23, 8.0, -2.5}, 1.0,
+                        cpet::AtomID{"B:200:HB"}};
 
-  std::vector<PointCharge> system = {pc1, pc2, pc3, pc4};
+  std::vector<cpet::PointCharge> system = {pc1, pc2, pc3, pc4};
 
-  EXPECT_EQ(*PointCharge::find(system, AtomID{"C:35:SG\'"}), pc2);
-  EXPECT_EQ(*PointCharge::find(system, AtomID{"A:4:CD"}), pc1);
-  EXPECT_EQ(*PointCharge::find(system, AtomID{"B:200:HB"}), pc4);
+  EXPECT_EQ(*cpet::PointCharge::find(system, cpet::AtomID{"C:35:SG\'"}), pc2);
+  EXPECT_EQ(*cpet::PointCharge::find(system, cpet::AtomID{"A:4:CD"}), pc1);
+  EXPECT_EQ(*cpet::PointCharge::find(system, cpet::AtomID{"B:200:HB"}), pc4);
 
-  EXPECT_THROW((void)PointCharge::find(system, AtomID("C:35:SG")),
+  EXPECT_THROW((void)cpet::PointCharge::find(system, cpet::AtomID("C:35:SG")),
                cpet::value_not_found);
-  EXPECT_THROW((void)PointCharge::find(system, AtomID("D:54:C102")),
+  EXPECT_THROW((void)cpet::PointCharge::find(system, cpet::AtomID("D:54:C102")),
                cpet::value_not_found);
 }
 

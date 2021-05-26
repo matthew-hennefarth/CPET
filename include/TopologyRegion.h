@@ -11,6 +11,8 @@
 /* CPET HEADER FILES */
 #include "Volume.h"
 
+namespace cpet {
+
 struct TopologyRegion {
   std::unique_ptr<Volume> volume;
 
@@ -24,5 +26,5 @@ struct TopologyRegion {
            "; Volume: " + volume->description();
   }
 } __attribute__((aligned(16)));
-
+}  // namespace cpet
 #endif  // TOPOLOGYREGION_H

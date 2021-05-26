@@ -40,7 +40,8 @@ class io_error : public cpet::exception {
 
 class invalid_option : public cpet::exception {
  public:
-  explicit invalid_option(const std::string& what_arg) : cpet::exception(what_arg) {}
+  explicit invalid_option(const std::string& what_arg)
+      : cpet::exception(what_arg) {}
   explicit invalid_option(const char* what_arg) : cpet::exception(what_arg) {}
 };
 }  // namespace cpet

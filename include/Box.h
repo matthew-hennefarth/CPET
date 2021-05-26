@@ -19,7 +19,7 @@
 #include "Exceptions.h"
 #include "Utilities.h"
 #include "Volume.h"
-
+namespace cpet {
 class Box : public Volume {
  public:
   explicit inline Box(const std::array<double, 3>& sides) : sides_(sides) {
@@ -60,7 +60,7 @@ class Box : public Volume {
     initializeDistributions_(distribution);
     constexpr auto getRandomNumber =
         [](std::uniform_real_distribution<double>& dis) -> double {
-      return dis(*(randomNumberGenerator()));
+      return dis(*(util::randomNumberGenerator()));
     };
 
     Eigen::Vector3d result;
@@ -83,7 +83,7 @@ class Box : public Volume {
       double stepSize) const noexcept override {
     std::uniform_int_distribution<int> distribution(
         1, static_cast<int>(diagonal() / stepSize));
-    return distribution(*randomNumberGenerator());
+    return distribution(*util::randomNumberGenerator());
   }
 
   [[nodiscard]] inline const std::string type() const noexcept override {
@@ -130,5 +130,5 @@ class Box : public Volume {
 
   std::array<double, 3> sides_;
 };
-
+}  // namespace cpet
 #endif  // BOX_H

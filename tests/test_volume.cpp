@@ -8,7 +8,7 @@
 #include "Exceptions.h"
 
 TEST(Box, BasicProperties) {
-  Box b({1.3, 2.4, 2});
+  cpet::Box b({1.3, 2.4, 2});
 
   ASSERT_EQ(b.type(), "box") << "Incorrectly describes the volume type";
   ASSERT_EQ(b.description(), "Box: 1.300000 2.400000 2.000000")
@@ -43,7 +43,7 @@ TEST(Box, BasicProperties) {
 TEST(Box, Partition) {
   std::array<double, 3> sides = {2, 3, 5};
   std::array<int, 3> density = {10, 10, 10};
-  Box b(sides);
+  cpet::Box b(sides);
 
   std::vector<Eigen::Vector3d> expected_partition;
   double x = -1 * sides[0];
@@ -69,8 +69,8 @@ TEST(Box, Partition) {
 }
 
 TEST(Box, InvalidParameters) {
-  EXPECT_THROW(Box({-1.5, 2, 3}), cpet::value_error);
-  EXPECT_THROW(Box({1.5, -2, 3}), cpet::value_error);
-  EXPECT_THROW(Box({1.5, 2, -3}), cpet::value_error);
-  EXPECT_THROW(Box({-1.5, 2, -3}), cpet::value_error);
+  EXPECT_THROW(cpet::Box({-1.5, 2, 3}), cpet::value_error);
+  EXPECT_THROW(cpet::Box({1.5, -2, 3}), cpet::value_error);
+  EXPECT_THROW(cpet::Box({1.5, 2, -3}), cpet::value_error);
+  EXPECT_THROW(cpet::Box({-1.5, 2, -3}), cpet::value_error);
 }

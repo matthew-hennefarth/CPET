@@ -16,6 +16,8 @@
 #include "System.h"
 #include "Utilities.h"
 
+namespace cpet {
+
 constexpr int PDB_XCOORD_START = 31;
 constexpr int PDB_YCOORD_START = 39;
 constexpr int PDB_ZCOORD_START = 47;
@@ -139,20 +141,22 @@ void Calculator::computeVolume_() const {
 void Calculator::loadPointChargeTrajectory_() {
   SPDLOG_DEBUG("Loading point charge trajectory from {} ...", proteinFile_);
   std::vector<PointCharge> tmpHolder;
-  forEachLineIn(proteinFile_, [this, &tmpHolder](const std::string& line) {
-    if (startswith(line, "ENDMDL")) {
-      pointChargeTrajectory_.push_back(tmpHolder);
-      tmpHolder.clear();
-    } else if (startswith(line, "ATOM") || startswith(line, "HETATM")) {
-      tmpHolder.emplace_back(
-          Eigen::Vector3d(
-              {std::stod(line.substr(PDB_XCOORD_START, PDB_COORD_WIDTH)),
-               std::stod(line.substr(PDB_YCOORD_START, PDB_COORD_WIDTH)),
-               std::stod(line.substr(PDB_ZCOORD_START, PDB_COORD_WIDTH))}),
-          std::stod(line.substr(PDB_CHARGE_START, PDB_CHARGE_WIDTH)),
-          AtomID::generateID(line));
-    }
-  });
+  util::forEachLineIn(
+      proteinFile_, [this, &tmpHolder](const std::string& line) {
+        if (util::startswith(line, "ENDMDL")) {
+          pointChargeTrajectory_.push_back(tmpHolder);
+          tmpHolder.clear();
+        } else if (util::startswith(line, "ATOM") ||
+                   util::startswith(line, "HETATM")) {
+          tmpHolder.emplace_back(
+              Eigen::Vector3d(
+                  {std::stod(line.substr(PDB_XCOORD_START, PDB_COORD_WIDTH)),
+                   std::stod(line.substr(PDB_YCOORD_START, PDB_COORD_WIDTH)),
+                   std::stod(line.substr(PDB_ZCOORD_START, PDB_COORD_WIDTH))}),
+              std::stod(line.substr(PDB_CHARGE_START, PDB_CHARGE_WIDTH)),
+              AtomID::generateID(line));
+        }
+      });
   if (!tmpHolder.empty()) {
     pointChargeTrajectory_.push_back(tmpHolder);
   }
@@ -161,8 +165,8 @@ void Calculator::loadPointChargeTrajectory_() {
 std::vector<double> Calculator::loadChargesFile_() const {
   SPDLOG_DEBUG("Loading charges from external file {} ...", chargeFile_);
   std::vector<double> realCharges;
-  forEachLineIn(chargeFile_, [&realCharges](const std::string& line) {
-    if (startswith(line, "ATOM") || startswith(line, "HETATM")) {
+  util::forEachLineIn(chargeFile_, [&realCharges](const std::string& line) {
+    if (util::startswith(line, "ATOM") || util::startswith(line, "HETATM")) {
       realCharges.emplace_back(
           std::stod(line.substr(PDB_CHARGE_START, PDB_CHARGE_WIDTH)));
     }
@@ -225,4 +229,4 @@ void Calculator::writeEFieldResults_(
     throw cpet::io_error("Could not open file " + file);
   }
 }
-
+}  // namespace cpet

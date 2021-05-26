@@ -8,6 +8,8 @@
 /* CPET HEADER FILES */
 #include "Utilities.h"
 
+namespace cpet {
+
 constexpr char BLOCK_START_IDENTIFIER = '%';
 constexpr const char* BLOCK_END_SEQUENCE = "end";
 
@@ -24,10 +26,10 @@ void Option::loadOptionsDataFromFile_(const std::string& optionFile) {
   int line_number = 0; /* Only need this for printing error to user */
 
   SPDLOG_DEBUG("Reading in options from {}", optionFile);
-  forEachLineIn(optionFile, [&, this](const std::string& orig_line) {
+  util::forEachLineIn(optionFile, [&, this](const std::string& orig_line) {
     ++line_number;
     SPDLOG_DEBUG("{}...{}", line_number, orig_line);
-    auto line = removeAfter(lstrip(orig_line), "#");
+    auto line = util::removeAfter(util::lstrip(orig_line), "#");
     if (line.empty()) {
       return;
     }
@@ -42,8 +44,8 @@ void Option::loadOptionsDataFromFile_(const std::string& optionFile) {
       }
 
       inBlock = true;
-      line = lstrip(line, "% \t");
-      currentBlockKey = removeAfter(line);
+      line = util::lstrip(line, "% \t");
+      currentBlockKey = util::removeAfter(line);
 
       if (currentBlockKey.empty()) {
         SPDLOG_ERROR("Error on line number {} in {}", line_number, optionFile);
@@ -52,7 +54,7 @@ void Option::loadOptionsDataFromFile_(const std::string& optionFile) {
       }
 
       line = line.substr(currentBlockKey.size());
-      line = lstrip(line);
+      line = util::lstrip(line);
 
       if (!line.empty()) {
         blocktmp.emplace_back(line);
@@ -105,7 +107,7 @@ void Option::parseSimpleOptions_() {
 
   std::for_each(simpleOptions_.begin(), simpleOptions_.end(),
                 [this](const auto& line) {
-                  const std::vector<std::string> info = split(line, ' ');
+                  const std::vector<std::string> info = util::split(line, ' ');
                   if (info.empty()) {
                     return;
                   }
@@ -133,4 +135,4 @@ void Option::parseBlockOptions_() {
     }
   }
 }
-
+}  // namespace cpet

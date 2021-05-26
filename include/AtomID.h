@@ -17,6 +17,8 @@
 #include "Exceptions.h"
 #include "Utilities.h"
 
+namespace cpet {
+
 constexpr int MIN_PDB_LINE_LENGTH = 26;
 constexpr int PDB_CHAIN_START = 21;
 constexpr int PDB_CHAIN_WIDTH = 2;
@@ -70,9 +72,10 @@ class AtomID {
   [[nodiscard]] inline bool validID() const noexcept { return validID(id_); }
 
   [[nodiscard]] static inline bool validID(std::string_view atomid) noexcept {
-    auto splitID = split(atomid, ':');
+    auto splitID = util::split(atomid, ':');
 
-    return splitID.size() == 3 && (isVector(atomid) || isDouble(splitID[1]));
+    return splitID.size() == 3 &&
+           (isVector(atomid) || util::isDouble(splitID[1]));
   }
 
   [[nodiscard]] inline bool operator==(const std::string& rhs) const noexcept {
@@ -123,7 +126,7 @@ class AtomID {
   [[nodiscard]] inline std::optional<Eigen::Vector3d> position()
       const noexcept {
     if (!position_) {
-      auto splitID = split(id_, ':');
+      auto splitID = util::split(id_, ':');
 
       if (splitID.size() != 3) {
         position_.reset();
@@ -144,13 +147,14 @@ class AtomID {
   [[nodiscard]] inline bool isVector() const noexcept { return isVector(id_); }
 
   [[nodiscard]] static inline bool isVector(std::string_view atomid) noexcept {
-    auto splitID = split(atomid, ':');
+    auto splitID = util::split(atomid, ':');
     if (splitID.size() != 3) {
       return false;
     }
 
-    return std::all_of(splitID.begin(), splitID.end(),
-                       [](const std::string& str) { return isDouble(str); });
+    return std::all_of(
+        splitID.begin(), splitID.end(),
+        [](const std::string& str) { return util::isDouble(str); });
   }
 
  private:
@@ -171,5 +175,5 @@ class AtomID {
     }
   }
 };
-
+}  // namespace cpet
 #endif  // ATOMID_H

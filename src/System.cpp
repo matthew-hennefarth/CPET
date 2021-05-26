@@ -15,6 +15,8 @@
 #include "RAIIThread.h"
 #include "System.h"
 
+namespace cpet {
+
 System::System(std::vector<PointCharge> pc, const Option& options)
     : pointCharges_(std::move(pc)) {
   if (options.centerID.position()) {
@@ -156,7 +158,7 @@ std::vector<PathSample> System::electricFieldTopologyIn(
         this_thread_logger->info("{} Points calculated", completed);
       };
 
-      std::vector<RAIIThread> workers;
+      std::vector<util::RAIIThread> workers;
       workers.reserve(static_cast<size_t>(numOfThreads));
       for (int i = 0; i < numOfThreads; i++) {
         workers.emplace_back(thread_work);
@@ -222,3 +224,4 @@ std::vector<Eigen::Vector3d> System::computeElectricFieldIn(
                  std::back_inserter(results), compute_volume_in_system);
   return results;
 }
+}  // namespace cpet

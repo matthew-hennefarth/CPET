@@ -26,6 +26,8 @@
 // TODO maybe make this an option?
 #define STEP_SIZE 0.001
 
+namespace cpet {
+
 struct PathSample {
   double distance;
   double curvature;
@@ -69,7 +71,8 @@ class System {
     return basisMatrix_;
   }
 
-  [[nodiscard]] std::vector<Eigen::Vector3d> computeElectricFieldIn(const EFieldVolume& volume) const noexcept;
+  [[nodiscard]] std::vector<Eigen::Vector3d> computeElectricFieldIn(
+      const EFieldVolume& volume) const noexcept;
 
  private:
   static inline void constructOrthonormalBasis_(
@@ -138,5 +141,5 @@ class System {
   Eigen::Vector3d center_;
   Eigen::Matrix3d basisMatrix_;
 };
-
+}  // namespace cpet
 #endif  // SYSTEM_H

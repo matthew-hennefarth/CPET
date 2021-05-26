@@ -13,6 +13,7 @@
 /* CPET HEADER FILES */
 #include "AtomID.h"
 #include "Utilities.h"
+namespace cpet {
 
 struct PointCharge {
   Eigen::Vector3d coordinate;
@@ -21,8 +22,7 @@ struct PointCharge {
 
   AtomID id;
 
-  inline PointCharge(Eigen::Vector3d  coord, double q,
-                     AtomID aid) noexcept
+  inline PointCharge(Eigen::Vector3d coord, double q, AtomID aid) noexcept
       : coordinate(std::move(coord)), charge(q), id(std::move(aid)) {}
 
   PointCharge(PointCharge&&) = default;
@@ -43,9 +43,9 @@ struct PointCharge {
   [[nodiscard]] static inline auto find(
       const std::vector<PointCharge>& pointCharges, const AtomID& id)
       -> decltype(pointCharges.begin()) {
-    return find_if_ex(begin(pointCharges), end(pointCharges),
-                      [&id](const auto& pc) { return pc.id == id; });
+    return util::find_if_ex(begin(pointCharges), end(pointCharges),
+                            [&id](const auto& pc) { return pc.id == id; });
   }
 } __attribute__((aligned(128)));
-
+}  // namespace cpet
 #endif  // POINTCHARGE_H

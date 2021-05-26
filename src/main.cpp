@@ -17,8 +17,7 @@
 #include "Exceptions.h"
 #include "config.h"
 
-std::optional<std::string> validPDBFile(
-    const cxxopts::ParseResult& result) {
+std::optional<std::string> validPDBFile(const cxxopts::ParseResult& result) {
   if (result.count("protein") != 0) {
     if (std::filesystem::exists(result["protein"].as<std::string>())) {
       return result["protein"].as<std::string>();
@@ -27,8 +26,7 @@ std::optional<std::string> validPDBFile(
   return std::nullopt;
 }
 
-std::optional<std::string> validOptionFile(
-    const cxxopts::ParseResult& result) {
+std::optional<std::string> validOptionFile(const cxxopts::ParseResult& result) {
   if (result.count("options") != 0) {
     if (std::filesystem::exists(result["options"].as<std::string>())) {
       return result["options"].as<std::string>();
@@ -37,8 +35,7 @@ std::optional<std::string> validOptionFile(
   return std::nullopt;
 }
 
-std::optional<std::string> validChargeFile(
-    const cxxopts::ParseResult& result) {
+std::optional<std::string> validChargeFile(const cxxopts::ParseResult& result) {
   if (!result["charges"].as<std::string>().empty()) {
     if (!std::filesystem::exists(result["charges"].as<std::string>())) {
       return std::nullopt;
@@ -61,7 +58,7 @@ int main(int argc, char** argv) {
       "cpet",
       std::string("Classical Protein Electric Field Topology, version ") +
           std::string(PROJECT_VER));
-    options.add_options()(
+  options.add_options()(
         "d,debug", "Enable debugging",
         cxxopts::value<bool>()->default_value("false"))  // a bool parameter
         ("p,protein", "PDB", cxxopts::value<std::string>())(
@@ -84,7 +81,7 @@ int main(int argc, char** argv) {
     SPDLOG_ERROR("Invalid parameters...");
     SPDLOG_ERROR(e.what());
     SPDLOG_WARN(options.help());
-    return 1;
+    return EXIT_FAILURE;
   }
   auto& result = *(tmp_result);
 
@@ -92,7 +89,7 @@ int main(int argc, char** argv) {
   spdlog::set_level(spdlog::level::debug);
   spdlog::set_pattern("[%s %#] [%l] %v");
 #else
-  
+
   if (result["debug"].as<bool>()) {
     spdlog::set_level(spdlog::level::debug);
     spdlog::set_pattern("[%s %#] [%l] %v");
@@ -108,52 +105,52 @@ int main(int argc, char** argv) {
 
   if (result.count("help") != 0) {
     SPDLOG_WARN(options.help());
-    return 1;
+    return EXIT_FAILURE;
   }
 
   std::optional<std::string> proteinFile;
   if (!(proteinFile = validPDBFile(result))) {
     SPDLOG_ERROR("Invalid protein file");
     SPDLOG_WARN(options.help());
-    return 1;
+    return EXIT_FAILURE;
   }
 
   std::optional<std::string> optionFile;
   if (!(optionFile = validOptionFile(result))) {
     SPDLOG_ERROR("Invalid option file");
     SPDLOG_WARN(options.help());
-    return 1;
+    return EXIT_FAILURE;
   }
 
   std::optional<int> numberOfThreads;
   if (!(numberOfThreads = validThreads(result))) {
     SPDLOG_ERROR("Invalid number of threads");
     SPDLOG_WARN(options.help());
-    return 1;
+    return EXIT_FAILURE;
   }
 
   std::optional<std::string> chargesFile;
   if (!(chargesFile = validChargeFile(result))) {
     SPDLOG_WARN("Invalid charge file");
     SPDLOG_WARN(options.help());
-    return 1;
+    return EXIT_FAILURE;
   }
   /* Begin the actual program here */
   try {
-    Calculator c(proteinFile.value(), optionFile.value(), chargesFile.value(),
-                 numberOfThreads.value());
+    cpet::Calculator c(proteinFile.value(), optionFile.value(),
+                       chargesFile.value(), numberOfThreads.value());
     if (!result["out"].as<std::string>().empty()) {
       c.setOutputFilePrefix(result["out"].as<std::string>());
     }
     c.compute();
   } catch (const cpet::exception& exc) {
     SPDLOG_ERROR(exc.what());
-    return 1;
+    return EXIT_FAILURE;
   } catch (const std::exception& exc) {
     SPDLOG_ERROR("Unknown exception occured while running");
     SPDLOG_ERROR(exc.what());
-    return 1;
+    return EXIT_FAILURE;
   }
 
-  return 0;
+  return EXIT_SUCCESS;
 }

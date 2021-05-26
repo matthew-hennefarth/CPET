@@ -20,6 +20,8 @@
 /* CPET HEADER FILES */
 #include "Volume.h"
 
+namespace cpet {
+
 class System;
 
 class EFieldVolume {
@@ -108,4 +110,5 @@ class EFieldVolume {
 
   std::optional<std::string> output_{std::nullopt};
 };
+}  // namespace cpet
 #endif  // EFIELDVOLUME_H

@@ -17,6 +17,7 @@
 #include "PointCharge.h"
 #include "System.h"
 #include "TopologyRegion.h"
+namespace cpet {
 
 class Calculator {
  public:
@@ -82,5 +83,5 @@ class Calculator {
   void writeEFieldResults_(
       const std::vector<std::vector<Eigen::Vector3d>>& results) const;
 };
-
+}  // namespace cpet
 #endif  // CALCULATOR_H

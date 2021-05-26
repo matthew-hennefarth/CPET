@@ -12,6 +12,8 @@
 #include "Exceptions.h"
 #include "Utilities.h"
 
+namespace cpet {
+
 std::unique_ptr<Volume> makeBox(const std::vector<std::string>& options) {
   constexpr int BOX_PARAMETERS = 3;
 
@@ -19,7 +21,7 @@ std::unique_ptr<Volume> makeBox(const std::vector<std::string>& options) {
     throw cpet::invalid_option(
         "Invalid Option: Box requires 3 values: h, w, l");
   }
-  if (!std::all_of(options.begin(), options.end(), isDouble)) {
+  if (!std::all_of(options.begin(), options.end(), util::isDouble)) {
     throw cpet::invalid_option(
         "Invalid Option: Box requires 3 doubles, received other");
   }
@@ -47,3 +49,4 @@ std::unique_ptr<Volume> Volume::generateVolume(
   return func->second(
       std::vector<std::string>(options.begin() + 1, options.end()));
 }
+}  // namespace cpet

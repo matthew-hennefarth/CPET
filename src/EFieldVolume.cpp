@@ -13,6 +13,8 @@
 #include "System.h"
 #include "Box.h"
 
+namespace cpet {
+
 constexpr int DENSITY_PARAMETERS = 3;
 
 void EFieldVolume::plot(
@@ -105,7 +107,8 @@ EFieldVolume EFieldVolume::fromSimple(const std::vector<std::string>& options) {
       options.begin() + DENSITY_PARAMETERS, options.end()};
 
   if (!std::all_of(densityOptions.begin(),
-                   densityOptions.begin() + DENSITY_PARAMETERS, isDouble)) {
+                   densityOptions.begin() + DENSITY_PARAMETERS,
+                   util::isDouble)) {
     throw cpet::invalid_option(
         "Invalid Option: plot3d expects density as numerics");
   }
@@ -135,7 +138,7 @@ EFieldVolume EFieldVolume::fromBlock(const std::vector<std::string>& options) {
   constexpr const char* OUTPUT_KEY = "output";
 
   for (const auto& line : options) {
-    auto tokens = split(line, ' ');
+    auto tokens = util::split(line, ' ');
     if (tokens.size() < 2) {
       continue;
     }
@@ -154,7 +157,8 @@ EFieldVolume EFieldVolume::fromBlock(const std::vector<std::string>& options) {
       }
 
       if (!std::any_of(key_options.begin(),
-                       key_options.begin() + DENSITY_PARAMETERS, isDouble)) {
+                       key_options.begin() + DENSITY_PARAMETERS,
+                       util::isDouble)) {
         throw cpet::invalid_option(
             "Invalid Option: Density requires 3 ints, received non-numeric "
             "type");
@@ -181,3 +185,4 @@ EFieldVolume EFieldVolume::fromBlock(const std::vector<std::string>& options) {
 
   return {std::move(vol), *density, plot, output};
 }
+}  // namespace cpet
