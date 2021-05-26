@@ -54,9 +54,6 @@ if(ENABLE_STATIC_LINKING)
   set(BUILD_SHARED_LIBS OFF)
 endif()
 
-set(THREADS_PREFER_PTHREAD_FLAG ON)
-find_package(Threads REQUIRED)
-
 include(cmake/LinkExternalLibraries.cmake)
 option(CPM_USE_LOCAL_PACKAGES "Try `find_package` before downloading dependencies" ON)
 include(cmake/CPM.cmake)

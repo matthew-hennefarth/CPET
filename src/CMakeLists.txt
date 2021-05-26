@@ -21,7 +21,7 @@ if(ENABLE_STATIC_LINKING)
   endif()
 endif()
 
-target_link_libraries(cpet PUBLIC Threads::Threads)
+#target_link_libraries(cpet PUBLIC Threads::Threads)
 
 # Link 3rd party, external libraries these are all static
 target_link_libraries_system(cpet PUBLIC spdlog::spdlog cxxopts Eigen3::Eigen CsLibGuarded matplot)
