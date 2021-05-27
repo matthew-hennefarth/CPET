@@ -8,6 +8,9 @@
 #include <thread>
 #include <utility>
 
+namespace cpet {
+namespace util {
+
 class RAIIThread {
  public:
   RAIIThread() = default;
@@ -31,13 +34,17 @@ class RAIIThread {
 
   [[maybe_unused]] inline void detach() { thread_.detach(); }
 
-  [[maybe_unused]] [[nodiscard]] inline bool joinable() const noexcept { return thread_.joinable(); }
+  [[maybe_unused]] [[nodiscard]] inline bool joinable() const noexcept {
+    return thread_.joinable();
+  }
 
   [[nodiscard]] inline std::thread::id get_id() const noexcept {
     return thread_.get_id();
   }
 
-  [[maybe_unused]] inline auto native_handle() { return thread_.native_handle(); }
+  [[maybe_unused]] inline auto native_handle() {
+    return thread_.native_handle();
+  }
 
   inline void swap(RAIIThread& other) noexcept { thread_.swap(other.thread_); }
 
@@ -53,4 +60,6 @@ class RAIIThread {
   std::thread thread_;
 };
 
+}  // namespace util
+}  // namespace cpet
 #endif  // RAIITHREAD_H

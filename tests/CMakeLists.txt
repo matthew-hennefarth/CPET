@@ -8,9 +8,6 @@ target_compile_definitions(runUnitTests PRIVATE -DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEV
 # Link external libraries
 target_link_libraries_system(runUnitTests PRIVATE spdlog::spdlog cxxopts Eigen3::Eigen CsLibGuarded gtest_main matplot)
 
-# Link Normal libraries
-target_link_libraries(runUnitTests PRIVATE Threads::Threads)
-
 include(GoogleTest)
 gtest_discover_tests(runUnitTests 
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})

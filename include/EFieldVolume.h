@@ -12,11 +12,15 @@
 #include <vector>
 #include <optional>
 #include <unordered_map>
+#include <numeric>
+#include <assert.h>
 
 #include <Eigen/Dense>
 
 /* CPET HEADER FILES */
 #include "Volume.h"
+
+namespace cpet {
 
 class System;
 
@@ -24,21 +28,27 @@ class EFieldVolume {
  public:
   EFieldVolume(std::unique_ptr<Volume> vol, std::array<int, 3> density,
                bool plot = false,
-               const std::optional<std::string>& output = std::nullopt) noexcept
+               std::optional<std::string> output = std::nullopt) noexcept
       : volume_(std::move(vol)),
         sampleDensity_(density),
         showPlot_(plot),
-        output_(output) {
+        output_(std::move(output)) {
     points_ = volume_->partition(sampleDensity_);
   }
 
-  [[nodiscard]] inline std::string name() const noexcept {
-    std::string result = volume_->type() + '_';
+  [[nodiscard]] inline std::string name() const {
+    assert(!sampleDensity_.empty());
 
-    for (size_t i = 0; i < sampleDensity_.size() - 1; i++) {
-      result += std::to_string(sampleDensity_.at(i)) + '-';
-    }
-    result += std::to_string(sampleDensity_.at(sampleDensity_.size() - 1));
+    constexpr auto append_density = [](const std::string& res,
+                                       const int density) -> std::string {
+      return res + std::to_string(density) + '-';
+    };
+
+    auto result =
+        std::accumulate(sampleDensity_.begin(), sampleDensity_.end() - 1,
+                        volume_->type() + '_', append_density);
+
+    result += std::to_string(*sampleDensity_.rbegin());
 
     return result;
   }
@@ -83,7 +93,6 @@ class EFieldVolume {
     }
   }
 
- public:
   [[nodiscard]] static EFieldVolume fromSimple(
       const std::vector<std::string>& options);
 
@@ -101,4 +110,5 @@ class EFieldVolume {
 
   std::optional<std::string> output_{std::nullopt};
 };
+}  // namespace cpet
 #endif  // EFIELDVOLUME_H

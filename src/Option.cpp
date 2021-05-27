@@ -8,6 +8,8 @@
 /* CPET HEADER FILES */
 #include "Utilities.h"
 
+namespace cpet {
+
 constexpr char BLOCK_START_IDENTIFIER = '%';
 constexpr const char* BLOCK_END_SEQUENCE = "end";
 
@@ -24,10 +26,10 @@ void Option::loadOptionsDataFromFile_(const std::string& optionFile) {
   int line_number = 0; /* Only need this for printing error to user */
 
   SPDLOG_DEBUG("Reading in options from {}", optionFile);
-  forEachLineIn(optionFile, [&, this](const std::string& orig_line) {
+  util::forEachLineIn(optionFile, [&, this](const std::string& orig_line) {
     ++line_number;
     SPDLOG_DEBUG("{}...{}", line_number, orig_line);
-    auto line = removeAfter(lstrip(orig_line), "#");
+    auto line = util::removeAfter(util::lstrip(orig_line), "#");
     if (line.empty()) {
       return;
     }
@@ -42,8 +44,8 @@ void Option::loadOptionsDataFromFile_(const std::string& optionFile) {
       }
 
       inBlock = true;
-      line = lstrip(line, "% \t");
-      currentBlockKey = removeAfter(line);
+      line = util::lstrip(line, "% \t");
+      currentBlockKey = util::removeAfter(line);
 
       if (currentBlockKey.empty()) {
         SPDLOG_ERROR("Error on line number {} in {}", line_number, optionFile);
@@ -52,7 +54,7 @@ void Option::loadOptionsDataFromFile_(const std::string& optionFile) {
       }
 
       line = line.substr(currentBlockKey.size());
-      line = lstrip(line);
+      line = util::lstrip(line);
 
       if (!line.empty()) {
         blocktmp.emplace_back(line);
@@ -88,36 +90,39 @@ void Option::loadOptionsDataFromFile_(const std::string& optionFile) {
 #if SPDLOG_ACTIVE_LEVEL == SPDLOG_LEVEL_DEBUG
   SPDLOG_DEBUG("Options parsed into");
   SPDLOG_DEBUG("Simple:\n");
-  for (const auto& s : simpleOptions_) {
-    SPDLOG_DEBUG(s);
-  }
+  constexpr auto to_debugger = [](const std::string_view str) {
+    SPDLOG_DEBUG(str);
+  };
+  std::for_each(simpleOptions_.begin(), simpleOptions_.end(), to_debugger);
   SPDLOG_DEBUG("\nBlock:\n");
   for (const auto& [key, value] : blockOptions_) {
     SPDLOG_DEBUG("key: {}", key);
-    for (const auto& s : value) {
-      SPDLOG_DEBUG(s);
-    }
+    std::for_each(value.begin(), value.end(), to_debugger);
   }
 #endif
 }
 
 void Option::parseSimpleOptions_() {
   SPDLOG_DEBUG("Parsing simple options");
-  for (const auto& line : simpleOptions_) {
-    std::vector<std::string> info = split(line, ' ');
 
-    if (info.empty()) {
-      continue;
-    }
-    std::string key = info.at(0);
-    if (const auto func = parseSimpleOptionsMap_.find(key);
-        func == parseSimpleOptionsMap_.end()) {
-      SPDLOG_WARN("Unknown key in simple options {}", key);
-    } else {
-      (this->*(func->second))(
-          std::vector<std::string>{info.begin() + 1, info.end()});
-    }
-  }
+  std::for_each(simpleOptions_.begin(), simpleOptions_.end(),
+                [this](const auto& line) {
+                  const std::vector<std::string> info = util::split(line, ' ');
+                  if (info.empty()) {
+                    return;
+                  }
+
+                  const auto key = info.at(0);
+                  const std::vector<std::string> key_options{info.begin() + 1,
+                                                             info.end()};
+
+                  if (const auto func = parseSimpleOptionsMap_.find(key);
+                      func == parseSimpleOptionsMap_.end()) {
+                    SPDLOG_WARN("Unknown key in simple options {}", key);
+                  } else {
+                    (this->*(func->second))(key_options);
+                  }
+                });
 }
 void Option::parseBlockOptions_() {
   SPDLOG_DEBUG("Parsing block options");
@@ -130,4 +135,4 @@ void Option::parseBlockOptions_() {
     }
   }
 }
-
+}  // namespace cpet

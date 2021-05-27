@@ -16,6 +16,8 @@
 #include "System.h"
 #include "Utilities.h"
 
+namespace cpet {
+
 constexpr int PDB_XCOORD_START = 31;
 constexpr int PDB_YCOORD_START = 39;
 constexpr int PDB_ZCOORD_START = 47;
@@ -53,25 +55,37 @@ void Calculator::compute() {
 }
 
 void Calculator::computeTopology_() const {
-  for (size_t i = 0; i < systems_.size(); i++) {
-    SPDLOG_INFO("=~=~=~=~[Trajectory {}]=~=~=~=~", i);
-    const System&  sys = systems_.at(i);
-    sys.printCenterAndBasis();
+  const auto print_header = [&](const TopologyRegion& region) {
+    SPDLOG_INFO("======[Sampling topology]======");
+    SPDLOG_INFO("[Volume ]   ==>> {}", region.volume->description());
+    SPDLOG_INFO("[Npoints]   ==>> {}", region.numberOfSamples);
+    SPDLOG_INFO("[Threads]   ==>> {}", numberOfThreads_);
+    SPDLOG_INFO("[STEP SIZE] ==>> {}", STEP_SIZE);
+  };
 
-    for (const auto& region : option_.calculateEFieldTopology) {
-      SPDLOG_INFO("======[Sampling topology]======");
-      SPDLOG_INFO("[Volume ]   ==>> {}", region.volume->description());
-      SPDLOG_INFO("[Npoints]   ==>> {}", region.numberOfSamples);
-      SPDLOG_INFO("[Threads]   ==>> {}", numberOfThreads_);
-      SPDLOG_INFO("[STEP SIZE] ==>> {}", STEP_SIZE);
-      std::vector<PathSample> results;
-      {
-        Timer t;
-        results = sys.electricFieldTopologyIn(numberOfThreads_, region);
-      }
-      writeTopologyResults_(results, region, static_cast<int>(i));
+  const auto compute_topology = [this](const System& system,
+                                       const TopologyRegion& region,
+                                       const int index) {
+    std::vector<PathSample> results;
+    {
+      Timer t;
+      results = system.electricFieldTopologyIn(numberOfThreads_, region);
     }
-  }
+    writeTopologyResults_(results, region, static_cast<int>(index));
+  };
+
+  std::for_each(systems_.begin(), systems_.end(),
+                [&, index = 0](const auto& system) mutable {
+                  SPDLOG_INFO("=~=~=~=~[Trajectory {}]=~=~=~=~", index);
+                  system.printCenterAndBasis();
+                  std::for_each(option_.calculateEFieldTopology.begin(),
+                                option_.calculateEFieldTopology.end(),
+                                [&](const auto& region) {
+                                  print_header(region);
+                                  compute_topology(system, region, index);
+                                });
+                  ++index;
+                });
 }
 
 void Calculator::computeEField_() const {
@@ -103,47 +117,46 @@ void Calculator::computeEField_() const {
 }
 
 void Calculator::computeVolume_() const {
-  for (const auto& volume : option_.calculateEFieldVolumes) {
-    std::vector<std::vector<Eigen::Vector3d>> volumeResults;
-    volumeResults.reserve(systems_.size());
-
-    for (const auto& system : systems_) {
-      system.printCenterAndBasis();
-      std::vector<Eigen::Vector3d> tmpSystemResults;
-      tmpSystemResults.reserve(volume.points().size());
-
-      for (const auto& position : volume.points()) {
-        tmpSystemResults.push_back(system.electricFieldAt(position));
-      }
-
-      volumeResults.push_back(tmpSystemResults);
-      if (volume.showPlot()) {
-        volume.plot(tmpSystemResults);
-      }
-    }
-    if (volume.output()) {
-      volume.writeVolumeResults(systems_, volumeResults);
-    }
-  }
+  std::for_each(
+      option_.calculateEFieldVolumes.begin(),
+      option_.calculateEFieldVolumes.end(), [this](const auto& volume) {
+        std::vector<std::vector<Eigen::Vector3d>> volumeResults;
+        volumeResults.reserve(systems_.size());
+        const auto compute_volume_data = [&volume](const System& system) {
+          system.printCenterAndBasis();
+          auto tmpSystemResults = system.computeElectricFieldIn(volume);
+          if (volume.showPlot()) {
+            volume.plot(tmpSystemResults);
+          }
+          return tmpSystemResults;
+        };
+        std::transform(systems_.begin(), systems_.end(),
+                       std::back_inserter(volumeResults), compute_volume_data);
+        if (volume.output()) {
+          volume.writeVolumeResults(systems_, volumeResults);
+        }
+      });
 }
 
 void Calculator::loadPointChargeTrajectory_() {
   SPDLOG_DEBUG("Loading point charge trajectory from {} ...", proteinFile_);
   std::vector<PointCharge> tmpHolder;
-  forEachLineIn(proteinFile_, [this, &tmpHolder](const std::string& line) {
-    if (line.rfind("ENDMDL", 0) == 0) {
-      pointChargeTrajectory_.push_back(tmpHolder);
-      tmpHolder.clear();
-    } else if (line.rfind("ATOM", 0) == 0 || line.rfind("HETATM", 0) == 0) {
-      tmpHolder.emplace_back(
-          Eigen::Vector3d(
-              {std::stod(line.substr(PDB_XCOORD_START, PDB_COORD_WIDTH)),
-               std::stod(line.substr(PDB_YCOORD_START, PDB_COORD_WIDTH)),
-               std::stod(line.substr(PDB_ZCOORD_START, PDB_COORD_WIDTH))}),
-          std::stod(line.substr(PDB_CHARGE_START, PDB_CHARGE_WIDTH)),
-          AtomID::generateID(line));
-    }
-  });
+  util::forEachLineIn(
+      proteinFile_, [this, &tmpHolder](const std::string& line) {
+        if (util::startswith(line, "ENDMDL")) {
+          pointChargeTrajectory_.push_back(tmpHolder);
+          tmpHolder.clear();
+        } else if (util::startswith(line, "ATOM") ||
+                   util::startswith(line, "HETATM")) {
+          tmpHolder.emplace_back(
+              Eigen::Vector3d(
+                  {std::stod(line.substr(PDB_XCOORD_START, PDB_COORD_WIDTH)),
+                   std::stod(line.substr(PDB_YCOORD_START, PDB_COORD_WIDTH)),
+                   std::stod(line.substr(PDB_ZCOORD_START, PDB_COORD_WIDTH))}),
+              std::stod(line.substr(PDB_CHARGE_START, PDB_CHARGE_WIDTH)),
+              AtomID::generateID(line));
+        }
+      });
   if (!tmpHolder.empty()) {
     pointChargeTrajectory_.push_back(tmpHolder);
   }
@@ -152,8 +165,8 @@ void Calculator::loadPointChargeTrajectory_() {
 std::vector<double> Calculator::loadChargesFile_() const {
   SPDLOG_DEBUG("Loading charges from external file {} ...", chargeFile_);
   std::vector<double> realCharges;
-  forEachLineIn(chargeFile_, [&realCharges](const std::string& line) {
-    if (line.rfind("ATOM", 0) == 0 || line.rfind("HETATM", 0) == 0) {
+  util::forEachLineIn(chargeFile_, [&realCharges](const std::string& line) {
+    if (util::startswith(line, "ATOM") || util::startswith(line, "HETATM")) {
       realCharges.emplace_back(
           std::stod(line.substr(PDB_CHARGE_START, PDB_CHARGE_WIDTH)));
     }
@@ -164,7 +177,6 @@ std::vector<double> Calculator::loadChargesFile_() const {
 void Calculator::fixCharges_() {
   SPDLOG_DEBUG("Fixing charges in structure file with real charges...");
   auto realCharges = loadChargesFile_();
-
   for (auto& structure : pointChargeTrajectory_) {
     if (structure.size() != realCharges.size()) {
       SPDLOG_ERROR("Structure size: {}, number of charges: {}",
@@ -173,7 +185,6 @@ void Calculator::fixCharges_() {
           "Inconsistent number of point charges in trajectory and in charge "
           "file");
     }
-
     for (size_t i = 0; i < structure.size(); i++) {
       structure[i].charge = realCharges[i];
     }
@@ -184,16 +195,15 @@ void Calculator::writeTopologyResults_(const std::vector<PathSample>& data,
                                        const TopologyRegion& region,
                                        int i) const {
   SPDLOG_DEBUG("Writing topology results...");
-  std::string file = outputPrefix_ + '_' + std::to_string(i) + '_' +
-                     region.volume->type() + ".top";
+  const std::string file = outputPrefix_ + '_' + std::to_string(i) + '_' +
+                           region.volume->type() + ".top";
   std::ofstream outFile(file, std::ios::out);
   if (outFile.is_open()) {
     outFile << '#' << proteinFile_ << ' ' << i << '\n';
     outFile << '#' << region.details() << '\n';
     /* TODO add options writing to this file...*/
-    for (const auto& line : data) {
-      outFile << line << '\n';
-    }
+    std::for_each(data.begin(), data.end(),
+                  [&outFile](const auto& line) { outFile << line << '\n'; });
     outFile << std::flush;
   } else {
     SPDLOG_ERROR("Could not open file {}", file);
@@ -203,7 +213,7 @@ void Calculator::writeTopologyResults_(const std::vector<PathSample>& data,
 
 void Calculator::writeEFieldResults_(
     const std::vector<std::vector<Eigen::Vector3d>>& results) const {
-  std::string file = outputPrefix_ + ".field";
+  const std::string file = outputPrefix_ + ".field";
   std::ofstream outFile(file, std::ios::out);
   if (outFile.is_open()) {
     outFile << '#' << proteinFile_ << '\n';
@@ -219,4 +229,4 @@ void Calculator::writeEFieldResults_(
     throw cpet::io_error("Could not open file " + file);
   }
 }
-
+}  // namespace cpet

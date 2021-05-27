@@ -17,6 +17,8 @@
 
 /* CPET HEADER FILES */
 #include "Exceptions.h"
+namespace cpet {
+namespace util {
 
 [[nodiscard]] inline std::unique_ptr<std::mt19937>&
 randomNumberGenerator() noexcept {
@@ -54,7 +56,8 @@ randomNumberGenerator() noexcept {
   return std::string{str.data(), strEnd};
 }
 
-[[nodiscard]] constexpr bool startswith(const std::string_view str, const std::string_view str2) noexcept {
+[[nodiscard]] constexpr bool startswith(const std::string_view str,
+                                        const std::string_view str2) noexcept {
   return str.rfind(str2, 0) != std::string::npos;
 }
 
@@ -72,5 +75,6 @@ InputIt find_if_ex(InputIt first, InputIt last, UnaryPredicate p) {
   }
   throw cpet::value_not_found("Could not find element in container");
 }
-
+}  // namespace util
+}  // namespace cpet
 #endif  // UTILITIES_H

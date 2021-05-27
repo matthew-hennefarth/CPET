@@ -13,41 +13,57 @@
 #include "System.h"
 #include "Box.h"
 
+namespace cpet {
+
+constexpr int DENSITY_PARAMETERS = 3;
+
 void EFieldVolume::plot(
     const std::vector<Eigen::Vector3d>& electricField) const {
-  std::vector<double> x;
-  x.reserve(points_.size());
-  std::vector<double> y;
-  y.reserve(points_.size());
-  std::vector<double> z;
-  z.reserve(points_.size());
-  std::vector<double> ex;
-  ex.reserve(electricField.size());
-  std::vector<double> ey;
-  ey.reserve(electricField.size());
-  std::vector<double> ez;
-  ez.reserve(electricField.size());
-  std::vector<double> m;
-  m.reserve(electricField.size());
+  const auto numberOfPoints = points_.size();
+  std::array<std::vector<double>, 3> rotatedPositions;
+  std::for_each(rotatedPositions.begin(), rotatedPositions.end(),
+                [&numberOfPoints](auto& vec) { vec.reserve(numberOfPoints); });
+  std::array<std::vector<double>, 4> rotatedElectricFields;
+  std::for_each(rotatedElectricFields.begin(), rotatedElectricFields.end(),
+                [&numberOfPoints](auto& vec) { vec.reserve(numberOfPoints); });
 
-  for (const auto& p : points_) {
-    x.emplace_back(p[0]);
-    y.emplace_back(p[1]);
-    z.emplace_back(p[2]);
+  for (size_t index = 0; index < 3; index++) {
+    const auto extract_index =
+        [&index](const Eigen::Vector3d& vector) -> double {
+      return vector[static_cast<long>(index)];
+    };
+    std::transform(points_.begin(), points_.end(),
+                   std::back_inserter(rotatedPositions.at(index)),
+                   extract_index);
+    std::transform(electricField.begin(), electricField.end(),
+                   std::back_inserter(rotatedElectricFields.at(index)),
+                   extract_index);
   }
-  for (const auto& e : electricField) {
-    ex.emplace_back(e[0]);
-    ey.emplace_back(e[1]);
-    ez.emplace_back(e[2]);
-    m.emplace_back(sqrt(e[0] * e[0] + e[1] * e[1] + e[2] * e[2]));
-  }
-  matplot::quiver3(x, y, z, ex, ey, ez, m, 0.3)->normalize(true).line_width(2);
+
+  constexpr auto compute_magnitude =
+      [](const Eigen::Vector3d& vector) -> double { return vector.norm(); };
+  std::transform(electricField.begin(), electricField.end(),
+                 std::back_inserter(*rotatedElectricFields.rbegin()),
+                 compute_magnitude);
+
+  constexpr double vectorScale = 0.3;
+
+  matplot::quiver3(rotatedPositions[0], rotatedPositions[1],
+                   rotatedPositions[2], rotatedElectricFields[0],
+                   rotatedElectricFields[1], rotatedElectricFields[2],
+                   rotatedElectricFields[3], vectorScale)
+      ->normalize(true)
+      .line_width(2);
   matplot::show();
 }
 
 void EFieldVolume::writeVolumeResults(
     const std::vector<System>& systems,
     const std::vector<std::vector<Eigen::Vector3d>>& results) const {
+  if (!output_) {
+    return;
+  }
+
   const auto file = *output_;
   std::ofstream outFile(file, std::ios::out);
 
@@ -56,6 +72,7 @@ void EFieldVolume::writeVolumeResults(
 
   if (outFile.is_open()) {
     outFile << '#' << this->details() << '\n';
+
     for (size_t i = 0; i < systems.size(); i++) {
       outFile << "#Frame " << i << '\n';
       outFile << "#Center: " << systems[i].center().transpose() << '\n';
@@ -68,6 +85,7 @@ void EFieldVolume::writeVolumeResults(
       }
     }
     outFile << std::flush;
+
   } else {
     SPDLOG_ERROR("Could not open file {}", file);
     throw cpet::io_error("Could not open file " + file);
@@ -82,26 +100,35 @@ EFieldVolume EFieldVolume::fromSimple(const std::vector<std::string>& options) {
     throw cpet::invalid_option(
         "Invalid Option: plot3d expects at least 5 options");
   }
-  std::unique_ptr<Volume> vol;
-  std::array<int, 3> density;
 
-  for (size_t i = 0; i < 3; i++) {
-    if (!isDouble(options[i])) {
-      throw cpet::invalid_option(
-          "Invalid Option: plot3d expects density as numerics");
-    }
+  const std::vector<std::string> densityOptions{
+      options.begin(), options.begin() + DENSITY_PARAMETERS};
+  const std::vector<std::string> volumeOptions{
+      options.begin() + DENSITY_PARAMETERS, options.end()};
+
+  if (!std::all_of(densityOptions.begin(),
+                   densityOptions.begin() + DENSITY_PARAMETERS,
+                   util::isDouble)) {
+    throw cpet::invalid_option(
+        "Invalid Option: plot3d expects density as numerics");
   }
-  density = {std::stoi(options[0]), std::stoi(options[1]),
-             std::stoi(options[2])};
 
-  vol = Volume::generateVolume(
-      std::vector<std::string>{options.begin() + 3, options.end()});
+  std::array<int, DENSITY_PARAMETERS> density;
+  constexpr auto to_int = [](const std::string& str) -> int {
+    return std::stoi(str);
+  };
+  std::transform(densityOptions.begin(),
+                 densityOptions.begin() + DENSITY_PARAMETERS, density.begin(),
+                 to_int);
+
+  std::unique_ptr<Volume> vol = Volume::generateVolume(volumeOptions);
+
   return {std::move(vol), density, plot};
 }
 
 EFieldVolume EFieldVolume::fromBlock(const std::vector<std::string>& options) {
   std::unique_ptr<Volume> vol{nullptr};
-  std::optional<std::array<int, 3>> density;
+  std::optional<std::array<int, DENSITY_PARAMETERS>> density;
   bool plot = false;
   std::optional<std::string> output;
 
@@ -111,30 +138,39 @@ EFieldVolume EFieldVolume::fromBlock(const std::vector<std::string>& options) {
   constexpr const char* OUTPUT_KEY = "output";
 
   for (const auto& line : options) {
-    auto tokens = split(line, ' ');
+    auto tokens = util::split(line, ' ');
     if (tokens.size() < 2) {
       continue;
     }
-    if (tokens[0] == SHOW_PLOT_KEY) {
-      plot = (tokens[1] == "true");
-    } else if (tokens[0] == VOLUME_KEY) {
-      vol = Volume::generateVolume(
-          std::vector<std::string>{tokens.begin() + 1, tokens.end()});
-    } else if (tokens[0] == DENSITY_KEY) {
-      if (tokens.size() < 4) {
+
+    const auto key = tokens[0];
+    const std::vector<std::string> key_options{tokens.begin() + 1,
+                                               tokens.end()};
+
+    if (key == SHOW_PLOT_KEY) {
+      plot = (*key_options.begin() == "true");
+    } else if (key == VOLUME_KEY) {
+      vol = Volume::generateVolume(key_options);
+    } else if (key == DENSITY_KEY) {
+      if (key_options.size() < DENSITY_PARAMETERS) {
         throw cpet::invalid_option("Invalid Option: Density requires 3 ints");
       }
-      for (size_t i = 0; i < 3; i++) {
-        if (!isDouble(tokens[1 + i])) {
-          throw cpet::invalid_option(
-              "Invalid Option: Density requires 3 ints, received non-numeric "
-              "type");
-        }
+
+      if (!std::any_of(key_options.begin(),
+                       key_options.begin() + DENSITY_PARAMETERS,
+                       util::isDouble)) {
+        throw cpet::invalid_option(
+            "Invalid Option: Density requires 3 ints, received non-numeric "
+            "type");
       }
-      density = {std::stoi(tokens[1]), std::stoi(tokens[2]),
-                 std::stoi(tokens[3])};
-    } else if (tokens[0] == OUTPUT_KEY) {
-      output = tokens[1];
+      density = std::array<int, DENSITY_PARAMETERS>{};
+      constexpr auto to_int = [](const std::string& str) -> int {
+        return std::stoi(str);
+      };
+      std::transform(key_options.begin(), key_options.end(), (*density).begin(),
+                     to_int);
+    } else if (key == OUTPUT_KEY) {
+      output = *key_options.begin();
     }
   }
 
@@ -149,3 +185,4 @@ EFieldVolume EFieldVolume::fromBlock(const std::vector<std::string>& options) {
 
   return {std::move(vol), *density, plot, output};
 }
+}  // namespace cpet

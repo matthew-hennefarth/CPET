@@ -15,6 +15,8 @@
 #include "RAIIThread.h"
 #include "System.h"
 
+namespace cpet {
+
 System::System(std::vector<PointCharge> pc, const Option& options)
     : pointCharges_(std::move(pc)) {
   if (options.centerID.position()) {
@@ -63,9 +65,10 @@ System::System(std::vector<PointCharge> pc, const Option& options)
 
   SPDLOG_DEBUG("Final Basis Vectors:");
 #if SPDLOG_ACTIVE_LEVEL == SPDLOG_LEVEL_DEBUG
-  for (const auto& b : basis) {
+  constexpr auto print_vector_to_debug = [](const Eigen::Vector3d& b) {
     SPDLOG_DEBUG("{}", b.transpose());
-  }
+  };
+  std::for_each(basis.begin(), basis.end(), print_vector_to_debug);
 #endif
 
   SPDLOG_DEBUG("Constructing basis matrix...");
@@ -78,10 +81,9 @@ System::System(std::vector<PointCharge> pc, const Option& options)
   }
 
   SPDLOG_DEBUG("Removing point charges with charge of 0...");
-  pointCharges_.erase(
-      remove_if(begin(pointCharges_), end(pointCharges_),
-                [](const auto& p) { return p.charge == 0.0; }),
-      end(pointCharges_));
+  pointCharges_.erase(remove_if(begin(pointCharges_), end(pointCharges_),
+                                [](const auto& p) { return p.charge == 0.0; }),
+                      end(pointCharges_));
 }
 
 Eigen::Vector3d System::electricFieldAt(const Eigen::Vector3d& position) const {
@@ -140,28 +142,29 @@ std::vector<PathSample> System::electricFieldTopologyIn(
 
     SPDLOG_INFO("====[Initializing threads]====");
     {
-      std::vector<RAIIThread> workers;
-      workers.reserve(static_cast<size_t>(numOfThreads));
-
-      for (int i = 0; i < numOfThreads; i++) {
-        workers.emplace_back([&samples, &shared_vector, &topologicalRegion,
-                              this]() {
-          auto this_thread_logger = spdlog::get("Thread");
-          this_thread_logger->info("Spinning up...");
-          int completed = 0;
-          while (samples-- > 0) {
-            auto s = sampleElectricFieldTopologyIn_(*topologicalRegion.volume);
-            {
-              auto vector_handler = shared_vector.lock();
-              vector_handler->push_back(s);
-            }
-            completed++;
+      const auto thread_work = [&samples, &shared_vector, &topologicalRegion,
+                                this]() {
+        auto this_thread_logger = spdlog::get("Thread");
+        this_thread_logger->info("Spinning up...");
+        int completed = 0;
+        while (samples-- > 0) {
+          auto s = sampleElectricFieldTopologyIn_(*topologicalRegion.volume);
+          {
+            auto vector_handler = shared_vector.lock();
+            vector_handler->push_back(s);
           }
-          this_thread_logger->info("{} Points calculated", completed);
-        });
+          completed++;
+        }
+        this_thread_logger->info("{} Points calculated", completed);
+      };
+
+      std::vector<util::RAIIThread> workers;
+      workers.reserve(static_cast<size_t>(numOfThreads));
+      for (int i = 0; i < numOfThreads; i++) {
+        workers.emplace_back(thread_work);
       }
     }
-
+    SPDLOG_DEBUG("Gathering results from shared vector");
     sampleResults = *(shared_vector.lock());
   }
   return sampleResults;
@@ -170,7 +173,7 @@ std::vector<PathSample> System::electricFieldTopologyIn(
 PathSample System::sampleElectricFieldTopologyIn_(const Volume& region) const
     noexcept(true) {
   /* This is not thread-safe, however, implementation is thread-safe */
-  Eigen::Vector3d initialPosition = region.randomPoint();
+  const Eigen::Vector3d initialPosition = region.randomPoint();
   /* This is not thread-safe, however, implementation is thread-safe */
   const int maxSteps = region.randomDistance(STEP_SIZE);
 
@@ -209,4 +212,16 @@ double System::curvatureAt_(const Eigen::Vector3d& alpha_0) const noexcept {
   return (alpha_0_prime.cross(alpha_0_prime_prime)).norm() /
          (alpha_prime_norm * alpha_prime_norm * alpha_prime_norm);
 }
-
+std::vector<Eigen::Vector3d> System::computeElectricFieldIn(
+    const EFieldVolume& volume) const noexcept {
+  const auto compute_volume_in_system =
+      [this](const Eigen::Vector3d& position) -> Eigen::Vector3d {
+    return this->electricFieldAt(position);
+  };
+  std::vector<Eigen::Vector3d> results;
+  results.reserve(volume.points().size());
+  std::transform(volume.points().begin(), volume.points().end(),
+                 std::back_inserter(results), compute_volume_in_system);
+  return results;
+}
+}  // namespace cpet

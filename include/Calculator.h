@@ -7,6 +7,7 @@
 /* C++ STL HEADER FILES */
 #include <string>
 #include <vector>
+#include <algorithm>
 
 /* EXTERNAL LIBRARY HEADER FILES */
 #include <Eigen/Dense>
@@ -16,6 +17,7 @@
 #include "PointCharge.h"
 #include "System.h"
 #include "TopologyRegion.h"
+namespace cpet {
 
 class Calculator {
  public:
@@ -54,16 +56,23 @@ class Calculator {
   void loadPointChargeTrajectory_();
 
   inline void createSystems_() {
-    systems_.reserve(pointChargeTrajectory_.size());
-    for (const auto& trajectory : pointChargeTrajectory_) {
-      systems_.emplace_back(trajectory, option_);
+    if (!systems_.empty()) {
+      systems_.clear();
     }
+
+    const auto make_system =
+        [this](const std::vector<PointCharge>& trajectory) -> System {
+      return System{trajectory, this->option_};
+    };
+
+    systems_.reserve(pointChargeTrajectory_.size());
+    std::transform(pointChargeTrajectory_.begin(), pointChargeTrajectory_.end(),
+                   std::back_inserter(systems_), make_system);
   }
 
   inline void transformSystems_() {
-    for (auto& system : systems_) {
-      system.transformToUserSpace();
-    }
+    std::for_each(systems_.begin(), systems_.end(),
+                  [](auto& system) { system.transformToUserSpace(); });
   }
 
   [[nodiscard]] std::vector<double> loadChargesFile_() const;
@@ -74,5 +83,5 @@ class Calculator {
   void writeEFieldResults_(
       const std::vector<std::vector<Eigen::Vector3d>>& results) const;
 };
-
+}  // namespace cpet
 #endif  // CALCULATOR_H

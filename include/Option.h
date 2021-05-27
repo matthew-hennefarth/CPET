@@ -20,6 +20,8 @@
 #include "TopologyRegion.h"
 #include "Box.h"
 
+namespace cpet {
+
 constexpr const char* ALIGN_KEY = "align";
 constexpr const char* TOPOLOGY_KEY = "topology";
 constexpr const char* FIELD_KEY = "field";
@@ -69,7 +71,7 @@ class Option {
       throw cpet::invalid_option(
           "Invalid Option: topology expects at least 3 parameters");
     }
-    if (!isDouble(options[0])) {
+    if (!util::isDouble(options[0])) {
       throw cpet::invalid_option(
           "Invalid Option: number of samples should be numeric");
     }
@@ -84,9 +86,11 @@ class Option {
   }
 
   inline void parseFieldSimple_(const std::vector<std::string>& options) {
-    for (const auto& location : options) {
-      calculateEFieldPoints.emplace_back(location);
-    }
+    constexpr auto create_location = [](const std::string& location) -> AtomID {
+      return AtomID{location};
+    };
+    std::transform(options.begin(), options.end(),
+                   std::back_inserter(calculateEFieldPoints), create_location);
   }
 
   inline void parsePlot3dSimple_(const std::vector<std::string>& options) {
@@ -108,4 +112,5 @@ class Option {
       std::string, void (Option::*)(const std::vector<std::string>&)>
       parseBlockOptionsMap_ = {{PLOT_3D_KEY, &Option::parsePlot3dBlock_}};
 };
+}  // namespace cpet
 #endif  // OPTION_H

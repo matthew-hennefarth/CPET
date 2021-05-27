@@ -8,6 +8,8 @@
 #include <random>
 #include <string>
 #include <vector>
+#include <algorithm>
+#include <numeric>
 
 /* EXTERNAL LIBRARY HEADER FILES */
 #include <Eigen/Dense>
@@ -17,15 +19,18 @@
 #include "Exceptions.h"
 #include "Utilities.h"
 #include "Volume.h"
-
+namespace cpet {
 class Box : public Volume {
  public:
   explicit inline Box(const std::array<double, 3>& sides) : sides_(sides) {
-    for (const auto& val : sides_) {
-      if (val < 0) {
-        SPDLOG_ERROR("Invalid value for box side length {}", val);
-        throw cpet::value_error("Invalid value for box side length");
-      }
+    constexpr auto is_less_than_zero = [](const double side) -> bool {
+      return side < 0.0;
+    };
+    if (const auto& location =
+            std::find_if(sides_.begin(), sides_.end(), is_less_than_zero);
+        location != sides_.end()) {
+      SPDLOG_ERROR("Invalid value for box side length {}", *location);
+      throw cpet::value_error("Invalid value for box side length");
     }
   }
 
@@ -51,64 +56,60 @@ class Box : public Volume {
   }
 
   [[nodiscard]] inline Eigen::Vector3d randomPoint() const noexcept override {
-    Eigen::Vector3d result;
-
     std::array<std::uniform_real_distribution<double>, 3> distribution;
     initializeDistributions_(distribution);
+    constexpr auto getRandomNumber =
+        [](std::uniform_real_distribution<double>& dis) -> double {
+      return dis(*(util::randomNumberGenerator()));
+    };
 
-    int i = 0;
-    for (auto& dis : distribution) {
-      result[i] = dis(*(randomNumberGenerator()));
-      i++;
-    }
+    Eigen::Vector3d result;
+    std::transform(distribution.begin(), distribution.end(), result.begin(),
+                   getRandomNumber);
     return result;
   }
 
   [[nodiscard]] inline std::string description() const noexcept override {
-    std::string result = "Box:";
-    for (const auto& dim : sides_) {
-      result += (" " + std::to_string(dim));
-    }
-    return result;
+    constexpr auto append_string = [](const std::string& sum,
+                                      const double dim) {
+      return sum + ' ' + std::to_string(dim);
+    };
+
+    return std::accumulate(sides_.begin(), sides_.end(), std::string("Box:"),
+                           append_string);
   }
 
   [[nodiscard]] inline int randomDistance(
       double stepSize) const noexcept override {
     std::uniform_int_distribution<int> distribution(
         1, static_cast<int>(diagonal() / stepSize));
-    return distribution(*randomNumberGenerator());
+    return distribution(*util::randomNumberGenerator());
   }
 
-  [[nodiscard]] inline std::string type() const noexcept override {
+  [[nodiscard]] inline const std::string type() const noexcept override {
     return "box";
   }
 
   [[nodiscard]] inline std::vector<Eigen::Vector3d> partition(
       const std::array<int, 3>& density) const noexcept override {
     /* Prevents division by zero later */
-    for (const auto& dens : density) {
-      /* Replace by approx */
-      if (dens == 0.0) {
-        return {};
-      }
+    constexpr auto is_zero = [](const int dens) -> bool { return dens == 0.0; };
+    if (std::any_of(density.begin(), density.end(), is_zero)) {
+      return {};
     }
-    double x{0};
-    double y{0};
-    double z{0};
 
     std::vector<Eigen::Vector3d> result;
-
     result.reserve(
         static_cast<size_t>(abs(density[0] * density[1] * density[2])));
 
-    x = -1 * sides_[0];
+    double x = -1 * sides_[0];
     while (x <= sides_[0]) {
-      y = -1 * sides_[1];
+      double y = -1 * sides_[1];
       while (y <= sides_[1]) {
-        z = -1 * sides_[2];
+        double z = -1 * sides_[2];
         while (z <= sides_[2]) {
           result.emplace_back(x, y, z);
-          z += static_cast<double>(static_cast<float>(sides_[2] / density[2]));
+          z += sides_[2] / density[2];
         }
         y += (sides_[1] / density[1]);
       }
@@ -129,5 +130,5 @@ class Box : public Volume {
 
   std::array<double, 3> sides_;
 };
-
+}  // namespace cpet
 #endif  // BOX_H
