@@ -209,3 +209,13 @@ TEST(startswith, EmptyString) {
 
   EXPECT_TRUE(cpet::util::startswith("", ""));
 }
+
+TEST(countSetBits, UnsignedInt) {
+  unsigned int a = 2;
+  EXPECT_EQ(cpet::util::countSetBits(a), 1);
+  a = 3;
+  EXPECT_EQ(cpet::util::countSetBits(a), 2);
+  a = 10;
+  EXPECT_EQ(cpet::util::countSetBits(a), 2);
+
+}

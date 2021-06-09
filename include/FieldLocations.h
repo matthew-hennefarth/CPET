@@ -85,7 +85,7 @@ class FieldLocations {
 
  private:
   std::vector<AtomID> locations_;
-  PlotStyles plotStyle_;
+  PlotStyles plotStyle_{0};
   std::optional<std::string> output_{std::nullopt};
 
   [[nodiscard]] inline static PlotStyles decodePlotStyle_(

@@ -282,3 +282,40 @@ TEST(Option, FieldBlockValid) {
   EXPECT_EQ(*fl.output(), "fields_ab");
 
 }
+
+TEST(Option, Field2BlockValid) {
+  std::string options_file = "Data/valid_options/field_2block_valid";
+  ASSERT_TRUE(std::filesystem::exists(options_file));
+
+  cpet::Option option;
+  ASSERT_NO_THROW(option = cpet::Option{options_file});
+
+  ASSERT_EQ(option.calculateFieldLocations().size(), 2);
+  auto fl1 = option.calculateFieldLocations()[0];
+
+  ASSERT_EQ(fl1.locations().size(), 1);
+  EXPECT_EQ(fl1.locations()[0], "1:2:1");
+
+  cpet::PlotStyles plotstyle = fl1.plotStyle();
+  EXPECT_TRUE(fl1.showPlots());
+  EXPECT_TRUE((plotstyle & cpet::PlotStyles::x) == cpet::PlotStyles::x);
+  EXPECT_TRUE((plotstyle & cpet::PlotStyles::y) == cpet::PlotStyles::y);
+  EXPECT_FALSE((plotstyle & cpet::PlotStyles::m) == cpet::PlotStyles::m);
+  EXPECT_FALSE((plotstyle & cpet::PlotStyles::z) == cpet::PlotStyles::z);
+  EXPECT_FALSE(fl1.output());
+
+  auto fl2 = option.calculateFieldLocations()[1];
+  ASSERT_EQ(fl2.locations().size(), 2);
+  EXPECT_EQ(fl2.locations()[0], "C:126:SG");
+  EXPECT_EQ(fl2.locations()[1], "45:64:3");
+
+  plotstyle = fl2.plotStyle();
+  EXPECT_FALSE(fl2.showPlots());
+  EXPECT_FALSE((plotstyle & cpet::PlotStyles::x) == cpet::PlotStyles::x);
+  EXPECT_FALSE((plotstyle & cpet::PlotStyles::y) == cpet::PlotStyles::y);
+  EXPECT_FALSE((plotstyle & cpet::PlotStyles::m) == cpet::PlotStyles::m);
+  EXPECT_FALSE((plotstyle & cpet::PlotStyles::z) == cpet::PlotStyles::z);
+
+  ASSERT_TRUE(fl2.output());
+  EXPECT_EQ(*fl2.output(), "2locations.data");
+}

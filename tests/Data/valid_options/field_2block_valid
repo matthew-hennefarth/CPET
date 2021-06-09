@@ -1,0 +1,13 @@
+align A:45:C11
+
+%field
+  locations 1:2:1
+  plot x y
+  output
+end
+
+%field
+  locations C:126:SG 45:64:3
+  plot      
+  output   2locations.data
+end
