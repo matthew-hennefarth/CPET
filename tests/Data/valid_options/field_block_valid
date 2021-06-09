@@ -1,0 +1,7 @@
+align 0:1:0
+
+%field
+  locations 1:2:1 A:45:C001
+  plot x m
+  output fields_ab
+end
