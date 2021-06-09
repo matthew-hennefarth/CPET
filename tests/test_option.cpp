@@ -319,3 +319,21 @@ TEST(Option, Field2BlockValid) {
   ASSERT_TRUE(fl2.output());
   EXPECT_EQ(*fl2.output(), "2locations.data");
 }
+
+TEST(Option, FieldBlockNoLocations){
+  std::string options_file = "Data/valid_options/field_block_nolocations";
+  ASSERT_TRUE(std::filesystem::exists(options_file));
+
+  cpet::Option option;
+  ASSERT_NO_THROW(option = cpet::Option{options_file});
+  EXPECT_EQ(option.calculateFieldLocations().size(), 1);
+  EXPECT_TRUE(option.calculateFieldLocations()[0].locations().empty());
+}
+
+TEST(Option, FieldBlockInvalidPlot){
+  std::string options_file = "Data/invalid_options/field_block_invalidplot";
+  ASSERT_TRUE(std::filesystem::exists(options_file));
+
+  cpet::Option option;
+  ASSERT_THROW(option = cpet::Option{options_file}, cpet::invalid_option);
+}
