@@ -19,6 +19,7 @@
 #include "EFieldVolume.h"
 #include "TopologyRegion.h"
 #include "Box.h"
+#include "FieldLocations.h"
 
 namespace cpet {
 
@@ -39,13 +40,22 @@ class Option {
 
   AtomID direction2ID{AtomID::Constants::e2};
 
-  std::vector<AtomID> calculateEFieldPoints;
-
   std::vector<TopologyRegion> calculateEFieldTopology;
 
   std::vector<EFieldVolume> calculateEFieldVolumes;
 
+  [[nodiscard]] constexpr const std::vector<FieldLocations>&
+  calculateFieldLocations() const noexcept {
+    return calculateFieldLocations_;
+  }
+
+  inline void addFieldLocations(const FieldLocations& fl) {
+    calculateFieldLocations_.emplace_back(fl);
+  }
+
  private:
+  std::vector<FieldLocations> calculateFieldLocations_;
+
   std::vector<std::string> simpleOptions_;
   std::vector<std::pair<std::string, std::vector<std::string>>> blockOptions_;
 
@@ -86,11 +96,11 @@ class Option {
   }
 
   inline void parseFieldSimple_(const std::vector<std::string>& options) {
-    constexpr auto create_location = [](const std::string& location) -> AtomID {
-      return AtomID{location};
-    };
-    std::transform(options.begin(), options.end(),
-                   std::back_inserter(calculateEFieldPoints), create_location);
+    calculateFieldLocations_.emplace_back(FieldLocations::fromSimple(options));
+  }
+
+  inline void parseFieldBlock_(const std::vector<std::string>& options) {
+    calculateFieldLocations_.emplace_back(FieldLocations::fromBlock(options));
   }
 
   inline void parsePlot3dSimple_(const std::vector<std::string>& options) {
@@ -110,7 +120,8 @@ class Option {
 
   inline static const std::unordered_map<
       std::string, void (Option::*)(const std::vector<std::string>&)>
-      parseBlockOptionsMap_ = {{PLOT_3D_KEY, &Option::parsePlot3dBlock_}};
+      parseBlockOptionsMap_ = {{PLOT_3D_KEY, &Option::parsePlot3dBlock_},
+                               {FIELD_KEY, &Option::parseFieldBlock_}};
 };
 }  // namespace cpet
 #endif  // OPTION_H

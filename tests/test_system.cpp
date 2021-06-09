@@ -8,10 +8,12 @@
 #include "Option.h"
 #include "System.h"
 #include "PointCharge.h"
+#include "FieldLocations.h"
 
 TEST(System, SimpleField) {
   cpet::Option option;
-  option.calculateEFieldPoints.push_back(cpet::AtomID("1:1:1"));
+
+  option.addFieldLocations(cpet::FieldLocations::fromSimple({"1:1:1"}));
 
   std::vector<cpet::PointCharge> pc;
   pc.emplace_back(Eigen::Vector3d{0, 0, 0}, 1, cpet::AtomID{"A:1:NH"});
@@ -24,7 +26,7 @@ TEST(System, SimpleField) {
     EXPECT_EQ(sys.basisMatrix(), identity);
 
     Eigen::Vector3d field =
-        sys.electricFieldAt(*option.calculateEFieldPoints[0].position());
+        sys.electricFieldAt(*option.calculateFieldLocations()[0].locations()[0].position());
 
     Eigen::Vector3d expected_result{2.77121, 2.77121, 2.77121};
 
@@ -43,7 +45,7 @@ TEST(System, SimpleField) {
     EXPECT_EQ(sys.basisMatrix(), identity);
 
     Eigen::Vector3d loc =
-        sys.transformToUserSpace(*option.calculateEFieldPoints[0].position());
+        sys.transformToUserSpace(*option.calculateFieldLocations()[0].locations()[0].position());
 
     Eigen::Vector3d field = sys.electricFieldAt(loc);
     Eigen::Vector3d expected_result{2.77121, 2.77121, 2.77121};

@@ -79,9 +79,6 @@ class Calculator {
 
   void writeTopologyResults_(const std::vector<PathSample>& data,
                              const TopologyRegion& region, int i) const;
-
-  void writeEFieldResults_(
-      const std::vector<std::vector<Eigen::Vector3d>>& results) const;
 };
 }  // namespace cpet
 #endif  // CALCULATOR_H

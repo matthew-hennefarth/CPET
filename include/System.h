@@ -74,6 +74,11 @@ class System {
   [[nodiscard]] std::vector<Eigen::Vector3d> computeElectricFieldIn(
       const EFieldVolume& volume) const noexcept;
 
+  [[nodiscard]] constexpr const std::vector<PointCharge>& pointCharges()
+      const noexcept {
+    return pointCharges_;
+  }
+
  private:
   static inline void constructOrthonormalBasis_(
       std::array<Eigen::Vector3d, 3>& basis) noexcept {

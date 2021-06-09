@@ -75,6 +75,15 @@ InputIt find_if_ex(InputIt first, InputIt last, UnaryPredicate p) {
   }
   throw cpet::value_not_found("Could not find element in container");
 }
+
+constexpr unsigned int countSetBits(unsigned int n) {
+  unsigned int count = 0;
+  while (n != 0) {
+    count += n & 1;
+    n >>= 1;
+  }
+  return count;
+}
 }  // namespace util
 }  // namespace cpet
 #endif  // UTILITIES_H

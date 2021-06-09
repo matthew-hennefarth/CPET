@@ -138,7 +138,7 @@ EFieldVolume EFieldVolume::fromBlock(const std::vector<std::string>& options) {
   constexpr const char* OUTPUT_KEY = "output";
 
   for (const auto& line : options) {
-    auto tokens = util::split(line, ' ');
+    const auto tokens = util::split(line, ' ');
     if (tokens.size() < 2) {
       continue;
     }

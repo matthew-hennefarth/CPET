@@ -46,7 +46,7 @@ void Calculator::compute() {
   if (!option_.calculateEFieldTopology.empty()) {
     computeTopology_();
   }
-  if (!option_.calculateEFieldPoints.empty()) {
+  if (!option_.calculateFieldLocations().empty()) {
     computeEField_();
   }
   if (!option_.calculateEFieldVolumes.empty()) {
@@ -89,31 +89,9 @@ void Calculator::computeTopology_() const {
 }
 
 void Calculator::computeEField_() const {
-  std::vector<std::vector<Eigen::Vector3d>> results;
-  for (const auto& point : option_.calculateEFieldPoints) {
-    SPDLOG_INFO("=~=~=~=~[Field at {}]=~=~=~=~", point.ID());
-    std::vector<Eigen::Vector3d> fieldTrajectoryAtPoint;
-
-    for (size_t i = 0; i < systems_.size(); i++) {
-      Eigen::Vector3d location;
-
-      if (point.position()) {
-        location = *(point.position());
-      } else {
-        location =
-            PointCharge::find(pointChargeTrajectory_[i], point)->coordinate;
-        location = systems_[i].transformToUserSpace(location);
-      }
-
-      systems_[i].printCenterAndBasis();
-
-      Eigen::Vector3d field = systems_[i].electricFieldAt(location);
-      SPDLOG_INFO("Field: {} [{}]", field.transpose(), field.norm());
-      fieldTrajectoryAtPoint.emplace_back(field);
-    }
-    results.push_back(fieldTrajectoryAtPoint);
+  for (const auto& fieldLocations : option_.calculateFieldLocations()) {
+    fieldLocations.computeEFieldsWith(systems_, pointChargeTrajectory_);
   }
-  writeEFieldResults_(results);
 }
 
 void Calculator::computeVolume_() const {
@@ -204,25 +182,6 @@ void Calculator::writeTopologyResults_(const std::vector<PathSample>& data,
     /* TODO add options writing to this file...*/
     std::for_each(data.begin(), data.end(),
                   [&outFile](const auto& line) { outFile << line << '\n'; });
-    outFile << std::flush;
-  } else {
-    SPDLOG_ERROR("Could not open file {}", file);
-    throw cpet::io_error("Could not open file " + file);
-  }
-}
-
-void Calculator::writeEFieldResults_(
-    const std::vector<std::vector<Eigen::Vector3d>>& results) const {
-  const std::string file = outputPrefix_ + ".field";
-  std::ofstream outFile(file, std::ios::out);
-  if (outFile.is_open()) {
-    outFile << '#' << proteinFile_ << '\n';
-    for (size_t i = 0; i < results.size(); i++) {
-      outFile << '#' << option_.calculateEFieldPoints[i].ID() << '\n';
-      for (const Eigen::Vector3d& field : results[i]) {
-        outFile << field.transpose() << '\n';
-      }
-    }
     outFile << std::flush;
   } else {
     SPDLOG_ERROR("Could not open file {}", file);

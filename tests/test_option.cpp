@@ -9,6 +9,7 @@
 #include "Exceptions.h"
 #include "Option.h"
 #include "EFieldVolume.h"
+#include "FieldLocations.h"
 
 TEST(Option, SimpleField) {
   ASSERT_TRUE(std::filesystem::exists("Data/valid_options/simple_field"));
@@ -28,8 +29,10 @@ TEST(Option, SimpleField) {
   EXPECT_TRUE(option.calculateEFieldTopology.empty());
   EXPECT_TRUE(option.calculateEFieldVolumes.empty());
 
-  ASSERT_EQ(option.calculateEFieldPoints.size(), 1);
-  EXPECT_EQ(option.calculateEFieldPoints[0], "0:0:0");
+  ASSERT_EQ(option.calculateFieldLocations().size(), 1);
+  auto fl = option.calculateFieldLocations()[0];
+  ASSERT_EQ(fl.locations().size(), 1);
+  EXPECT_EQ(fl.locations()[0], "0:0:0");
 }
 
 TEST(Option, AlignZero) {
@@ -59,8 +62,10 @@ TEST(Option, AlignSingle) {
   EXPECT_TRUE(option.calculateEFieldTopology.empty());
   EXPECT_TRUE(option.calculateEFieldVolumes.empty());
 
-  ASSERT_EQ(option.calculateEFieldPoints.size(), 1);
-  EXPECT_EQ(option.calculateEFieldPoints[0], "5:4:2");
+  ASSERT_EQ(option.calculateFieldLocations().size(), 1);
+  auto fl = option.calculateFieldLocations()[0];
+  ASSERT_EQ(fl.locations().size(), 1);
+  EXPECT_EQ(fl.locations()[0], "5:4:2");
 }
 
 TEST(Option, AlignDouble) {
@@ -94,9 +99,11 @@ TEST(Option, AlignTriple) {
   EXPECT_TRUE(option.calculateEFieldTopology.empty());
   EXPECT_TRUE(option.calculateEFieldVolumes.empty());
 
-  ASSERT_EQ(option.calculateEFieldPoints.size(), 2);
-  EXPECT_EQ(option.calculateEFieldPoints[0], "54:55:34");
-  EXPECT_EQ(option.calculateEFieldPoints[1], "D:5:C100");
+  ASSERT_EQ(option.calculateFieldLocations().size(), 1);
+  auto fl = option.calculateFieldLocations()[0];
+  ASSERT_EQ(fl.locations().size(), 2);
+  EXPECT_EQ(fl.locations()[0], "54:55:34");
+  EXPECT_EQ(fl.locations()[1], "D:5:C100");
 }
 
 TEST(Option, ValidTopoBox) {
@@ -115,7 +122,7 @@ TEST(Option, ValidTopoBox) {
   EXPECT_TRUE(option.direction2ID.isConstant());
   EXPECT_EQ(option.direction2ID, cpet::AtomID::Constants::e2);
 
-  EXPECT_TRUE(option.calculateEFieldPoints.empty());
+  EXPECT_TRUE(option.calculateFieldLocations().empty());
   EXPECT_TRUE(option.calculateEFieldVolumes.empty());
 
   ASSERT_EQ(option.calculateEFieldTopology.size(), 1);
@@ -143,7 +150,7 @@ TEST(Option, ValidTopoBoxAlign) {
   EXPECT_TRUE(option.direction2ID.isConstant());
   EXPECT_EQ(option.direction2ID, cpet::AtomID::Constants::e2);
 
-  EXPECT_TRUE(option.calculateEFieldPoints.empty());
+  EXPECT_TRUE(option.calculateFieldLocations().empty());
   EXPECT_TRUE(option.calculateEFieldVolumes.empty());
 
   ASSERT_EQ(option.calculateEFieldTopology.size(), 1);
@@ -195,7 +202,7 @@ TEST(Option, Plot3DSimpleValid) {
 
   EXPECT_FALSE(efv.output());
 
-  EXPECT_TRUE(option.calculateEFieldPoints.empty());
+  EXPECT_TRUE(option.calculateFieldLocations().empty());
   EXPECT_TRUE(option.calculateEFieldTopology.empty());
 }
 
@@ -250,4 +257,28 @@ TEST(Option, InvalidPlot3dBlockNoVolume) {
   std::string options_file = "Data/invalid_options/plot3d_block_novolume";
   ASSERT_TRUE(std::filesystem::exists(options_file));
   EXPECT_THROW(auto o = cpet::Option{options_file}, cpet::invalid_option);
+}
+
+TEST(Option, FieldBlockValid) {
+  std::string options_file = "Data/valid_options/field_block_valid";
+  ASSERT_TRUE(std::filesystem::exists(options_file));
+
+  cpet::Option option;
+  ASSERT_NO_THROW(option = cpet::Option{options_file});
+
+  ASSERT_EQ(option.calculateFieldLocations().size(), 1);
+  auto fl = option.calculateFieldLocations()[0];
+
+  ASSERT_EQ(fl.locations().size(), 2);
+
+  cpet::PlotStyles plotstyle = fl.plotStyle();
+  EXPECT_TRUE(fl.showPlots());
+  EXPECT_TRUE((plotstyle & cpet::PlotStyles::x) == cpet::PlotStyles::x);
+  EXPECT_TRUE((plotstyle & cpet::PlotStyles::m) == cpet::PlotStyles::m);
+  EXPECT_FALSE((plotstyle & cpet::PlotStyles::y) == cpet::PlotStyles::y);
+  EXPECT_FALSE((plotstyle & cpet::PlotStyles::z) == cpet::PlotStyles::z);
+  EXPECT_TRUE(fl.output());
+
+  EXPECT_EQ(*fl.output(), "fields_ab");
+
 }
