@@ -217,5 +217,4 @@ TEST(countSetBits, UnsignedInt) {
   EXPECT_EQ(cpet::util::countSetBits(a), 2);
   a = 10;
   EXPECT_EQ(cpet::util::countSetBits(a), 2);
-
 }

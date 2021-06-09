@@ -25,8 +25,8 @@ TEST(System, SimpleField) {
 
     EXPECT_EQ(sys.basisMatrix(), identity);
 
-    Eigen::Vector3d field =
-        sys.electricFieldAt(*option.calculateFieldLocations()[0].locations()[0].position());
+    Eigen::Vector3d field = sys.electricFieldAt(
+        *option.calculateFieldLocations()[0].locations()[0].position());
 
     Eigen::Vector3d expected_result{2.77121, 2.77121, 2.77121};
 
@@ -44,8 +44,8 @@ TEST(System, SimpleField) {
     Eigen::Matrix3d identity = Eigen::Matrix3d::Identity();
     EXPECT_EQ(sys.basisMatrix(), identity);
 
-    Eigen::Vector3d loc =
-        sys.transformToUserSpace(*option.calculateFieldLocations()[0].locations()[0].position());
+    Eigen::Vector3d loc = sys.transformToUserSpace(
+        *option.calculateFieldLocations()[0].locations()[0].position());
 
     Eigen::Vector3d field = sys.electricFieldAt(loc);
     Eigen::Vector3d expected_result{2.77121, 2.77121, 2.77121};

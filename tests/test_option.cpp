@@ -280,7 +280,6 @@ TEST(Option, FieldBlockValid) {
   EXPECT_TRUE(fl.output());
 
   EXPECT_EQ(*fl.output(), "fields_ab");
-
 }
 
 TEST(Option, Field2BlockValid) {
@@ -320,7 +319,7 @@ TEST(Option, Field2BlockValid) {
   EXPECT_EQ(*fl2.output(), "2locations.data");
 }
 
-TEST(Option, FieldBlockNoLocations){
+TEST(Option, FieldBlockNoLocations) {
   std::string options_file = "Data/valid_options/field_block_nolocations";
   ASSERT_TRUE(std::filesystem::exists(options_file));
 
@@ -330,7 +329,7 @@ TEST(Option, FieldBlockNoLocations){
   EXPECT_TRUE(option.calculateFieldLocations()[0].locations().empty());
 }
 
-TEST(Option, FieldBlockInvalidPlot){
+TEST(Option, FieldBlockInvalidPlot) {
   std::string options_file = "Data/invalid_options/field_block_invalidplot";
   ASSERT_TRUE(std::filesystem::exists(options_file));
 
