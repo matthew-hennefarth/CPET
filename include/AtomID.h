@@ -10,6 +10,7 @@
 #include <string>
 #include <type_traits>
 #include <utility>
+#include <sstream>
 
 #include <Eigen/Dense>
 
@@ -38,7 +39,8 @@ class AtomID {
     }
   }
 
-  explicit inline AtomID(std::string other_id) : id_(std::move(other_id)) {
+  template<typename S1, typename = typename std::enable_if<std::is_convertible_v<S1, std::string>>>
+  explicit inline AtomID(S1&& other_id) : id_(std::forward<S1>(other_id)) {
     if (!validID()) {
       throw cpet::value_error("Invalid atom ID: " + id_);
     }
@@ -78,7 +80,7 @@ class AtomID {
            (isVector(atomid) || util::isDouble(splitID[1]));
   }
 
-  [[nodiscard]] inline bool operator==(const std::string& rhs) const noexcept {
+  [[nodiscard]] inline bool operator==(const std::string_view rhs) const noexcept {
     return (id_ == rhs);
   }
 
@@ -90,7 +92,7 @@ class AtomID {
     return (id_ == rhs.id_);
   }
 
-  [[nodiscard]] inline bool operator!=(const std::string& rhs) const noexcept {
+  [[nodiscard]] inline bool operator!=(const std::string_view rhs) const noexcept {
     return !(*this == rhs);
   }
 
@@ -109,16 +111,14 @@ class AtomID {
     }
   }
 
-  [[nodiscard]] static inline AtomID generateID(const std::string& pdbLine) {
+  [[nodiscard]] static inline AtomID generateID(const std::string_view pdbLine) {
     if (pdbLine.size() < MIN_PDB_LINE_LENGTH) {
-      throw cpet::value_error("pdb line to short: " + pdbLine);
+      throw cpet::value_error("pdb line to short: " + static_cast<std::string>(pdbLine));
     }
 
-    std::string result =
-        pdbLine.substr(PDB_CHAIN_START, PDB_CHAIN_WIDTH) + ":" +
-        pdbLine.substr(PDB_RESNUM_START, PDB_RESNUM_WIDTH) + ":" +
-        pdbLine.substr(PDB_ATOMID_START, PDB_ATOMID_WIDTH);
-
+    std::stringstream result_stream;
+    result_stream << pdbLine.substr(PDB_CHAIN_START, PDB_CHAIN_WIDTH) << ':' << pdbLine.substr(PDB_RESNUM_START, PDB_RESNUM_WIDTH) << ':' << pdbLine.substr(PDB_ATOMID_START, PDB_ATOMID_WIDTH);
+    auto result = result_stream.str();
     result.erase(remove(begin(result), end(result), ' '), end(result));
     return AtomID(result);
   }

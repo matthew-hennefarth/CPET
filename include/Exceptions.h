@@ -13,36 +13,36 @@ namespace cpet {
 
 class exception : public std::runtime_error {
  public:
-  explicit exception(const std::string& what_arg)
-      : std::runtime_error(what_arg) {}
-  explicit exception(const char* what_arg) : std::runtime_error(what_arg) {}
+  template<typename S1, typename = typename std::enable_if<std::is_convertible_v<S1, std::string>>>
+  explicit exception(S1&& what_arg) : std::runtime_error(std::forward<S1>(what_arg)){}
 };
 
 class value_error : public cpet::exception {
  public:
-  explicit value_error(const std::string& what_arg)
-      : cpet::exception(what_arg) {}
-  explicit value_error(const char* what_arg) : cpet::exception(what_arg) {}
+  template<typename S1, typename = typename std::enable_if<std::is_convertible_v<S1, std::string>>>
+  explicit value_error(S1&& what_arg)
+      : cpet::exception(std::forward<S1>(what_arg)) {}
 };
 
 class value_not_found : public cpet::exception {
  public:
-  explicit value_not_found(const std::string& what_arg)
-      : cpet::exception(what_arg) {}
-  explicit value_not_found(const char* what_arg) : cpet::exception(what_arg) {}
+  template<typename S1, typename = typename std::enable_if<std::is_convertible_v<S1, std::string>>>
+  explicit value_not_found(S1&& what_arg)
+  : cpet::exception(std::forward<S1>(what_arg)) {}
 };
 
 class io_error : public cpet::exception {
  public:
-  explicit io_error(const std::string& what_arg) : cpet::exception(what_arg) {}
-  explicit io_error(const char* what_arg) : cpet::exception(what_arg) {}
+  template<typename S1, typename = typename std::enable_if<std::is_convertible_v<S1, std::string>>>
+  explicit io_error(S1&& what_arg)
+  : cpet::exception(std::forward<S1>(what_arg)) {}
 };
 
 class invalid_option : public cpet::exception {
  public:
-  explicit invalid_option(const std::string& what_arg)
-      : cpet::exception(what_arg) {}
-  explicit invalid_option(const char* what_arg) : cpet::exception(what_arg) {}
+  template<typename S1, typename = typename std::enable_if<std::is_convertible_v<S1, std::string>>>
+  explicit invalid_option(S1&& what_arg)
+  : cpet::exception(std::forward<S1>(what_arg)) {}
 };
 }  // namespace cpet
 

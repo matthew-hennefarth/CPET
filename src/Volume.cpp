@@ -31,7 +31,7 @@ std::unique_ptr<Volume> makeBox(const std::vector<std::string>& options) {
 }
 
 std::unique_ptr<Volume> Volume::generateVolume(
-    std::vector<std::string> options) {
+   const std::vector<std::string>& options) {
   static const std::unordered_map<
       std::string,
       std::function<std::unique_ptr<Volume>(const std::vector<std::string>&)>>

@@ -70,9 +70,10 @@ class FieldLocations {
     return output_;
   }
 
-  void output(std::string output_name) {
+  template<typename S1>
+  void output(S1&& output_name) {
     if (!output_name.empty()) {
-      output_ = std::move(output_name);
+      output_ = std::forward<S1>(output_name);
     }
   }
 
@@ -131,7 +132,6 @@ class FieldLocations {
 
   void plot_(const std::vector<std::vector<Eigen::Vector3d>>& results) const;
 };
-
 }  // namespace cpet
 
 #endif  // FIELDLOCATIONS_H

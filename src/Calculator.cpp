@@ -43,13 +43,13 @@ void Calculator::compute() {
   createSystems_();
   transformSystems_();
 
-  if (!option_.calculateEFieldTopology.empty()) {
+  if (!option_.calculateEFieldTopology().empty()) {
     computeTopology_();
   }
   if (!option_.calculateFieldLocations().empty()) {
     computeEField_();
   }
-  if (!option_.calculateEFieldVolumes.empty()) {
+  if (!option_.calculateEFieldVolumes().empty()) {
     computeVolume_();
   }
 }
@@ -78,8 +78,8 @@ void Calculator::computeTopology_() const {
                 [&, index = 0](const auto& system) mutable {
                   SPDLOG_INFO("=~=~=~=~[Trajectory {}]=~=~=~=~", index);
                   system.printCenterAndBasis();
-                  std::for_each(option_.calculateEFieldTopology.begin(),
-                                option_.calculateEFieldTopology.end(),
+                  std::for_each(option_.calculateEFieldTopology().begin(),
+                                option_.calculateEFieldTopology().end(),
                                 [&](const auto& region) {
                                   print_header(region);
                                   compute_topology(system, region, index);
@@ -96,8 +96,8 @@ void Calculator::computeEField_() const {
 
 void Calculator::computeVolume_() const {
   std::for_each(
-      option_.calculateEFieldVolumes.begin(),
-      option_.calculateEFieldVolumes.end(), [this](const auto& volume) {
+      option_.calculateEFieldVolumes().begin(),
+      option_.calculateEFieldVolumes().end(), [this](const auto& volume) {
         std::vector<std::vector<Eigen::Vector3d>> volumeResults;
         volumeResults.reserve(systems_.size());
         const auto compute_volume_data = [&volume](const System& system) {

@@ -7,6 +7,7 @@
 #else
   #include <numeric>
 #endif
+#include <sstream>
 
 /* CPET HEADER FILES */
 #include "Utilities.h"
@@ -26,7 +27,7 @@ void forEachLineIn(const std::string& file,
   }
 }
 
-std::vector<std::string> split(std::string_view str, char delim) {
+std::vector<std::string> split(const std::string_view str, char delim) {
   std::vector<std::string> result;
 
   std::string::size_type start = 0;

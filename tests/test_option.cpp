@@ -26,8 +26,8 @@ TEST(Option, SimpleField) {
   EXPECT_TRUE(option.direction2ID.isConstant());
   EXPECT_EQ(option.direction2ID, cpet::AtomID::Constants::e2);
 
-  EXPECT_TRUE(option.calculateEFieldTopology.empty());
-  EXPECT_TRUE(option.calculateEFieldVolumes.empty());
+  EXPECT_TRUE(option.calculateEFieldTopology().empty());
+  EXPECT_TRUE(option.calculateEFieldVolumes().empty());
 
   ASSERT_EQ(option.calculateFieldLocations().size(), 1);
   auto fl = option.calculateFieldLocations()[0];
@@ -59,8 +59,8 @@ TEST(Option, AlignSingle) {
   EXPECT_TRUE(option.direction2ID.isConstant());
   EXPECT_EQ(option.direction2ID, cpet::AtomID::Constants::e2);
 
-  EXPECT_TRUE(option.calculateEFieldTopology.empty());
-  EXPECT_TRUE(option.calculateEFieldVolumes.empty());
+  EXPECT_TRUE(option.calculateEFieldTopology().empty());
+  EXPECT_TRUE(option.calculateEFieldVolumes().empty());
 
   ASSERT_EQ(option.calculateFieldLocations().size(), 1);
   auto fl = option.calculateFieldLocations()[0];
@@ -96,8 +96,8 @@ TEST(Option, AlignTriple) {
   EXPECT_FALSE(option.direction2ID.isVector());
   EXPECT_EQ(option.direction2ID, "D:56:SG");
 
-  EXPECT_TRUE(option.calculateEFieldTopology.empty());
-  EXPECT_TRUE(option.calculateEFieldVolumes.empty());
+  EXPECT_TRUE(option.calculateEFieldTopology().empty());
+  EXPECT_TRUE(option.calculateEFieldVolumes().empty());
 
   ASSERT_EQ(option.calculateFieldLocations().size(), 1);
   auto fl = option.calculateFieldLocations()[0];
@@ -123,10 +123,10 @@ TEST(Option, ValidTopoBox) {
   EXPECT_EQ(option.direction2ID, cpet::AtomID::Constants::e2);
 
   EXPECT_TRUE(option.calculateFieldLocations().empty());
-  EXPECT_TRUE(option.calculateEFieldVolumes.empty());
+  EXPECT_TRUE(option.calculateEFieldVolumes().empty());
 
-  ASSERT_EQ(option.calculateEFieldTopology.size(), 1);
-  auto tr1 = &option.calculateEFieldTopology[0];
+  ASSERT_EQ(option.calculateEFieldTopology().size(), 1);
+  auto tr1 = &option.calculateEFieldTopology()[0];
 
   EXPECT_EQ(tr1->numberOfSamples, 10);
   EXPECT_EQ(tr1->volume->type(), "box");
@@ -151,10 +151,10 @@ TEST(Option, ValidTopoBoxAlign) {
   EXPECT_EQ(option.direction2ID, cpet::AtomID::Constants::e2);
 
   EXPECT_TRUE(option.calculateFieldLocations().empty());
-  EXPECT_TRUE(option.calculateEFieldVolumes.empty());
+  EXPECT_TRUE(option.calculateEFieldVolumes().empty());
 
-  ASSERT_EQ(option.calculateEFieldTopology.size(), 1);
-  auto tr1 = &option.calculateEFieldTopology[0];
+  ASSERT_EQ(option.calculateEFieldTopology().size(), 1);
+  auto tr1 = &option.calculateEFieldTopology()[0];
 
   EXPECT_EQ(tr1->numberOfSamples, 100000);
   EXPECT_EQ(tr1->volume->type(), "box");
@@ -189,9 +189,9 @@ TEST(Option, Plot3DSimpleValid) {
 
   cpet::Option option;
   ASSERT_NO_THROW(option = cpet::Option{options_file});
-  ASSERT_EQ(option.calculateEFieldVolumes.size(), 1);
+  ASSERT_EQ(option.calculateEFieldVolumes().size(), 1);
 
-  cpet::EFieldVolume& efv = option.calculateEFieldVolumes[0];
+  const cpet::EFieldVolume& efv = option.calculateEFieldVolumes()[0];
 
   EXPECT_TRUE(efv.showPlot());
   EXPECT_FALSE(efv.points().empty());
@@ -203,7 +203,7 @@ TEST(Option, Plot3DSimpleValid) {
   EXPECT_FALSE(efv.output());
 
   EXPECT_TRUE(option.calculateFieldLocations().empty());
-  EXPECT_TRUE(option.calculateEFieldTopology.empty());
+  EXPECT_TRUE(option.calculateEFieldTopology().empty());
 }
 
 TEST(Option, Plot3DSimpleBoxInvalid_5Params) {
@@ -219,10 +219,10 @@ TEST(Option, Plot3dBlockBoxValid) {
 
   cpet::Option option;
   ASSERT_NO_THROW(option = cpet::Option{options_file});
-  ASSERT_EQ(option.calculateEFieldVolumes.size(), 2);
+  ASSERT_EQ(option.calculateEFieldVolumes().size(), 2);
 
-  cpet::EFieldVolume& efv0 = option.calculateEFieldVolumes[0];
-  cpet::EFieldVolume& efv1 = option.calculateEFieldVolumes[1];
+  const cpet::EFieldVolume& efv0 = option.calculateEFieldVolumes()[0];
+  const cpet::EFieldVolume& efv1 = option.calculateEFieldVolumes()[1];
 
   EXPECT_TRUE(efv0.showPlot());
   EXPECT_FALSE(efv1.showPlot());

@@ -40,13 +40,19 @@ class Option {
 
   AtomID direction2ID{AtomID::Constants::e2};
 
-  std::vector<TopologyRegion> calculateEFieldTopology;
-
-  std::vector<EFieldVolume> calculateEFieldVolumes;
-
   [[nodiscard]] constexpr const std::vector<FieldLocations>&
   calculateFieldLocations() const noexcept {
     return calculateFieldLocations_;
+  }
+
+  [[nodiscard]] constexpr const std::vector<EFieldVolume>&
+  calculateEFieldVolumes() const noexcept {
+    return calculateEFieldVolumes_;
+  }
+
+  [[nodiscard]] constexpr const std::vector<TopologyRegion>&
+  calculateEFieldTopology() const noexcept {
+    return calculateEFieldTopology_;
   }
 
   inline void addFieldLocations(const FieldLocations& fl) {
@@ -55,6 +61,8 @@ class Option {
 
  private:
   std::vector<FieldLocations> calculateFieldLocations_;
+  std::vector<EFieldVolume> calculateEFieldVolumes_;
+  std::vector<TopologyRegion> calculateEFieldTopology_;
 
   std::vector<std::string> simpleOptions_;
   std::vector<std::pair<std::string, std::vector<std::string>>> blockOptions_;
@@ -92,7 +100,7 @@ class Option {
     }
     std::unique_ptr<Volume> vol = Volume::generateVolume(
         std::vector<std::string>{options.begin() + 1, options.end()});
-    calculateEFieldTopology.emplace_back(std::move(vol), samples);
+    calculateEFieldTopology_.emplace_back(std::move(vol), samples);
   }
 
   inline void parseFieldSimple_(const std::vector<std::string>& options) {
@@ -104,11 +112,11 @@ class Option {
   }
 
   inline void parsePlot3dSimple_(const std::vector<std::string>& options) {
-    calculateEFieldVolumes.emplace_back(EFieldVolume::fromSimple(options));
+    calculateEFieldVolumes_.emplace_back(EFieldVolume::fromSimple(options));
   }
 
   inline void parsePlot3dBlock_(const std::vector<std::string>& blockOptions) {
-    calculateEFieldVolumes.emplace_back(EFieldVolume::fromBlock(blockOptions));
+    calculateEFieldVolumes_.emplace_back(EFieldVolume::fromBlock(blockOptions));
   }
 };
 }  // namespace cpet

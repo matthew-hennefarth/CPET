@@ -13,7 +13,7 @@
 #include <optional>
 #include <unordered_map>
 #include <numeric>
-#include <assert.h>
+#include <cassert>
 
 #include <Eigen/Dense>
 
@@ -87,9 +87,10 @@ class EFieldVolume {
     return output_;
   }
 
-  inline void output(const std::string& outputFile) {
+  template<typename S1, typename = typename std::enable_if<std::is_convertible_v<S1, std::string>>>
+  inline void output(S1&& outputFile) {
     if (!outputFile.empty()) {
-      output_ = outputFile;
+      output_ = std::forward<S1>(outputFile);
     }
   }
 
