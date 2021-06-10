@@ -129,8 +129,7 @@ class FieldLocations {
   void writeOutput_(
       const std::vector<std::vector<Eigen::Vector3d>>& results) const;
 
-  void plot_(
-      const std::vector<std::vector<Eigen::Vector3d>>& results) const;
+  void plot_(const std::vector<std::vector<Eigen::Vector3d>>& results) const;
 };
 
 }  // namespace cpet

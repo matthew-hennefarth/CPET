@@ -110,18 +110,6 @@ class Option {
   inline void parsePlot3dBlock_(const std::vector<std::string>& blockOptions) {
     calculateEFieldVolumes.emplace_back(EFieldVolume::fromBlock(blockOptions));
   }
-
-  inline static const std::unordered_map<
-      std::string, void (Option::*)(const std::vector<std::string>&)>
-      parseSimpleOptionsMap_ = {{ALIGN_KEY, &Option::parseAlignSimple_},
-                                {TOPOLOGY_KEY, &Option::parseTopologySimple_},
-                                {FIELD_KEY, &Option::parseFieldSimple_},
-                                {PLOT_3D_KEY, &Option::parsePlot3dSimple_}};
-
-  inline static const std::unordered_map<
-      std::string, void (Option::*)(const std::vector<std::string>&)>
-      parseBlockOptionsMap_ = {{PLOT_3D_KEY, &Option::parsePlot3dBlock_},
-                               {FIELD_KEY, &Option::parseFieldBlock_}};
 };
 }  // namespace cpet
 #endif  // OPTION_H

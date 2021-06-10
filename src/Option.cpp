@@ -103,21 +103,28 @@ void Option::loadOptionsDataFromFile_(const std::string& optionFile) {
 }
 
 void Option::parseSimpleOptions_() {
+  const std::unordered_map<std::string,
+                           void (Option::*)(const std::vector<std::string>&)>
+      parseSimpleOptionsMap = {{ALIGN_KEY, &Option::parseAlignSimple_},
+                               {TOPOLOGY_KEY, &Option::parseTopologySimple_},
+                               {FIELD_KEY, &Option::parseFieldSimple_},
+                               {PLOT_3D_KEY, &Option::parsePlot3dSimple_}};
+
   SPDLOG_DEBUG("Parsing simple options");
 
   std::for_each(simpleOptions_.begin(), simpleOptions_.end(),
-                [this](const auto& line) {
+                [this, &parseSimpleOptionsMap](const auto& line) {
                   const std::vector<std::string> info = util::split(line, ' ');
                   if (info.empty()) {
                     return;
                   }
 
-                  const auto key = info.at(0);
+                  const auto key = util::tolower(info.at(0));
                   const std::vector<std::string> key_options{info.begin() + 1,
                                                              info.end()};
 
-                  if (const auto func = parseSimpleOptionsMap_.find(key);
-                      func == parseSimpleOptionsMap_.end()) {
+                  if (const auto func = parseSimpleOptionsMap.find(key);
+                      func == parseSimpleOptionsMap.end()) {
                     SPDLOG_WARN("Unknown key in simple options {}", key);
                   } else {
                     (this->*(func->second))(key_options);
@@ -126,9 +133,14 @@ void Option::parseSimpleOptions_() {
 }
 void Option::parseBlockOptions_() {
   SPDLOG_DEBUG("Parsing block options");
+  const std::unordered_map<std::string,
+                           void (Option::*)(const std::vector<std::string>&)>
+      parseBlockOptionsMap = {{PLOT_3D_KEY, &Option::parsePlot3dBlock_},
+                              {FIELD_KEY, &Option::parseFieldBlock_}};
+
   for (const auto& [key, lines] : blockOptions_) {
-    if (const auto func = parseBlockOptionsMap_.find(key);
-        func == parseBlockOptionsMap_.end()) {
+    if (const auto func = parseBlockOptionsMap.find(util::tolower(key));
+        func == parseBlockOptionsMap.end()) {
       SPDLOG_WARN("Unknown key in block options {}", key);
     } else {
       (this->*(func->second))(lines);
