@@ -5,6 +5,7 @@
 
 /* EXTERNAL LIBRARY HEADER FILES */
 #include <Eigen/Dense>
+#include <matplot/matplot.h>
 
 /* CPET HEADER FILES */
 #include "System.h"
@@ -91,7 +92,7 @@ void FieldLocations::computeEFieldsWith(
     writeOutput_(results);
   }
   if (showPlots()) {
-    // plot_(results);
+    plot_(results);
   }
 }
 void FieldLocations::writeOutput_(
@@ -112,6 +113,79 @@ void FieldLocations::writeOutput_(
   } else {
     SPDLOG_ERROR("Could not open file {}", *output_);
     throw cpet::io_error("Could not open file " + *output_);
+  }
+}
+void FieldLocations::plot_(
+    const std::vector<std::vector<Eigen::Vector3d>>& results) const {
+
+  const auto numberOfPlots = util::countSetBits(static_cast<unsigned int>(plotStyle_));
+  if (numberOfPlots <= 0 || numberOfPlots > 4) {
+    SPDLOG_WARN("Number of plots less than 1 or greater than 4! Error in logic");
+    return;
+  }
+
+
+  auto figure = matplot::figure();
+  if (numberOfPlots < 3) {
+    figure->tiledlayout(numberOfPlots, 1);
+  } else {
+    figure->tiledlayout(2,2);
+  }
+
+  /* can make this an option eventually 
+   figure->size(500,500); */
+
+  auto current_ax = matplot::nexttile(0);
+
+  for(const auto& data : results) {
+    std::array<std::vector<double>, 4> rotatedElectricFields;
+    for (size_t index = 0; index < 3; index++) {
+      const auto extract_index =
+          [&index](const Eigen::Vector3d& vector) -> double {
+            return vector[static_cast<long>(index)];
+          };
+
+      std::transform(data.begin(), data.end(),
+                     std::back_inserter(rotatedElectricFields.at(index)),
+                     extract_index);
+    }
+
+    constexpr auto compute_magnitude =
+        [](const Eigen::Vector3d& vector) -> double { return vector.norm(); };
+
+    std::transform(data.begin(), data.end(),
+                   std::back_inserter(*rotatedElectricFields.rbegin()),
+                   compute_magnitude);
+
+    size_t plot_index = 0;
+
+    //constexpr std::array<const char*, 4> titles{"X", "Y", "Z", "Magnitude"};
+    const auto plot = [&rotatedElectricFields, &plot_index, &current_ax, &figure](size_t index) {
+      constexpr std::array<const char*, 4> titles{"X", "Y", "Z", "Magnitude"};
+      current_ax = figure->nexttile(plot_index);
+      //matplot::hold(current_ax, matplot::on);
+      matplot::plot(current_ax, rotatedElectricFields.at(index));
+      current_ax->xlabel("Frame");
+      current_ax->ylabel("Magnitude (V/Ang)");
+      current_ax->title(titles.at(index));
+      ++plot_index;
+    };
+
+    if (plotX_()) {
+      plot(0);
+    }
+    if (plotY_()) {
+      plot(1);
+    }
+    if (plotZ_()) {
+      plot(2);
+    }
+    if (plotM_()) {
+      plot(3);
+    }
+
+    matplot::show();
+    return;
   }
 }
 

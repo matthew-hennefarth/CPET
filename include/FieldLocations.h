@@ -17,7 +17,11 @@
 #include "PointCharge.h"
 
 namespace cpet {
+
+/* Prevents circular inclusion */
 class System;
+
+/* We use bitmap to determine what to plot */
 enum class PlotStyles : uint32_t {
   x = 1 << 0,
   y = 1 << 1,
@@ -122,6 +126,9 @@ class FieldLocations {
   }
 
   void writeOutput_(
+      const std::vector<std::vector<Eigen::Vector3d>>& results) const;
+
+  void plot_(
       const std::vector<std::vector<Eigen::Vector3d>>& results) const;
 };
 
