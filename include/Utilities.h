@@ -84,6 +84,14 @@ constexpr unsigned int countSetBits(unsigned int n) {
   }
   return count;
 }
+
+inline std::string tolower(const std::string& str) {
+  std::string result;
+  std::transform(str.begin(), str.end(), std::back_inserter(result), [](const char & c){
+    return std::tolower(c);
+  });
+  return result;
+}
 }  // namespace util
 }  // namespace cpet
 #endif  // UTILITIES_H

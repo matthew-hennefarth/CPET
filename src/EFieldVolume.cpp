@@ -143,12 +143,12 @@ EFieldVolume EFieldVolume::fromBlock(const std::vector<std::string>& options) {
       continue;
     }
 
-    const auto key = tokens[0];
+    const auto key = util::tolower(tokens[0]);
     const std::vector<std::string> key_options{tokens.begin() + 1,
                                                tokens.end()};
 
     if (key == SHOW_PLOT_KEY) {
-      plot = (*key_options.begin() == "true");
+      plot = (util::tolower(*key_options.begin()) == "true");
     } else if (key == VOLUME_KEY) {
       vol = Volume::generateVolume(key_options);
     } else if (key == DENSITY_KEY) {

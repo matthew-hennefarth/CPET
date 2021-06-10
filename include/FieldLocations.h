@@ -98,10 +98,11 @@ class FieldLocations {
         {"x", PlotStyles::x},
         {"y", PlotStyles::y},
         {"z", PlotStyles::z},
-        {"m", PlotStyles::m}};
+        {"m", PlotStyles::m},
+        {"all", PlotStyles::x | PlotStyles::y | PlotStyles::z | PlotStyles::m}};
     PlotStyles plotstyle{0};
     for (const auto& token : tokens) {
-      const auto iter = plotHash.find(token);
+      const auto iter = plotHash.find(util::tolower(token));
       if (iter == plotHash.end()) {
         // Unknown token passed
         throw cpet::invalid_option(

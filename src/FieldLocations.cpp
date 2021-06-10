@@ -36,7 +36,7 @@ FieldLocations FieldLocations::fromBlock(
       continue;
     }
 
-    const auto key = tokens[0];
+    const auto key = util::tolower(tokens[0]);
     const std::vector<std::string> key_options{tokens.begin() + 1,
                                                tokens.end()};
 
@@ -132,7 +132,7 @@ void FieldLocations::plot_(
     figure->tiledlayout(2,2);
   }
 
-  /* can make this an option eventually 
+  /* can make this an option eventually
    figure->size(500,500); */
 
   auto current_ax = matplot::nexttile(0);
@@ -163,7 +163,7 @@ void FieldLocations::plot_(
     const auto plot = [&rotatedElectricFields, &plot_index, &current_ax, &figure](size_t index) {
       constexpr std::array<const char*, 4> titles{"X", "Y", "Z", "Magnitude"};
       current_ax = figure->nexttile(plot_index);
-      //matplot::hold(current_ax, matplot::on);
+      matplot::hold(current_ax, matplot::on);
       matplot::plot(current_ax, rotatedElectricFields.at(index));
       current_ax->xlabel("Frame");
       current_ax->ylabel("Magnitude (V/Ang)");
@@ -184,9 +184,14 @@ void FieldLocations::plot_(
       plot(3);
     }
 
-    matplot::show();
-    return;
   }
+
+  std::vector<std::string> legend_list;
+  constexpr auto get_string_representation = [](const AtomID& aid){return aid.ID();};
+  std::transform(locations_.begin(), locations_.end(), std::back_inserter(legend_list), get_string_representation);
+
+  current_ax->legend(legend_list);
+  matplot::show();
 }
 
 }  // namespace cpet
