@@ -36,7 +36,7 @@ struct PathSample {
     os << ps.distance << ',' << ps.curvature;
     return os;
   }
-} __attribute__((aligned(16)));
+};
 
 class System {
  public:
