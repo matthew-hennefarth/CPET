@@ -17,6 +17,8 @@
 #include "PointCharge.h"
 #include "System.h"
 #include "TopologyRegion.h"
+#include "Frame.h"
+
 namespace cpet {
 
 class Calculator {
@@ -41,7 +43,7 @@ class Calculator {
 
   int numberOfThreads_;
 
-  std::vector<std::vector<PointCharge>> pointChargeTrajectory_;
+  std::vector<Frame> frameTrajectory_;
 
   std::vector<System> systems_;
 
@@ -61,12 +63,12 @@ class Calculator {
     }
 
     const auto make_system =
-        [this](const std::vector<PointCharge>& trajectory) -> System {
-      return System{trajectory, this->option_};
+        [this](const Frame& frame) -> System {
+      return System{frame, this->option_};
     };
 
-    systems_.reserve(pointChargeTrajectory_.size());
-    std::transform(pointChargeTrajectory_.begin(), pointChargeTrajectory_.end(),
+    systems_.reserve(frameTrajectory_.size());
+    std::transform(frameTrajectory_.begin(), frameTrajectory_.end(),
                    std::back_inserter(systems_), make_system);
   }
 

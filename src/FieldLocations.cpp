@@ -57,12 +57,7 @@ FieldLocations FieldLocations::fromBlock(
   return fl;
 }
 void FieldLocations::computeEFieldsWith(
-    const std::vector<System>& systems,
-    const std::vector<std::vector<PointCharge>>& pointChargeTrajectory) const {
-  if (systems.size() != pointChargeTrajectory.size()) {
-    throw cpet::value_error(
-        "Wrong number of systems to number of point charges structures");
-  }
+    const std::vector<System>& systems) const {
 
   std::vector<std::vector<Eigen::Vector3d>> results;
   for (const auto& point : locations_) {
@@ -75,12 +70,8 @@ void FieldLocations::computeEFieldsWith(
       if (point.position()) {
         location = *(point.position());
       } else {
-        location =
-            PointCharge::find(pointChargeTrajectory[i], point)->coordinate;
-        location = systems[i].transformToUserSpace(location);
+        location = systems[i].frame().find(point)->coordinate;
       }
-
-      // systems[i].printCenterAndBasis();
 
       Eigen::Vector3d field = systems[i].electricFieldAt(location);
       SPDLOG_INFO("{} [{}]", field.transpose(), field.norm());

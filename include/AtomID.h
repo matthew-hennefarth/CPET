@@ -39,20 +39,21 @@ class AtomID {
     }
   }
 
-  template<typename S1>
+  template<typename S1, typename = std::enable_if_t<std::is_convertible_v<S1, std::string>>>
   explicit inline AtomID(S1&& other_id) : id_(std::forward<S1>(other_id)) {
     if (!validID()) {
       throw cpet::value_error("Invalid atom ID: " + id_);
     }
   }
 
+  explicit inline AtomID(AtomID&&) = default;
+
   inline AtomID(const AtomID&) = default;
-  inline AtomID(AtomID&&) = default;
   inline ~AtomID() = default;
   inline AtomID& operator=(const AtomID&) = default;
   inline AtomID& operator=(AtomID&&) = default;
 
-  template<typename S1>
+  template<typename S1, typename = std::enable_if_t<std::is_convertible_v<S1, std::string>>>
   inline AtomID& operator=(S1&& rhs) {
     setID(std::forward<S1>(rhs));
     isConstant_ = false;

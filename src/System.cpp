@@ -17,12 +17,11 @@
 
 namespace cpet {
 
-System::System(std::vector<PointCharge> pc, const Option& options)
-    : pointCharges_(std::move(pc)) {
+System::System(const Frame& frame, const Option& options) : frame_(frame), pointCharges_(frame_.begin(), frame_.end()) {
   if (options.centerID.position()) {
     center_ = *(options.centerID.position());
   } else {
-    center_ = PointCharge::find(pointCharges_, options.centerID)->coordinate;
+    center_ = frame_.find(options.centerID)->coordinate;
   }
 
   std::array<Eigen::Vector3d, 3> basis;
@@ -36,9 +35,7 @@ System::System(std::vector<PointCharge> pc, const Option& options)
       basis[0] = *(options.direction1ID.position()) - center_;
     }
   } else {
-    basis[0] =
-        PointCharge::find(pointCharges_, options.direction1ID)->coordinate -
-        center_;
+    basis[0] = frame_.find(options.direction1ID)->coordinate - center_;
   }
   SPDLOG_DEBUG("Basis[0] is {}", basis[0].transpose());
   basis[0] = basis[0] / basis[0].norm();
@@ -53,9 +50,7 @@ System::System(std::vector<PointCharge> pc, const Option& options)
       basis[1] = *(options.direction2ID.position()) - center_;
     }
   } else {
-    basis[1] =
-        PointCharge::find(pointCharges_, options.direction2ID)->coordinate -
-        center_;
+    basis[1] = frame_.find(options.direction2ID)->coordinate - center_;
   }
   SPDLOG_DEBUG("Basis[1] is {}", basis[1].transpose());
   basis[1] = basis[1] / basis[1].norm();
@@ -84,6 +79,7 @@ System::System(std::vector<PointCharge> pc, const Option& options)
   pointCharges_.erase(remove_if(begin(pointCharges_), end(pointCharges_),
                                 [](const auto& p) { return p.charge == 0.0; }),
                       end(pointCharges_));
+
 }
 
 Eigen::Vector3d System::electricFieldAt(const Eigen::Vector3d& position) const {

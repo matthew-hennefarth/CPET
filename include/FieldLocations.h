@@ -50,8 +50,7 @@ constexpr PlotStyles& operator|=(PlotStyles& lhs, const PlotStyles rhs) {
 class FieldLocations {
  public:
   void computeEFieldsWith(
-      const std::vector<System>& systems,
-      const std::vector<std::vector<PointCharge>>& pointChargeTrajectory) const;
+      const std::vector<System>& systems) const;
 
   [[nodiscard]] constexpr const std::vector<AtomID>& locations()
       const noexcept {

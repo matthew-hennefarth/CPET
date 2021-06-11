@@ -90,7 +90,7 @@ void Calculator::computeTopology_() const {
 
 void Calculator::computeEField_() const {
   for (const auto& fieldLocations : option_.calculateFieldLocations()) {
-    fieldLocations.computeEFieldsWith(systems_, pointChargeTrajectory_);
+    fieldLocations.computeEFieldsWith(systems_);
   }
 }
 
@@ -122,7 +122,7 @@ void Calculator::loadPointChargeTrajectory_() {
   util::forEachLineIn(
       proteinFile_, [this, &tmpHolder](const std::string& line) {
         if (util::startswith(line, "ENDMDL")) {
-          pointChargeTrajectory_.push_back(tmpHolder);
+          frameTrajectory_.emplace_back(tmpHolder);
           tmpHolder.clear();
         } else if (util::startswith(line, "ATOM") ||
                    util::startswith(line, "HETATM")) {
@@ -136,7 +136,7 @@ void Calculator::loadPointChargeTrajectory_() {
         }
       });
   if (!tmpHolder.empty()) {
-    pointChargeTrajectory_.push_back(tmpHolder);
+    frameTrajectory_.emplace_back(tmpHolder);
   }
 }
 
@@ -155,18 +155,9 @@ std::vector<double> Calculator::loadChargesFile_() const {
 void Calculator::fixCharges_() {
   SPDLOG_DEBUG("Fixing charges in structure file with real charges...");
   auto realCharges = loadChargesFile_();
-  for (auto& structure : pointChargeTrajectory_) {
-    if (structure.size() != realCharges.size()) {
-      SPDLOG_ERROR("Structure size: {}, number of charges: {}",
-                   structure.size(), realCharges.size());
-      throw cpet::value_error(
-          "Inconsistent number of point charges in trajectory and in charge "
-          "file");
-    }
-    for (size_t i = 0; i < structure.size(); i++) {
-      structure[i].charge = realCharges[i];
-    }
-  }
+  std::for_each(frameTrajectory_.begin(), frameTrajectory_.end(), [&realCharges](auto& frame){
+    frame.updateCharges(realCharges);
+  });
 }
 
 void Calculator::writeTopologyResults_(const std::vector<PathSample>& data,
