@@ -33,7 +33,7 @@ TEST(System, SimpleField) {
     EXPECT_NEAR((field - expected_result).norm(), 0, 0.00001);
   }
 
-  option.centerID = cpet::AtomID("1:1:1");
+  option.centerID("1:1:1");
 
   {
     cpet::System sys{pc, option};

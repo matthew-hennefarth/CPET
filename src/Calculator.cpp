@@ -98,21 +98,7 @@ void Calculator::computeVolume_() const {
   std::for_each(
       option_.calculateEFieldVolumes().begin(),
       option_.calculateEFieldVolumes().end(), [this](const auto& volume) {
-        std::vector<std::vector<Eigen::Vector3d>> volumeResults;
-        volumeResults.reserve(systems_.size());
-        const auto compute_volume_data = [&volume](const System& system) {
-          system.printCenterAndBasis();
-          auto tmpSystemResults = system.computeElectricFieldIn(volume);
-          if (volume.showPlot()) {
-            volume.plot(tmpSystemResults);
-          }
-          return tmpSystemResults;
-        };
-        std::transform(systems_.begin(), systems_.end(),
-                       std::back_inserter(volumeResults), compute_volume_data);
-        if (volume.output()) {
-          volume.writeVolumeResults(systems_, volumeResults);
-        }
+        volume.computeVolumeWith(systems_);
       });
 }
 

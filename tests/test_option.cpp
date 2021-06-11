@@ -17,14 +17,14 @@ TEST(Option, SimpleField) {
   cpet::Option option;
   ASSERT_NO_THROW(option = cpet::Option{"Data/valid_options/simple_field"});
 
-  EXPECT_TRUE(option.centerID.isConstant());
-  EXPECT_EQ(option.centerID, cpet::AtomID::Constants::origin);
+  EXPECT_TRUE(option.centerID().isConstant());
+  EXPECT_EQ(option.centerID(), cpet::AtomID::Constants::origin);
 
-  EXPECT_TRUE(option.direction1ID.isConstant());
-  EXPECT_EQ(option.direction1ID, cpet::AtomID::Constants::e1);
+  EXPECT_TRUE(option.direction1ID().isConstant());
+  EXPECT_EQ(option.direction1ID(), cpet::AtomID::Constants::e1);
 
-  EXPECT_TRUE(option.direction2ID.isConstant());
-  EXPECT_EQ(option.direction2ID, cpet::AtomID::Constants::e2);
+  EXPECT_TRUE(option.direction2ID().isConstant());
+  EXPECT_EQ(option.direction2ID(), cpet::AtomID::Constants::e2);
 
   EXPECT_TRUE(option.calculateEFieldTopology().empty());
   EXPECT_TRUE(option.calculateEFieldVolumes().empty());
@@ -47,17 +47,17 @@ TEST(Option, AlignSingle) {
   cpet::Option option;
   ASSERT_NO_THROW(option = cpet::Option{"Data/valid_options/align_single"});
 
-  EXPECT_FALSE(option.centerID.isConstant());
-  EXPECT_TRUE(option.centerID.isVector());
+  EXPECT_FALSE(option.centerID().isConstant());
+  EXPECT_TRUE(option.centerID().isVector());
   Eigen::Vector3d center{1, 0, 0};
-  ASSERT_TRUE(option.centerID.position());
-  EXPECT_NEAR((*option.centerID.position() - center).norm(), 0.0, 0.0001);
+  ASSERT_TRUE(option.centerID().position());
+  EXPECT_NEAR((*option.centerID().position() - center).norm(), 0.0, 0.0001);
 
-  EXPECT_TRUE(option.direction1ID.isConstant());
-  EXPECT_EQ(option.direction1ID, cpet::AtomID::Constants::e1);
+  EXPECT_TRUE(option.direction1ID().isConstant());
+  EXPECT_EQ(option.direction1ID(), cpet::AtomID::Constants::e1);
 
-  EXPECT_TRUE(option.direction2ID.isConstant());
-  EXPECT_EQ(option.direction2ID, cpet::AtomID::Constants::e2);
+  EXPECT_TRUE(option.direction2ID().isConstant());
+  EXPECT_EQ(option.direction2ID(), cpet::AtomID::Constants::e2);
 
   EXPECT_TRUE(option.calculateEFieldTopology().empty());
   EXPECT_TRUE(option.calculateEFieldVolumes().empty());
@@ -82,19 +82,19 @@ TEST(Option, AlignTriple) {
   cpet::Option option;
   ASSERT_NO_THROW(option = cpet::Option{options_file});
 
-  EXPECT_FALSE(option.centerID.isConstant());
-  EXPECT_TRUE(option.centerID.isVector());
+  EXPECT_FALSE(option.centerID().isConstant());
+  EXPECT_TRUE(option.centerID().isVector());
   Eigen::Vector3d center{1, 3, 1};
-  ASSERT_TRUE(option.centerID.position());
-  EXPECT_NEAR((*option.centerID.position() - center).norm(), 0.0, 0.0001);
+  ASSERT_TRUE(option.centerID().position());
+  EXPECT_NEAR((*option.centerID().position() - center).norm(), 0.0, 0.0001);
 
-  EXPECT_FALSE(option.direction1ID.isConstant());
-  EXPECT_FALSE(option.direction1ID.isVector());
-  EXPECT_EQ(option.direction1ID, "D:54:CG");
+  EXPECT_FALSE(option.direction1ID().isConstant());
+  EXPECT_FALSE(option.direction1ID().isVector());
+  EXPECT_EQ(option.direction1ID(), "D:54:CG");
 
-  EXPECT_FALSE(option.direction2ID.isConstant());
-  EXPECT_FALSE(option.direction2ID.isVector());
-  EXPECT_EQ(option.direction2ID, "D:56:SG");
+  EXPECT_FALSE(option.direction2ID().isConstant());
+  EXPECT_FALSE(option.direction2ID().isVector());
+  EXPECT_EQ(option.direction2ID(), "D:56:SG");
 
   EXPECT_TRUE(option.calculateEFieldTopology().empty());
   EXPECT_TRUE(option.calculateEFieldVolumes().empty());
@@ -113,20 +113,20 @@ TEST(Option, ValidTopoBox) {
   cpet::Option option;
   ASSERT_NO_THROW(option = cpet::Option{options_file});
 
-  EXPECT_TRUE(option.centerID.isConstant());
-  EXPECT_EQ(option.centerID, cpet::AtomID::Constants::origin);
+  EXPECT_TRUE(option.centerID().isConstant());
+  EXPECT_EQ(option.centerID(), cpet::AtomID::Constants::origin);
 
-  EXPECT_TRUE(option.direction1ID.isConstant());
-  EXPECT_EQ(option.direction1ID, cpet::AtomID::Constants::e1);
+  EXPECT_TRUE(option.direction1ID().isConstant());
+  EXPECT_EQ(option.direction1ID(), cpet::AtomID::Constants::e1);
 
-  EXPECT_TRUE(option.direction2ID.isConstant());
-  EXPECT_EQ(option.direction2ID, cpet::AtomID::Constants::e2);
+  EXPECT_TRUE(option.direction2ID().isConstant());
+  EXPECT_EQ(option.direction2ID(), cpet::AtomID::Constants::e2);
 
   EXPECT_TRUE(option.calculateFieldLocations().empty());
   EXPECT_TRUE(option.calculateEFieldVolumes().empty());
 
   ASSERT_EQ(option.calculateEFieldTopology().size(), 1);
-  auto tr1 = &option.calculateEFieldTopology()[0];
+  const auto *tr1 = &option.calculateEFieldTopology()[0];
 
   EXPECT_EQ(tr1->numberOfSamples, 10);
   EXPECT_EQ(tr1->volume->type(), "box");
@@ -141,20 +141,20 @@ TEST(Option, ValidTopoBoxAlign) {
   cpet::Option option;
   ASSERT_NO_THROW(option = cpet::Option{options_file});
 
-  EXPECT_FALSE(option.centerID.isConstant());
-  EXPECT_EQ(option.centerID, "D:45:CG");
+  EXPECT_FALSE(option.centerID().isConstant());
+  EXPECT_EQ(option.centerID(), "D:45:CG");
 
-  EXPECT_TRUE(option.direction1ID.isConstant());
-  EXPECT_EQ(option.direction1ID, cpet::AtomID::Constants::e1);
+  EXPECT_TRUE(option.direction1ID().isConstant());
+  EXPECT_EQ(option.direction1ID(), cpet::AtomID::Constants::e1);
 
-  EXPECT_TRUE(option.direction2ID.isConstant());
-  EXPECT_EQ(option.direction2ID, cpet::AtomID::Constants::e2);
+  EXPECT_TRUE(option.direction2ID().isConstant());
+  EXPECT_EQ(option.direction2ID(), cpet::AtomID::Constants::e2);
 
   EXPECT_TRUE(option.calculateFieldLocations().empty());
   EXPECT_TRUE(option.calculateEFieldVolumes().empty());
 
   ASSERT_EQ(option.calculateEFieldTopology().size(), 1);
-  auto tr1 = &option.calculateEFieldTopology()[0];
+  const auto *tr1 = &option.calculateEFieldTopology()[0];
 
   EXPECT_EQ(tr1->numberOfSamples, 100000);
   EXPECT_EQ(tr1->volume->type(), "box");

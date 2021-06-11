@@ -54,8 +54,7 @@ class AtomID {
   inline AtomID& operator=(const AtomID&) = default;
   inline AtomID& operator=(AtomID&&) = default;
 
-  template <typename S1,
-            typename = std::enable_if_t<std::is_convertible_v<S1, std::string>>>
+  template <typename S1>
   inline AtomID& operator=(S1&& rhs) {
     setID(std::forward<S1>(rhs));
     isConstant_ = false;
