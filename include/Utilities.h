@@ -13,8 +13,6 @@
 #include <vector>
 #include <memory>
 
-#include <iostream>
-
 /* CPET HEADER FILES */
 #include "Exceptions.h"
 namespace cpet {
@@ -87,6 +85,7 @@ constexpr unsigned int countSetBits(unsigned int n) {
 
 inline std::string tolower(const std::string_view str) {
   std::string result;
+  result.reserve(str.size());
   std::transform(str.begin(), str.end(), std::back_inserter(result),
                  [](const char& c) { return std::tolower(c); });
   return result;
