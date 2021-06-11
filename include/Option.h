@@ -56,7 +56,7 @@ class Option {
     return centerID_;
   }
 
-  template<typename S1>
+  template <typename S1>
   constexpr void centerID(S1&& atomid) {
     centerID_ = std::forward<S1>(atomid);
   }

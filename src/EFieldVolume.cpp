@@ -17,8 +17,6 @@ namespace cpet {
 
 constexpr int DENSITY_PARAMETERS = 3;
 
-
-
 EFieldVolume EFieldVolume::fromSimple(const std::vector<std::string>& options) {
   constexpr bool plot = true;
   constexpr size_t MIN_EFIELDVOLUME_OPTIONS = 5;
@@ -129,7 +127,6 @@ void EFieldVolume::computeVolumeWith(const std::vector<System>& systems) const {
   if (output_) {
     writeOutput_(systems, volumeResults);
   }
-
 }
 
 void EFieldVolume::plot_(
@@ -145,8 +142,8 @@ void EFieldVolume::plot_(
   for (size_t index = 0; index < 3; index++) {
     const auto extract_index =
         [&index](const Eigen::Vector3d& vector) -> double {
-          return vector[static_cast<long>(index)];
-        };
+      return vector[static_cast<long>(index)];
+    };
     std::transform(points_.begin(), points_.end(),
                    std::back_inserter(rotatedPositions.at(index)),
                    extract_index);

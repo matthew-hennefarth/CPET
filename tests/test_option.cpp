@@ -126,7 +126,7 @@ TEST(Option, ValidTopoBox) {
   EXPECT_TRUE(option.calculateEFieldVolumes().empty());
 
   ASSERT_EQ(option.calculateEFieldTopology().size(), 1);
-  const auto *tr1 = &option.calculateEFieldTopology()[0];
+  const auto* tr1 = &option.calculateEFieldTopology()[0];
 
   EXPECT_EQ(tr1->numberOfSamples, 10);
   EXPECT_EQ(tr1->volume->type(), "box");
@@ -154,7 +154,7 @@ TEST(Option, ValidTopoBoxAlign) {
   EXPECT_TRUE(option.calculateEFieldVolumes().empty());
 
   ASSERT_EQ(option.calculateEFieldTopology().size(), 1);
-  const auto *tr1 = &option.calculateEFieldTopology()[0];
+  const auto* tr1 = &option.calculateEFieldTopology()[0];
 
   EXPECT_EQ(tr1->numberOfSamples, 100000);
   EXPECT_EQ(tr1->volume->type(), "box");

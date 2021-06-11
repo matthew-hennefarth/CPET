@@ -108,7 +108,6 @@ class EFieldVolume {
   void writeOutput_(
       const std::vector<System>& systems,
       const std::vector<std::vector<Eigen::Vector3d>>& results) const;
-
 };
 }  // namespace cpet
 #endif  // EFIELDVOLUME_H

@@ -97,9 +97,8 @@ void Calculator::computeEField_() const {
 void Calculator::computeVolume_() const {
   std::for_each(
       option_.calculateEFieldVolumes().begin(),
-      option_.calculateEFieldVolumes().end(), [this](const auto& volume) {
-        volume.computeVolumeWith(systems_);
-      });
+      option_.calculateEFieldVolumes().end(),
+      [this](const auto& volume) { volume.computeVolumeWith(systems_); });
 }
 
 void Calculator::loadPointChargeTrajectory_() {
