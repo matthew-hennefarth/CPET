@@ -49,8 +49,7 @@ constexpr PlotStyles& operator|=(PlotStyles& lhs, const PlotStyles rhs) {
 
 class FieldLocations {
  public:
-  void computeEFieldsWith(
-      const std::vector<System>& systems) const;
+  void computeEFieldsWith(const std::vector<System>& systems) const;
 
   [[nodiscard]] constexpr const std::vector<AtomID>& locations()
       const noexcept {
@@ -69,7 +68,7 @@ class FieldLocations {
     return output_;
   }
 
-  template<typename S1>
+  template <typename S1>
   void output(S1&& output_name) {
     if (!output_name.empty()) {
       output_ = std::forward<S1>(output_name);

@@ -39,7 +39,8 @@ class AtomID {
     }
   }
 
-  template<typename S1, typename = std::enable_if_t<std::is_convertible_v<S1, std::string>>>
+  template <typename S1,
+            typename = std::enable_if_t<std::is_convertible_v<S1, std::string>>>
   explicit inline AtomID(S1&& other_id) : id_(std::forward<S1>(other_id)) {
     if (!validID()) {
       throw cpet::value_error("Invalid atom ID: " + id_);
@@ -53,7 +54,8 @@ class AtomID {
   inline AtomID& operator=(const AtomID&) = default;
   inline AtomID& operator=(AtomID&&) = default;
 
-  template<typename S1, typename = std::enable_if_t<std::is_convertible_v<S1, std::string>>>
+  template <typename S1,
+            typename = std::enable_if_t<std::is_convertible_v<S1, std::string>>>
   inline AtomID& operator=(S1&& rhs) {
     setID(std::forward<S1>(rhs));
     isConstant_ = false;
@@ -78,7 +80,8 @@ class AtomID {
            (isVector(atomid) || util::isDouble(splitID[1]));
   }
 
-  [[nodiscard]] inline bool operator==(const std::string_view rhs) const noexcept {
+  [[nodiscard]] inline bool operator==(
+      const std::string_view rhs) const noexcept {
     return (id_ == rhs);
   }
 
@@ -90,7 +93,8 @@ class AtomID {
     return (id_ == rhs.id_);
   }
 
-  [[nodiscard]] inline bool operator!=(const std::string_view rhs) const noexcept {
+  [[nodiscard]] inline bool operator!=(
+      const std::string_view rhs) const noexcept {
     return !(*this == rhs);
   }
 
@@ -100,7 +104,7 @@ class AtomID {
 
   [[nodiscard]] inline const std::string& ID() const noexcept { return id_; }
 
-  template<typename S1>
+  template <typename S1>
   inline void setID(S1&& newID) {
     if (validID(std::forward<S1>(newID))) {
       id_ = std::forward<S1>(newID);
@@ -110,13 +114,17 @@ class AtomID {
     }
   }
 
-  [[nodiscard]] static inline AtomID generateID(const std::string_view pdbLine) {
+  [[nodiscard]] static inline AtomID generateID(
+      const std::string_view pdbLine) {
     if (pdbLine.size() < MIN_PDB_LINE_LENGTH) {
-      throw cpet::value_error("pdb line to short: " + static_cast<std::string>(pdbLine));
+      throw cpet::value_error("pdb line to short: " +
+                              static_cast<std::string>(pdbLine));
     }
 
     std::stringstream result_stream;
-    result_stream << pdbLine.substr(PDB_CHAIN_START, PDB_CHAIN_WIDTH) << ':' << pdbLine.substr(PDB_RESNUM_START, PDB_RESNUM_WIDTH) << ':' << pdbLine.substr(PDB_ATOMID_START, PDB_ATOMID_WIDTH);
+    result_stream << pdbLine.substr(PDB_CHAIN_START, PDB_CHAIN_WIDTH) << ':'
+                  << pdbLine.substr(PDB_RESNUM_START, PDB_RESNUM_WIDTH) << ':'
+                  << pdbLine.substr(PDB_ATOMID_START, PDB_ATOMID_WIDTH);
     auto result = result_stream.str();
     result.erase(remove(begin(result), end(result), ' '), end(result));
     return AtomID(result);

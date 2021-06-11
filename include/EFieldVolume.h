@@ -87,7 +87,8 @@ class EFieldVolume {
     return output_;
   }
 
-  template<typename S1, typename = typename std::enable_if<std::is_convertible_v<S1, std::string>>>
+  template <typename S1, typename = typename std::enable_if<
+                             std::is_convertible_v<S1, std::string>>>
   inline void output(S1&& outputFile) {
     if (!outputFile.empty()) {
       output_ = std::forward<S1>(outputFile);

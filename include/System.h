@@ -75,10 +75,7 @@ class System {
   [[nodiscard]] std::vector<Eigen::Vector3d> computeElectricFieldIn(
       const EFieldVolume& volume) const noexcept;
 
-  [[nodiscard]] constexpr const Frame& frame()
-      const noexcept {
-    return frame_;
-  }
+  [[nodiscard]] constexpr const Frame& frame() const noexcept { return frame_; }
 
  private:
   static inline void constructOrthonormalBasis_(

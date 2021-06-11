@@ -15,22 +15,25 @@
 #include "PointCharge.h"
 #include "Utilities.h"
 
-namespace cpet{
+namespace cpet {
 
 class Frame {
  public:
   Frame(const std::vector<PointCharge>& pcs) : pointCharges_(pcs) {}
 
-  [[nodiscard]] inline std::vector<PointCharge>::const_iterator find(const AtomID& id) const {
+  [[nodiscard]] inline std::vector<PointCharge>::const_iterator find(
+      const AtomID& id) const {
     return util::find_if_ex(pointCharges_.begin(), pointCharges_.end(),
                             [&id](const auto& pc) { return pc.id == id; });
   }
 
-  [[nodiscard]] inline std::vector<PointCharge>::const_iterator begin() const noexcept {
+  [[nodiscard]] inline std::vector<PointCharge>::const_iterator begin()
+      const noexcept {
     return pointCharges_.begin();
   }
 
-  [[nodiscard]] inline std::vector<PointCharge>::const_iterator end() const noexcept {
+  [[nodiscard]] inline std::vector<PointCharge>::const_iterator end()
+      const noexcept {
     return pointCharges_.end();
   }
 
@@ -42,19 +45,23 @@ class Frame {
     return pointCharges_.end();
   }
 
-  [[nodiscard]] inline std::vector<PointCharge>::const_reverse_iterator rbegin() const noexcept {
+  [[nodiscard]] inline std::vector<PointCharge>::const_reverse_iterator rbegin()
+      const noexcept {
     return pointCharges_.rbegin();
   }
 
-  [[nodiscard]] inline std::vector<PointCharge>::const_reverse_iterator rend() const noexcept {
+  [[nodiscard]] inline std::vector<PointCharge>::const_reverse_iterator rend()
+      const noexcept {
     return pointCharges_.rend();
   }
 
-  [[nodiscard]] inline std::vector<PointCharge>::reverse_iterator rbegin() noexcept {
+  [[nodiscard]] inline std::vector<PointCharge>::reverse_iterator
+  rbegin() noexcept {
     return pointCharges_.rbegin();
   }
 
-  [[nodiscard]] inline std::vector<PointCharge>::reverse_iterator rend() noexcept {
+  [[nodiscard]] inline std::vector<PointCharge>::reverse_iterator
+  rend() noexcept {
     return pointCharges_.rend();
   }
 
@@ -65,7 +72,7 @@ class Frame {
       throw cpet::value_error(
           "Inconsistent number of point charges in trajectory and in charge "
           "file");
-      }
+    }
     for (size_t i = 0; i < pointCharges_.size(); i++) {
       pointCharges_[i].charge = charges[i];
     }
@@ -75,5 +82,5 @@ class Frame {
   std::vector<PointCharge> pointCharges_;
 };
 
-}
+}  // namespace cpet
 #endif  // FRAME_H

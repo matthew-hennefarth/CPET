@@ -44,7 +44,7 @@ class Volume {
 
  public:
   static std::unique_ptr<Volume> generateVolume(
-      const std::vector<std::string>& options);
+      const std::vector<std::string> &options);
 };
 }  // namespace cpet
 #endif  // VOLUME_H

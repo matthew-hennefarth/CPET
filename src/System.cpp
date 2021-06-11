@@ -17,7 +17,8 @@
 
 namespace cpet {
 
-System::System(const Frame& frame, const Option& options) : frame_(frame), pointCharges_(frame_.begin(), frame_.end()) {
+System::System(const Frame& frame, const Option& options)
+    : frame_(frame), pointCharges_(frame_.begin(), frame_.end()) {
   if (options.centerID.position()) {
     center_ = *(options.centerID.position());
   } else {
@@ -79,7 +80,6 @@ System::System(const Frame& frame, const Option& options) : frame_(frame), point
   pointCharges_.erase(remove_if(begin(pointCharges_), end(pointCharges_),
                                 [](const auto& p) { return p.charge == 0.0; }),
                       end(pointCharges_));
-
 }
 
 Eigen::Vector3d System::electricFieldAt(const Eigen::Vector3d& position) const {

@@ -155,9 +155,9 @@ std::vector<double> Calculator::loadChargesFile_() const {
 void Calculator::fixCharges_() {
   SPDLOG_DEBUG("Fixing charges in structure file with real charges...");
   auto realCharges = loadChargesFile_();
-  std::for_each(frameTrajectory_.begin(), frameTrajectory_.end(), [&realCharges](auto& frame){
-    frame.updateCharges(realCharges);
-  });
+  std::for_each(
+      frameTrajectory_.begin(), frameTrajectory_.end(),
+      [&realCharges](auto& frame) { frame.updateCharges(realCharges); });
 }
 
 void Calculator::writeTopologyResults_(const std::vector<PathSample>& data,

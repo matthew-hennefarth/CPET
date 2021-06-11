@@ -225,10 +225,11 @@ TEST(tolower, standard) {
   str = "let's TRY another String!!!";
   EXPECT_EQ(cpet::util::tolower(str), "let's try another string!!!");
 
-  EXPECT_EQ(cpet::util::tolower("HOW ABOUT THIS ONE?!?!!?!?!?!!"), "how about this one?!?!!?!?!?!!");
+  EXPECT_EQ(cpet::util::tolower("HOW ABOUT THIS ONE?!?!!?!?!?!!"),
+            "how about this one?!?!!?!?!?!!");
 }
 
 TEST(tolower, substrings) {
   std::string str = "LETS' try THIS 1 chumpsss";
-  EXPECT_EQ(cpet::util::tolower(str.substr(0,4)), "lets");
+  EXPECT_EQ(cpet::util::tolower(str.substr(0, 4)), "lets");
 }

@@ -58,7 +58,6 @@ FieldLocations FieldLocations::fromBlock(
 }
 void FieldLocations::computeEFieldsWith(
     const std::vector<System>& systems) const {
-
   std::vector<std::vector<Eigen::Vector3d>> results;
   for (const auto& point : locations_) {
     SPDLOG_INFO("=~=~=~=~[Field at {}]=~=~=~=~", point.ID());

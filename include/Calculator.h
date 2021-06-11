@@ -62,8 +62,7 @@ class Calculator {
       systems_.clear();
     }
 
-    const auto make_system =
-        [this](const Frame& frame) -> System {
+    const auto make_system = [this](const Frame& frame) -> System {
       return System{frame, this->option_};
     };
 

@@ -45,8 +45,8 @@ randomNumberGenerator() noexcept {
   return {str.data(), strEnd + 1};
 }
 
-[[nodiscard]] inline std::string removeAfter(const std::string_view str,
-                                             const std::string_view escape = " \t") {
+[[nodiscard]] inline std::string removeAfter(
+    const std::string_view str, const std::string_view escape = " \t") {
   auto strEnd = str.find_first_of(escape);
   if (strEnd == std::string::npos) {
     return str.data();
@@ -67,7 +67,8 @@ std::vector<std::string> split(const std::string_view str, char delim);
 [[nodiscard]] bool isDouble(std::string str) noexcept;
 
 template <class InputIt, class UnaryPredicate>
-InputIt find_if_ex(const InputIt first, const InputIt last, const UnaryPredicate p) {
+InputIt find_if_ex(const InputIt first, const InputIt last,
+                   const UnaryPredicate p) {
   if (auto loc = std::find_if(first, last, p); loc != last) {
     return loc;
   }

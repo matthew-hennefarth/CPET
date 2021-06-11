@@ -29,7 +29,6 @@ struct PointCharge {
     return (coordinate == pc.coordinate) && (charge == pc.charge) &&
            (id == pc.id);
   }
-
 };
 }  // namespace cpet
 #endif  // POINTCHARGE_H
