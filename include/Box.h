@@ -86,7 +86,7 @@ class Box : public Volume {
     return distribution(*util::randomNumberGenerator());
   }
 
-  [[nodiscard]] inline const std::string type() const noexcept override {
+  [[nodiscard]] inline std::string type() const noexcept override {
     return "box";
   }
 

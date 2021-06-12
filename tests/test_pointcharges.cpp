@@ -9,6 +9,7 @@
 #include "AtomID.h"
 #include "Exceptions.h"
 #include "PointCharge.h"
+#include "Frame.h"
 
 TEST(AtomID, GenerateFromPDB) {
   const std::vector<std::string> pdbLines = {
@@ -171,15 +172,15 @@ TEST(PointCharge, find) {
   cpet::PointCharge pc4{Eigen::Vector3d{4.23, 8.0, -2.5}, 1.0,
                         cpet::AtomID{"B:200:HB"}};
 
-  std::vector<cpet::PointCharge> system = {pc1, pc2, pc3, pc4};
+  cpet::Frame system({pc1, pc2, pc3, pc4});
 
-  EXPECT_EQ(*cpet::PointCharge::find(system, cpet::AtomID{"C:35:SG\'"}), pc2);
-  EXPECT_EQ(*cpet::PointCharge::find(system, cpet::AtomID{"A:4:CD"}), pc1);
-  EXPECT_EQ(*cpet::PointCharge::find(system, cpet::AtomID{"B:200:HB"}), pc4);
+  EXPECT_EQ(*system.find(cpet::AtomID{"C:35:SG\'"}), pc2);
+  EXPECT_EQ(*system.find(cpet::AtomID{"A:4:CD"}), pc1);
+  EXPECT_EQ(*system.find(cpet::AtomID{"B:200:HB"}), pc4);
 
-  EXPECT_THROW((void)cpet::PointCharge::find(system, cpet::AtomID("C:35:SG")),
+  EXPECT_THROW((void)system.find(cpet::AtomID("C:35:SG")),
                cpet::value_not_found);
-  EXPECT_THROW((void)cpet::PointCharge::find(system, cpet::AtomID("D:54:C102")),
+  EXPECT_THROW((void)system.find(cpet::AtomID("D:54:C102")),
                cpet::value_not_found);
 }
 

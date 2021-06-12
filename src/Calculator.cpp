@@ -43,13 +43,13 @@ void Calculator::compute() {
   createSystems_();
   transformSystems_();
 
-  if (!option_.calculateEFieldTopology.empty()) {
+  if (!option_.calculateEFieldTopology().empty()) {
     computeTopology_();
   }
-  if (!option_.calculateEFieldPoints.empty()) {
+  if (!option_.calculateFieldLocations().empty()) {
     computeEField_();
   }
-  if (!option_.calculateEFieldVolumes.empty()) {
+  if (!option_.calculateEFieldVolumes().empty()) {
     computeVolume_();
   }
 }
@@ -78,8 +78,8 @@ void Calculator::computeTopology_() const {
                 [&, index = 0](const auto& system) mutable {
                   SPDLOG_INFO("=~=~=~=~[Trajectory {}]=~=~=~=~", index);
                   system.printCenterAndBasis();
-                  std::for_each(option_.calculateEFieldTopology.begin(),
-                                option_.calculateEFieldTopology.end(),
+                  std::for_each(option_.calculateEFieldTopology().begin(),
+                                option_.calculateEFieldTopology().end(),
                                 [&](const auto& region) {
                                   print_header(region);
                                   compute_topology(system, region, index);
@@ -89,53 +89,16 @@ void Calculator::computeTopology_() const {
 }
 
 void Calculator::computeEField_() const {
-  std::vector<std::vector<Eigen::Vector3d>> results;
-  for (const auto& point : option_.calculateEFieldPoints) {
-    SPDLOG_INFO("=~=~=~=~[Field at {}]=~=~=~=~", point.ID());
-    std::vector<Eigen::Vector3d> fieldTrajectoryAtPoint;
-
-    for (size_t i = 0; i < systems_.size(); i++) {
-      Eigen::Vector3d location;
-
-      if (point.position()) {
-        location = *(point.position());
-      } else {
-        location =
-            PointCharge::find(pointChargeTrajectory_[i], point)->coordinate;
-        location = systems_[i].transformToUserSpace(location);
-      }
-
-      systems_[i].printCenterAndBasis();
-
-      Eigen::Vector3d field = systems_[i].electricFieldAt(location);
-      SPDLOG_INFO("Field: {} [{}]", field.transpose(), field.norm());
-      fieldTrajectoryAtPoint.emplace_back(field);
-    }
-    results.push_back(fieldTrajectoryAtPoint);
+  for (const auto& fieldLocations : option_.calculateFieldLocations()) {
+    fieldLocations.computeEFieldsWith(systems_);
   }
-  writeEFieldResults_(results);
 }
 
 void Calculator::computeVolume_() const {
   std::for_each(
-      option_.calculateEFieldVolumes.begin(),
-      option_.calculateEFieldVolumes.end(), [this](const auto& volume) {
-        std::vector<std::vector<Eigen::Vector3d>> volumeResults;
-        volumeResults.reserve(systems_.size());
-        const auto compute_volume_data = [&volume](const System& system) {
-          system.printCenterAndBasis();
-          auto tmpSystemResults = system.computeElectricFieldIn(volume);
-          if (volume.showPlot()) {
-            volume.plot(tmpSystemResults);
-          }
-          return tmpSystemResults;
-        };
-        std::transform(systems_.begin(), systems_.end(),
-                       std::back_inserter(volumeResults), compute_volume_data);
-        if (volume.output()) {
-          volume.writeVolumeResults(systems_, volumeResults);
-        }
-      });
+      option_.calculateEFieldVolumes().begin(),
+      option_.calculateEFieldVolumes().end(),
+      [this](const auto& volume) { volume.computeVolumeWith(systems_); });
 }
 
 void Calculator::loadPointChargeTrajectory_() {
@@ -144,7 +107,7 @@ void Calculator::loadPointChargeTrajectory_() {
   util::forEachLineIn(
       proteinFile_, [this, &tmpHolder](const std::string& line) {
         if (util::startswith(line, "ENDMDL")) {
-          pointChargeTrajectory_.push_back(tmpHolder);
+          frameTrajectory_.emplace_back(tmpHolder);
           tmpHolder.clear();
         } else if (util::startswith(line, "ATOM") ||
                    util::startswith(line, "HETATM")) {
@@ -158,7 +121,7 @@ void Calculator::loadPointChargeTrajectory_() {
         }
       });
   if (!tmpHolder.empty()) {
-    pointChargeTrajectory_.push_back(tmpHolder);
+    frameTrajectory_.emplace_back(tmpHolder);
   }
 }
 
@@ -177,18 +140,9 @@ std::vector<double> Calculator::loadChargesFile_() const {
 void Calculator::fixCharges_() {
   SPDLOG_DEBUG("Fixing charges in structure file with real charges...");
   auto realCharges = loadChargesFile_();
-  for (auto& structure : pointChargeTrajectory_) {
-    if (structure.size() != realCharges.size()) {
-      SPDLOG_ERROR("Structure size: {}, number of charges: {}",
-                   structure.size(), realCharges.size());
-      throw cpet::value_error(
-          "Inconsistent number of point charges in trajectory and in charge "
-          "file");
-    }
-    for (size_t i = 0; i < structure.size(); i++) {
-      structure[i].charge = realCharges[i];
-    }
-  }
+  std::for_each(
+      frameTrajectory_.begin(), frameTrajectory_.end(),
+      [&realCharges](auto& frame) { frame.updateCharges(realCharges); });
 }
 
 void Calculator::writeTopologyResults_(const std::vector<PathSample>& data,
@@ -204,25 +158,6 @@ void Calculator::writeTopologyResults_(const std::vector<PathSample>& data,
     /* TODO add options writing to this file...*/
     std::for_each(data.begin(), data.end(),
                   [&outFile](const auto& line) { outFile << line << '\n'; });
-    outFile << std::flush;
-  } else {
-    SPDLOG_ERROR("Could not open file {}", file);
-    throw cpet::io_error("Could not open file " + file);
-  }
-}
-
-void Calculator::writeEFieldResults_(
-    const std::vector<std::vector<Eigen::Vector3d>>& results) const {
-  const std::string file = outputPrefix_ + ".field";
-  std::ofstream outFile(file, std::ios::out);
-  if (outFile.is_open()) {
-    outFile << '#' << proteinFile_ << '\n';
-    for (size_t i = 0; i < results.size(); i++) {
-      outFile << '#' << option_.calculateEFieldPoints[i].ID() << '\n';
-      for (const Eigen::Vector3d& field : results[i]) {
-        outFile << field.transpose() << '\n';
-      }
-    }
     outFile << std::flush;
   } else {
     SPDLOG_ERROR("Could not open file {}", file);

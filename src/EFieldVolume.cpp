@@ -17,81 +17,6 @@ namespace cpet {
 
 constexpr int DENSITY_PARAMETERS = 3;
 
-void EFieldVolume::plot(
-    const std::vector<Eigen::Vector3d>& electricField) const {
-  const auto numberOfPoints = points_.size();
-  std::array<std::vector<double>, 3> rotatedPositions;
-  std::for_each(rotatedPositions.begin(), rotatedPositions.end(),
-                [&numberOfPoints](auto& vec) { vec.reserve(numberOfPoints); });
-  std::array<std::vector<double>, 4> rotatedElectricFields;
-  std::for_each(rotatedElectricFields.begin(), rotatedElectricFields.end(),
-                [&numberOfPoints](auto& vec) { vec.reserve(numberOfPoints); });
-
-  for (size_t index = 0; index < 3; index++) {
-    const auto extract_index =
-        [&index](const Eigen::Vector3d& vector) -> double {
-      return vector[static_cast<long>(index)];
-    };
-    std::transform(points_.begin(), points_.end(),
-                   std::back_inserter(rotatedPositions.at(index)),
-                   extract_index);
-    std::transform(electricField.begin(), electricField.end(),
-                   std::back_inserter(rotatedElectricFields.at(index)),
-                   extract_index);
-  }
-
-  constexpr auto compute_magnitude =
-      [](const Eigen::Vector3d& vector) -> double { return vector.norm(); };
-  std::transform(electricField.begin(), electricField.end(),
-                 std::back_inserter(*rotatedElectricFields.rbegin()),
-                 compute_magnitude);
-
-  constexpr double vectorScale = 0.3;
-
-  matplot::quiver3(rotatedPositions[0], rotatedPositions[1],
-                   rotatedPositions[2], rotatedElectricFields[0],
-                   rotatedElectricFields[1], rotatedElectricFields[2],
-                   rotatedElectricFields[3], vectorScale)
-      ->normalize(true)
-      .line_width(2);
-  matplot::show();
-}
-
-void EFieldVolume::writeVolumeResults(
-    const std::vector<System>& systems,
-    const std::vector<std::vector<Eigen::Vector3d>>& results) const {
-  if (!output_) {
-    return;
-  }
-
-  const auto file = *output_;
-  std::ofstream outFile(file, std::ios::out);
-
-  const Eigen::IOFormat fmt(6, Eigen::DontAlignCols, " ", " ", "", "", "", "");
-  const Eigen::IOFormat commentFmt(6, 0, " ", "\n", "#", "");
-
-  if (outFile.is_open()) {
-    outFile << '#' << this->details() << '\n';
-
-    for (size_t i = 0; i < systems.size(); i++) {
-      outFile << "#Frame " << i << '\n';
-      outFile << "#Center: " << systems[i].center().transpose() << '\n';
-      outFile << "#Basis Matrix:\n"
-              << systems[i].basisMatrix().format(commentFmt) << '\n';
-
-      for (size_t j = 0; j < results[i].size(); j++) {
-        outFile << points_[j].transpose().format(fmt) << ' '
-                << results[i][j].transpose().format(fmt) << '\n';
-      }
-    }
-    outFile << std::flush;
-
-  } else {
-    SPDLOG_ERROR("Could not open file {}", file);
-    throw cpet::io_error("Could not open file " + file);
-  }
-}
-
 EFieldVolume EFieldVolume::fromSimple(const std::vector<std::string>& options) {
   constexpr bool plot = true;
   constexpr size_t MIN_EFIELDVOLUME_OPTIONS = 5;
@@ -138,17 +63,17 @@ EFieldVolume EFieldVolume::fromBlock(const std::vector<std::string>& options) {
   constexpr const char* OUTPUT_KEY = "output";
 
   for (const auto& line : options) {
-    auto tokens = util::split(line, ' ');
+    const auto tokens = util::split(line, ' ');
     if (tokens.size() < 2) {
       continue;
     }
 
-    const auto key = tokens[0];
+    const auto key = util::tolower(tokens[0]);
     const std::vector<std::string> key_options{tokens.begin() + 1,
                                                tokens.end()};
 
     if (key == SHOW_PLOT_KEY) {
-      plot = (*key_options.begin() == "true");
+      plot = (util::tolower(*key_options.begin()) == "true");
     } else if (key == VOLUME_KEY) {
       vol = Volume::generateVolume(key_options);
     } else if (key == DENSITY_KEY) {
@@ -184,5 +109,98 @@ EFieldVolume EFieldVolume::fromBlock(const std::vector<std::string>& options) {
   }
 
   return {std::move(vol), *density, plot, output};
+}
+
+void EFieldVolume::computeVolumeWith(const std::vector<System>& systems) const {
+  std::vector<std::vector<Eigen::Vector3d>> volumeResults;
+  volumeResults.reserve(systems.size());
+  const auto compute_volume_data = [this](const System& system) {
+    system.printCenterAndBasis();
+    auto tmpSystemResults = system.computeElectricFieldIn(*this);
+    if (showPlot_) {
+      plot_(tmpSystemResults);
+    }
+    return tmpSystemResults;
+  };
+  std::transform(systems.begin(), systems.end(),
+                 std::back_inserter(volumeResults), compute_volume_data);
+  if (output_) {
+    writeOutput_(systems, volumeResults);
+  }
+}
+
+void EFieldVolume::plot_(
+    const std::vector<Eigen::Vector3d>& electricField) const {
+  const auto numberOfPoints = points_.size();
+  std::array<std::vector<double>, 3> rotatedPositions;
+  std::for_each(rotatedPositions.begin(), rotatedPositions.end(),
+                [&numberOfPoints](auto& vec) { vec.reserve(numberOfPoints); });
+  std::array<std::vector<double>, 4> rotatedElectricFields;
+  std::for_each(rotatedElectricFields.begin(), rotatedElectricFields.end(),
+                [&numberOfPoints](auto& vec) { vec.reserve(numberOfPoints); });
+
+  for (size_t index = 0; index < 3; index++) {
+    const auto extract_index =
+        [&index](const Eigen::Vector3d& vector) -> double {
+      return vector[static_cast<long>(index)];
+    };
+    std::transform(points_.begin(), points_.end(),
+                   std::back_inserter(rotatedPositions.at(index)),
+                   extract_index);
+    std::transform(electricField.begin(), electricField.end(),
+                   std::back_inserter(rotatedElectricFields.at(index)),
+                   extract_index);
+  }
+
+  constexpr auto compute_magnitude =
+      [](const Eigen::Vector3d& vector) -> double { return vector.norm(); };
+  std::transform(electricField.begin(), electricField.end(),
+                 std::back_inserter(*rotatedElectricFields.rbegin()),
+                 compute_magnitude);
+
+  constexpr double vectorScale = 0.3;
+
+  matplot::quiver3(rotatedPositions[0], rotatedPositions[1],
+                   rotatedPositions[2], rotatedElectricFields[0],
+                   rotatedElectricFields[1], rotatedElectricFields[2],
+                   rotatedElectricFields[3], vectorScale)
+      ->normalize(true)
+      .line_width(2);
+  matplot::show();
+}
+
+void EFieldVolume::writeOutput_(
+    const std::vector<System>& systems,
+    const std::vector<std::vector<Eigen::Vector3d>>& results) const {
+  if (!output_) {
+    return;
+  }
+
+  const auto file = *output_;
+  std::ofstream outFile(file, std::ios::out);
+
+  const Eigen::IOFormat fmt(6, Eigen::DontAlignCols, " ", " ", "", "", "", "");
+  const Eigen::IOFormat commentFmt(6, 0, " ", "\n", "#", "");
+
+  if (outFile.is_open()) {
+    outFile << '#' << this->details() << '\n';
+
+    for (size_t i = 0; i < systems.size(); i++) {
+      outFile << "#Frame " << i << '\n';
+      outFile << "#Center: " << systems[i].center().transpose() << '\n';
+      outFile << "#Basis Matrix:\n"
+              << systems[i].basisMatrix().format(commentFmt) << '\n';
+
+      for (size_t j = 0; j < results[i].size(); j++) {
+        outFile << points_[j].transpose().format(fmt) << ' '
+                << results[i][j].transpose().format(fmt) << '\n';
+      }
+    }
+    outFile << std::flush;
+
+  } else {
+    SPDLOG_ERROR("Could not open file {}", file);
+    throw cpet::io_error("Could not open file " + file);
+  }
 }
 }  // namespace cpet

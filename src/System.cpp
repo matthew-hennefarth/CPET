@@ -17,45 +17,41 @@
 
 namespace cpet {
 
-System::System(std::vector<PointCharge> pc, const Option& options)
-    : pointCharges_(std::move(pc)) {
-  if (options.centerID.position()) {
-    center_ = *(options.centerID.position());
+System::System(const Frame& frame, const Option& options)
+    : frame_(frame), pointCharges_(frame_.begin(), frame_.end()) {
+  if (options.centerID().position()) {
+    center_ = *(options.centerID().position());
   } else {
-    center_ = PointCharge::find(pointCharges_, options.centerID)->coordinate;
+    center_ = frame_.find(options.centerID())->coordinate;
   }
 
   std::array<Eigen::Vector3d, 3> basis;
 
-  if (options.direction1ID.position()) {
-    if (options.direction1ID.isConstant()) {
+  if (options.direction1ID().position()) {
+    if (options.direction1ID().isConstant()) {
       SPDLOG_DEBUG("Using constant direction for direction 1");
-      basis[0] = *(options.direction1ID.position());
+      basis[0] = *(options.direction1ID().position());
     } else {
       SPDLOG_DEBUG("Using user defined vector for direction 1");
-      basis[0] = *(options.direction1ID.position()) - center_;
+      basis[0] = *(options.direction1ID().position()) - center_;
     }
   } else {
-    basis[0] =
-        PointCharge::find(pointCharges_, options.direction1ID)->coordinate -
-        center_;
+    basis[0] = frame_.find(options.direction1ID())->coordinate - center_;
   }
   SPDLOG_DEBUG("Basis[0] is {}", basis[0].transpose());
   basis[0] = basis[0] / basis[0].norm();
   SPDLOG_DEBUG("Normalized, basis[0] is {}", basis[0].transpose());
 
-  if (options.direction2ID.position()) {
-    if (options.direction2ID.isConstant()) {
+  if (options.direction2ID().position()) {
+    if (options.direction2ID().isConstant()) {
       SPDLOG_DEBUG("Using constant direction for direction 2");
-      basis[1] = *(options.direction2ID.position());
+      basis[1] = *(options.direction2ID().position());
     } else {
       SPDLOG_DEBUG("Using user defined vector for direction 2");
-      basis[1] = *(options.direction2ID.position()) - center_;
+      basis[1] = *(options.direction2ID().position()) - center_;
     }
   } else {
-    basis[1] =
-        PointCharge::find(pointCharges_, options.direction2ID)->coordinate -
-        center_;
+    basis[1] = frame_.find(options.direction2ID())->coordinate - center_;
   }
   SPDLOG_DEBUG("Basis[1] is {}", basis[1].transpose());
   basis[1] = basis[1] / basis[1].norm();

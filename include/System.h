@@ -22,6 +22,7 @@
 #include "TopologyRegion.h"
 #include "Utilities.h"
 #include "Volume.h"
+#include "Frame.h"
 
 // TODO maybe make this an option?
 #define STEP_SIZE 0.001
@@ -36,11 +37,11 @@ struct PathSample {
     os << ps.distance << ',' << ps.curvature;
     return os;
   }
-} __attribute__((aligned(16)));
+};
 
 class System {
  public:
-  System(std::vector<PointCharge> pc, const Option& options);
+  System(const Frame& frame, const Option& options);
 
   [[nodiscard]] Eigen::Vector3d electricFieldAt(
       const Eigen::Vector3d& position) const;
@@ -74,6 +75,8 @@ class System {
   [[nodiscard]] std::vector<Eigen::Vector3d> computeElectricFieldIn(
       const EFieldVolume& volume) const noexcept;
 
+  [[nodiscard]] constexpr const Frame& frame() const noexcept { return frame_; }
+
  private:
   static inline void constructOrthonormalBasis_(
       std::array<Eigen::Vector3d, 3>& basis) noexcept {
@@ -93,7 +96,8 @@ class System {
 
   inline void forEachPointCharge_(
       const std::function<void(PointCharge&)>& func) {
-    std::for_each(begin(pointCharges_), end(pointCharges_), func);
+    std::for_each(pointCharges_.begin(), pointCharges_.end(), func);
+    std::for_each(frame_.begin(), frame_.end(), func);
   }
 
   inline void translateSystemTo_(const Eigen::Vector3d& position) {
@@ -137,6 +141,7 @@ class System {
     return (pos + STEP_SIZE * f);
   }
 
+  Frame frame_;
   std::vector<PointCharge> pointCharges_;
   Eigen::Vector3d center_;
   Eigen::Matrix3d basisMatrix_;

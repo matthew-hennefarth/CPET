@@ -10,6 +10,7 @@
 #include <string>
 #include <type_traits>
 #include <utility>
+#include <sstream>
 
 #include <Eigen/Dense>
 
@@ -31,31 +32,31 @@ class AtomID {
  public:
   enum class Constants { origin, e1, e2 };
 
-  explicit inline AtomID(Constants other_id)
+  explicit inline AtomID(const Constants other_id)
       : isConstant_(true), id_(decodeConstant_(other_id)) {
     if (!validID()) {
       throw cpet::value_error("Invalid atom id: " + id_);
     }
   }
 
-  explicit inline AtomID(std::string other_id) : id_(std::move(other_id)) {
+  template <typename S1,
+            typename = std::enable_if_t<std::is_convertible_v<S1, std::string>>>
+  explicit inline AtomID(S1&& other_id) : id_(std::forward<S1>(other_id)) {
     if (!validID()) {
       throw cpet::value_error("Invalid atom ID: " + id_);
     }
   }
 
+  explicit inline AtomID(AtomID&&) = default;
+
   inline AtomID(const AtomID&) = default;
-
-  inline AtomID(AtomID&&) = default;
-
   inline ~AtomID() = default;
-
   inline AtomID& operator=(const AtomID&) = default;
-
   inline AtomID& operator=(AtomID&&) = default;
 
-  inline AtomID& operator=(const std::string& rhs) {
-    setID(rhs);
+  template <typename S1>
+  inline AtomID& operator=(S1&& rhs) {
+    setID(std::forward<S1>(rhs));
     isConstant_ = false;
     return *this;
   }
@@ -78,7 +79,8 @@ class AtomID {
            (isVector(atomid) || util::isDouble(splitID[1]));
   }
 
-  [[nodiscard]] inline bool operator==(const std::string& rhs) const noexcept {
+  [[nodiscard]] inline bool operator==(
+      const std::string_view rhs) const noexcept {
     return (id_ == rhs);
   }
 
@@ -90,7 +92,8 @@ class AtomID {
     return (id_ == rhs.id_);
   }
 
-  [[nodiscard]] inline bool operator!=(const std::string& rhs) const noexcept {
+  [[nodiscard]] inline bool operator!=(
+      const std::string_view rhs) const noexcept {
     return !(*this == rhs);
   }
 
@@ -100,25 +103,28 @@ class AtomID {
 
   [[nodiscard]] inline const std::string& ID() const noexcept { return id_; }
 
-  inline void setID(const std::string& newID) {
-    if (validID(newID)) {
-      id_ = newID;
+  template <typename S1>
+  inline void setID(S1&& newID) {
+    if (validID(std::forward<S1>(newID))) {
+      id_ = std::forward<S1>(newID);
       position_.reset();
     } else {
-      throw cpet::value_error("Invalid AtomID " + newID);
+      throw cpet::value_error("Invalid AtomID " + std::string(newID));
     }
   }
 
-  [[nodiscard]] static inline AtomID generateID(const std::string& pdbLine) {
+  [[nodiscard]] static inline AtomID generateID(
+      const std::string_view pdbLine) {
     if (pdbLine.size() < MIN_PDB_LINE_LENGTH) {
-      throw cpet::value_error("pdb line to short: " + pdbLine);
+      throw cpet::value_error("pdb line to short: " +
+                              static_cast<std::string>(pdbLine));
     }
 
-    std::string result =
-        pdbLine.substr(PDB_CHAIN_START, PDB_CHAIN_WIDTH) + ":" +
-        pdbLine.substr(PDB_RESNUM_START, PDB_RESNUM_WIDTH) + ":" +
-        pdbLine.substr(PDB_ATOMID_START, PDB_ATOMID_WIDTH);
-
+    std::stringstream result_stream;
+    result_stream << pdbLine.substr(PDB_CHAIN_START, PDB_CHAIN_WIDTH) << ':'
+                  << pdbLine.substr(PDB_RESNUM_START, PDB_RESNUM_WIDTH) << ':'
+                  << pdbLine.substr(PDB_ATOMID_START, PDB_ATOMID_WIDTH);
+    auto result = result_stream.str();
     result.erase(remove(begin(result), end(result), ' '), end(result));
     return AtomID(result);
   }

@@ -13,8 +13,6 @@
 #include <vector>
 #include <memory>
 
-#include <iostream>
-
 /* CPET HEADER FILES */
 #include "Exceptions.h"
 namespace cpet {
@@ -29,8 +27,8 @@ randomNumberGenerator() noexcept {
   return generator;
 }
 
-[[nodiscard]] inline std::string lstrip(std::string_view str,
-                                        std::string_view escape = " \t") {
+[[nodiscard]] inline std::string lstrip(const std::string_view str,
+                                        const std::string_view escape = " \t") {
   auto strBegin = str.find_first_not_of(escape);
   if (strBegin > str.size()) {
     return std::string{};
@@ -38,8 +36,8 @@ randomNumberGenerator() noexcept {
   return str.substr(strBegin).data();
 }
 
-[[nodiscard]] inline std::string rstrip(std::string_view str,
-                                        std::string_view escape = " \t") {
+[[nodiscard]] inline std::string rstrip(const std::string_view str,
+                                        const std::string_view escape = " \t") {
   auto strEnd = str.find_last_not_of(escape);
   if (strEnd == std::string::npos) {
     return str.data();
@@ -47,8 +45,8 @@ randomNumberGenerator() noexcept {
   return {str.data(), strEnd + 1};
 }
 
-[[nodiscard]] inline std::string removeAfter(std::string_view str,
-                                             std::string_view escape = " \t") {
+[[nodiscard]] inline std::string removeAfter(
+    const std::string_view str, const std::string_view escape = " \t") {
   auto strEnd = str.find_first_of(escape);
   if (strEnd == std::string::npos) {
     return str.data();
@@ -64,16 +62,34 @@ randomNumberGenerator() noexcept {
 void forEachLineIn(const std::string& file,
                    const std::function<void(const std::string&)>& func);
 
-std::vector<std::string> split(std::string_view str, char delim);
+std::vector<std::string> split(const std::string_view str, char delim);
 
 [[nodiscard]] bool isDouble(std::string str) noexcept;
 
 template <class InputIt, class UnaryPredicate>
-InputIt find_if_ex(InputIt first, InputIt last, UnaryPredicate p) {
+InputIt find_if_ex(const InputIt first, const InputIt last,
+                   const UnaryPredicate p) {
   if (auto loc = std::find_if(first, last, p); loc != last) {
     return loc;
   }
   throw cpet::value_not_found("Could not find element in container");
+}
+
+constexpr unsigned int countSetBits(unsigned int n) {
+  unsigned int count = 0;
+  while (n != 0) {
+    count += n & 1;
+    n >>= 1;
+  }
+  return count;
+}
+
+inline std::string tolower(const std::string_view str) {
+  std::string result;
+  result.reserve(str.size());
+  std::transform(str.begin(), str.end(), std::back_inserter(result),
+                 [](const char& c) { return std::tolower(c); });
+  return result;
 }
 }  // namespace util
 }  // namespace cpet

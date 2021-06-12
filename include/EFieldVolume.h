@@ -13,7 +13,7 @@
 #include <optional>
 #include <unordered_map>
 #include <numeric>
-#include <assert.h>
+#include <cassert>
 
 #include <Eigen/Dense>
 
@@ -60,12 +60,6 @@ class EFieldVolume {
             "; Volume: " + volume_->description());
   }
 
-  void plot(const std::vector<Eigen::Vector3d>& electricField) const;
-
-  void writeVolumeResults(
-      const std::vector<System>& systems,
-      const std::vector<std::vector<Eigen::Vector3d>>& results) const;
-
   [[nodiscard]] inline const Volume& volume() const noexcept {
     return *volume_;
   }
@@ -87,9 +81,10 @@ class EFieldVolume {
     return output_;
   }
 
-  inline void output(const std::string& outputFile) {
+  template <typename S1>
+  inline void output(S1&& outputFile) {
     if (!outputFile.empty()) {
-      output_ = outputFile;
+      output_ = std::forward<S1>(outputFile);
     }
   }
 
@@ -99,16 +94,20 @@ class EFieldVolume {
   [[nodiscard]] static EFieldVolume fromBlock(
       const std::vector<std::string>& options);
 
+  void computeVolumeWith(const std::vector<System>& systems) const;
+
  private:
   std::unique_ptr<Volume> volume_;
-
   std::array<int, 3> sampleDensity_;
-
   std::vector<Eigen::Vector3d> points_;
-
   bool showPlot_{false};
-
   std::optional<std::string> output_{std::nullopt};
+
+  void plot_(const std::vector<Eigen::Vector3d>& electricField) const;
+
+  void writeOutput_(
+      const std::vector<System>& systems,
+      const std::vector<std::vector<Eigen::Vector3d>>& results) const;
 };
 }  // namespace cpet
 #endif  // EFIELDVOLUME_H
