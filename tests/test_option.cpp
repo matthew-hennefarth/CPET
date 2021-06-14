@@ -336,3 +336,22 @@ TEST(Option, FieldBlockInvalidPlot) {
   cpet::Option option;
   ASSERT_THROW(option = cpet::Option{options_file}, cpet::invalid_option);
 }
+
+TEST(Option, TopologyBlockValid) {
+  std::string options_file = "Data/valid_options/topology_block_valid";
+  ASSERT_TRUE(std::filesystem::exists(options_file));
+
+  cpet::Option option;
+  ASSERT_NO_THROW(option = cpet::Option{options_file});
+  ASSERT_FALSE(option.calculateEFieldTopology().empty());
+
+  const auto& tr = option.calculateEFieldTopology()[0];
+  EXPECT_EQ(tr.stepSize(), 0.1);
+  EXPECT_EQ(tr.numberOfSamples(), 150);
+  EXPECT_EQ(tr.sampleOutput(), "topo_prefix");
+
+  const auto& vol = tr.volume();
+  EXPECT_EQ(vol.type(), "box");
+  EXPECT_TRUE(vol.isInside(Eigen::Vector3d{0.5, 0.5, 0.5}));
+  EXPECT_FLOAT_EQ(vol.maxDim(), 2.0);
+}

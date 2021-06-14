@@ -127,8 +127,7 @@ std::vector<PathSample> System::electricFieldTopologyIn(
 
     /* Initialize thread-safe data types */
     SPDLOG_DEBUG("Initializing data structures...");
-    std::atomic_int samples =
-        static_cast<int>(topologicalRegion.numberOfSamples());
+    std::atomic_int samples = topologicalRegion.numberOfSamples();
     libguarded::plain_guarded<std::vector<PathSample>> shared_vector;
     {
       auto sharedVectorHandle = shared_vector.lock();

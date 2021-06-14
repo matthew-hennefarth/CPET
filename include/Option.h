@@ -101,6 +101,10 @@ class Option {
     calculateEFieldTopology_.emplace_back(TopologyRegion::fromSimple(options));
   }
 
+  inline void parseTopologyBlock_(const std::vector<std::string>& options) {
+    calculateEFieldTopology_.emplace_back(TopologyRegion::fromBlock(options));
+  }
+
   inline void parseFieldSimple_(const std::vector<std::string>& options) {
     calculateFieldLocations_.emplace_back(FieldLocations::fromSimple(options));
   }

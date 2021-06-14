@@ -136,7 +136,8 @@ void Option::parseBlockOptions_() {
   const std::unordered_map<std::string,
                            void (Option::*)(const std::vector<std::string>&)>
       parseBlockOptionsMap = {{PLOT_3D_KEY, &Option::parsePlot3dBlock_},
-                              {FIELD_KEY, &Option::parseFieldBlock_}};
+                              {FIELD_KEY, &Option::parseFieldBlock_},
+                              {TOPOLOGY_KEY, &Option::parseTopologyBlock_}};
 
   for (const auto& [key, lines] : blockOptions_) {
     if (const auto func = parseBlockOptionsMap.find(util::tolower(key));

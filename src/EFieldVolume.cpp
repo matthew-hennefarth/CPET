@@ -96,6 +96,8 @@ EFieldVolume EFieldVolume::fromBlock(const std::vector<std::string>& options) {
                      to_int);
     } else if (key == OUTPUT_KEY) {
       output = *key_options.begin();
+    } else {
+      SPDLOG_WARN("Unknown key specified in block plot3d: {}", key);
     }
   }
 

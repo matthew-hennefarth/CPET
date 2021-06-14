@@ -23,18 +23,9 @@
 #include "Utilities.h"
 #include "Volume.h"
 #include "Frame.h"
+#include "PathSample.h"
 
 namespace cpet {
-
-struct PathSample {
-  double distance;
-  double curvature;
-
-  friend std::ostream& operator<<(std::ostream& os, const PathSample& ps) {
-    os << ps.distance << ',' << ps.curvature;
-    return os;
-  }
-};
 
 class System {
  public:

@@ -15,6 +15,7 @@
 #include <numeric>
 #include <cassert>
 
+/* EXTERNAL LIBRARY HEADER FILES */
 #include <Eigen/Dense>
 
 /* CPET HEADER FILES */

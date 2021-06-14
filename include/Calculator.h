@@ -77,9 +77,6 @@ class Calculator {
   }
 
   [[nodiscard]] std::vector<double> loadChargesFile_() const;
-
-  void writeTopologyResults_(const std::vector<PathSample>& data,
-                             const TopologyRegion& region, int i) const;
 };
 }  // namespace cpet
 #endif  // CALCULATOR_H
