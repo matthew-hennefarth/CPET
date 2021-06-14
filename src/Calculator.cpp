@@ -56,7 +56,8 @@ void Calculator::compute() {
 
 void Calculator::computeTopology_() const {
   std::for_each(option_.calculateEFieldTopology().begin(),
-                option_.calculateEFieldTopology().end(), [&](const auto& region){
+                option_.calculateEFieldTopology().end(),
+                [&](const auto& region) {
                   region.computeTopologyWith(systems_, numberOfThreads_);
                 });
 }

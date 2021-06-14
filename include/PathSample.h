@@ -14,7 +14,6 @@ struct PathSample {
     return os;
   }
 };
-}
+}  // namespace cpet
 
 #endif  // CPET_PATHSAMPLE_H
-

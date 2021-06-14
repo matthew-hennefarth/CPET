@@ -31,16 +31,16 @@ void TopologyRegion::computeTopologyWith(const std::vector<System>& systems,
                   std::vector<PathSample> results;
                   {
                     Timer t;
-                    results = system.electricFieldTopologyIn(numberOfThreads, *this);
+                    results =
+                        system.electricFieldTopologyIn(numberOfThreads, *this);
                   }
 
-                  if (sampleOutput_){
+                  if (sampleOutput_) {
                     writeSampleOutput_(results, index);
                   }
 
                   ++index;
-                  });
-
+                });
 }
 
 TopologyRegion cpet::TopologyRegion::fromSimple(
@@ -108,7 +108,8 @@ TopologyRegion TopologyRegion::fromBlock(
 
   if (!samples) {
     throw cpet::invalid_option(
-        "Invalid Option: Number of samples not specified for topology sampling");
+        "Invalid Option: Number of samples not specified for topology "
+        "sampling");
   }
   if (vol == nullptr) {
     throw cpet::invalid_option(
@@ -124,14 +125,14 @@ TopologyRegion TopologyRegion::fromBlock(
   return result;
 }
 
-
 void TopologyRegion::writeSampleOutput_(const std::vector<PathSample>& data,
                                         int index) const {
-  if(!sampleOutput_){
+  if (!sampleOutput_) {
     return;
   }
   SPDLOG_DEBUG("Writing topology results");
-  const std::string file = *sampleOutput_ + '_' + std::to_string(index) + ".top";
+  const std::string file =
+      *sampleOutput_ + '_' + std::to_string(index) + ".top";
 
   std::ofstream outFile(file, std::ios::out);
   if (outFile.is_open()) {
@@ -146,4 +147,4 @@ void TopologyRegion::writeSampleOutput_(const std::vector<PathSample>& data,
   }
 }
 
-}
+}  // namespace cpet

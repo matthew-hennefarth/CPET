@@ -102,7 +102,8 @@ Eigen::Vector3d System::electricFieldAt(const Eigen::Vector3d& position) const {
 std::vector<PathSample> System::electricFieldTopologyIn(
     int numOfThreads, const TopologyRegion& topologicalRegion) const {
   std::vector<PathSample> sampleResults;
-  sampleResults.reserve(static_cast<size_t>(topologicalRegion.numberOfSamples()));
+  sampleResults.reserve(
+      static_cast<size_t>(topologicalRegion.numberOfSamples()));
 
   std::shared_ptr<spdlog::logger> thread_logger;
   if (!(thread_logger = spdlog::get("Thread"))) {
@@ -113,8 +114,8 @@ std::vector<PathSample> System::electricFieldTopologyIn(
     SPDLOG_DEBUG("Single thread...");
     int samples = topologicalRegion.numberOfSamples();
     while (samples-- > 0) {
-      sampleResults.emplace_back(
-          sampleElectricFieldTopologyIn_(topologicalRegion.volume(), topologicalRegion.stepSize()));
+      sampleResults.emplace_back(sampleElectricFieldTopologyIn_(
+          topologicalRegion.volume(), topologicalRegion.stepSize()));
     }
     SPDLOG_INFO("{} Points calculated", topologicalRegion.numberOfSamples());
   } else {
@@ -143,7 +144,8 @@ std::vector<PathSample> System::electricFieldTopologyIn(
         this_thread_logger->info("Spinning up...");
         int completed = 0;
         while (samples-- > 0) {
-          auto s = sampleElectricFieldTopologyIn_(topologicalRegion.volume(), topologicalRegion.stepSize());
+          auto s = sampleElectricFieldTopologyIn_(topologicalRegion.volume(),
+                                                  topologicalRegion.stepSize());
           {
             auto vector_handler = shared_vector.lock();
             vector_handler->push_back(s);
@@ -165,7 +167,8 @@ std::vector<PathSample> System::electricFieldTopologyIn(
   return sampleResults;
 }
 
-PathSample System::sampleElectricFieldTopologyIn_(const Volume& region, const double stepSize) const
+PathSample System::sampleElectricFieldTopologyIn_(const Volume& region,
+                                                  const double stepSize) const
     noexcept(true) {
   /* This is not thread-safe, however, implementation is thread-safe */
   const Eigen::Vector3d initialPosition = region.randomPoint();
@@ -188,10 +191,13 @@ PathSample System::sampleElectricFieldTopologyIn_(const Volume& region, const do
                (finalPosition - initialPosition).norm());
 
   return {(finalPosition - initialPosition).norm(),
-          (curvatureAt_(finalPosition, stepSize) + curvatureAt_(initialPosition, stepSize)) / 2.0};
+          (curvatureAt_(finalPosition, stepSize) +
+           curvatureAt_(initialPosition, stepSize)) /
+              2.0};
 }
 
-double System::curvatureAt_(const Eigen::Vector3d& alpha_0, const double stepSize) const noexcept {
+double System::curvatureAt_(const Eigen::Vector3d& alpha_0,
+                            const double stepSize) const noexcept {
   SPDLOG_DEBUG("Calculating curvature of field at {}", alpha_0.transpose());
 
   Eigen::Vector3d alpha_1 = nextPoint_(alpha_0, stepSize);

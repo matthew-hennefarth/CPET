@@ -76,8 +76,8 @@ class System {
     basis[1] = basis[1] / basis[1].norm();
   }
 
-  [[nodiscard]] double curvatureAt_(
-      const Eigen::Vector3d& alpha_0, const double stepSize) const noexcept;
+  [[nodiscard]] double curvatureAt_(const Eigen::Vector3d& alpha_0,
+                                    const double stepSize) const noexcept;
 
   [[nodiscard]] PathSample sampleElectricFieldTopologyIn_(
       const Volume& region, const double stepSize) const noexcept;
