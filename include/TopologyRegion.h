@@ -13,18 +13,33 @@
 
 namespace cpet {
 
-struct TopologyRegion {
-  std::unique_ptr<Volume> volume;
+constexpr double DEFAULT_STEP_SIZE = 0.001;
 
-  int numberOfSamples;
-
-  inline TopologyRegion(std::unique_ptr<Volume> vol, int samples) noexcept
-      : volume(std::move(vol)), numberOfSamples(samples) {}
+class TopologyRegion {
+ public:
+  inline TopologyRegion(std::unique_ptr<Volume> vol, const int samples, const double stepSize) noexcept
+      : volume_(std::move(vol)), numberOfSamples_(samples), stepSize_(stepSize) {}
 
   [[nodiscard]] inline std::string details() const noexcept {
-    return "Samples: " + std::to_string(numberOfSamples) +
-           "; Volume: " + volume->description();
+    return "Samples: " + std::to_string(numberOfSamples_) +
+           "; Volume: " + volume_->description();
   }
-} __attribute__((aligned(16)));
+
+  [[nodiscard]] constexpr const Volume& volume() const noexcept {return *volume_;}
+
+  [[nodiscard]] constexpr int numberOfSamples() const noexcept {return numberOfSamples_;}
+
+  [[nodiscard]] constexpr double stepSize() const noexcept {return stepSize_;}
+
+  [[nodiscard]] static TopologyRegion fromSimple(const std::vector<std::string>& options);
+
+  //[[nodiscard]] static TopologyRegion fromBlock(const std::vector<std::string>& options);
+
+ private:
+  std::unique_ptr<Volume> volume_;
+  int numberOfSamples_;
+  double stepSize_{DEFAULT_STEP_SIZE};
+
+};
 }  // namespace cpet
 #endif  // TOPOLOGYREGION_H

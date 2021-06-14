@@ -57,10 +57,10 @@ void Calculator::compute() {
 void Calculator::computeTopology_() const {
   const auto print_header = [&](const TopologyRegion& region) {
     SPDLOG_INFO("======[Sampling topology]======");
-    SPDLOG_INFO("[Volume ]   ==>> {}", region.volume->description());
-    SPDLOG_INFO("[Npoints]   ==>> {}", region.numberOfSamples);
+    SPDLOG_INFO("[Volume ]   ==>> {}", region.volume().description());
+    SPDLOG_INFO("[Npoints]   ==>> {}", region.numberOfSamples());
     SPDLOG_INFO("[Threads]   ==>> {}", numberOfThreads_);
-    SPDLOG_INFO("[STEP SIZE] ==>> {}", STEP_SIZE);
+    SPDLOG_INFO("[STEP SIZE] ==>> {}", region.stepSize());
   };
 
   const auto compute_topology = [this](const System& system,
@@ -150,7 +150,7 @@ void Calculator::writeTopologyResults_(const std::vector<PathSample>& data,
                                        int i) const {
   SPDLOG_DEBUG("Writing topology results...");
   const std::string file = outputPrefix_ + '_' + std::to_string(i) + '_' +
-                           region.volume->type() + ".top";
+                           region.volume().type() + ".top";
   std::ofstream outFile(file, std::ios::out);
   if (outFile.is_open()) {
     outFile << '#' << proteinFile_ << ' ' << i << '\n';

@@ -128,10 +128,10 @@ TEST(Option, ValidTopoBox) {
   ASSERT_EQ(option.calculateEFieldTopology().size(), 1);
   const auto* tr1 = &option.calculateEFieldTopology()[0];
 
-  EXPECT_EQ(tr1->numberOfSamples, 10);
-  EXPECT_EQ(tr1->volume->type(), "box");
-  EXPECT_TRUE(tr1->volume->isInside(Eigen::Vector3d{0.5, 0.5, 0.5}));
-  EXPECT_FLOAT_EQ(tr1->volume->maxDim(), 1.0);
+  EXPECT_EQ(tr1->numberOfSamples(), 10);
+  EXPECT_EQ(tr1->volume().type(), "box");
+  EXPECT_TRUE(tr1->volume().isInside(Eigen::Vector3d{0.5, 0.5, 0.5}));
+  EXPECT_FLOAT_EQ(tr1->volume().maxDim(), 1.0);
 }
 
 TEST(Option, ValidTopoBoxAlign) {
@@ -156,10 +156,10 @@ TEST(Option, ValidTopoBoxAlign) {
   ASSERT_EQ(option.calculateEFieldTopology().size(), 1);
   const auto* tr1 = &option.calculateEFieldTopology()[0];
 
-  EXPECT_EQ(tr1->numberOfSamples, 100000);
-  EXPECT_EQ(tr1->volume->type(), "box");
-  EXPECT_TRUE(tr1->volume->isInside(Eigen::Vector3d{0.5, -21, 0.7}));
-  EXPECT_FLOAT_EQ(tr1->volume->maxDim(), 22.0);
+  EXPECT_EQ(tr1->numberOfSamples(), 100000);
+  EXPECT_EQ(tr1->volume().type(), "box");
+  EXPECT_TRUE(tr1->volume().isInside(Eigen::Vector3d{0.5, -21, 0.7}));
+  EXPECT_FLOAT_EQ(tr1->volume().maxDim(), 22.0);
 }
 
 TEST(Option, TopoNegativeBox) {

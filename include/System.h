@@ -24,9 +24,6 @@
 #include "Volume.h"
 #include "Frame.h"
 
-// TODO maybe make this an option?
-#define STEP_SIZE 0.001
-
 namespace cpet {
 
 struct PathSample {
@@ -89,10 +86,10 @@ class System {
   }
 
   [[nodiscard]] double curvatureAt_(
-      const Eigen::Vector3d& alpha_0) const noexcept;
+      const Eigen::Vector3d& alpha_0, const double stepSize) const noexcept;
 
   [[nodiscard]] PathSample sampleElectricFieldTopologyIn_(
-      const Volume& region) const noexcept;
+      const Volume& region, const double stepSize) const noexcept;
 
   inline void forEachPointCharge_(
       const std::function<void(PointCharge&)>& func) {
@@ -135,10 +132,10 @@ class System {
   }
 
   [[nodiscard]] inline Eigen::Vector3d nextPoint_(
-      const Eigen::Vector3d& pos) const noexcept {
+      const Eigen::Vector3d& pos, const double stepSize) const noexcept {
     Eigen::Vector3d f = electricFieldAt(pos);
     f /= f.norm();
-    return (pos + STEP_SIZE * f);
+    return (pos + stepSize * f);
   }
 
   Frame frame_;

@@ -98,23 +98,7 @@ class Option {
   }
 
   inline void parseTopologySimple_(const std::vector<std::string>& options) {
-    constexpr size_t MIN_PARSE_TOKENS = 3;
-    if (options.size() < MIN_PARSE_TOKENS) {
-      throw cpet::invalid_option(
-          "Invalid Option: topology expects at least 3 parameters");
-    }
-    if (!util::isDouble(options[0])) {
-      throw cpet::invalid_option(
-          "Invalid Option: number of samples should be numeric");
-    }
-    int samples = std::stoi(options[0]);
-    if (samples < 0) {
-      throw cpet::invalid_option(
-          "Invalid Option: topology samples should be non-negative");
-    }
-    std::unique_ptr<Volume> vol = Volume::generateVolume(
-        std::vector<std::string>{options.begin() + 1, options.end()});
-    calculateEFieldTopology_.emplace_back(std::move(vol), samples);
+    calculateEFieldTopology_.emplace_back(TopologyRegion::fromSimple(options));
   }
 
   inline void parseFieldSimple_(const std::vector<std::string>& options) {
