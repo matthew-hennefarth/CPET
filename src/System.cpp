@@ -17,8 +17,8 @@
 
 namespace cpet {
 
-System::System(const Frame& frame, const Option& options)
-    : frame_(frame), pointCharges_(frame_.begin(), frame_.end()) {
+System::System(Frame frame, const Option& options)
+    : frame_(std::move(frame)), pointCharges_(frame_.begin(), frame_.end()) {
   if (options.centerID().position()) {
     center_ = *(options.centerID().position());
   } else {
@@ -61,10 +61,9 @@ System::System(const Frame& frame, const Option& options)
 
   SPDLOG_DEBUG("Final Basis Vectors:");
 #if SPDLOG_ACTIVE_LEVEL == SPDLOG_LEVEL_DEBUG
-  constexpr auto print_vector_to_debug = [](const Eigen::Vector3d& b) {
+  for (const auto& b : basis) {
     SPDLOG_DEBUG("{}", b.transpose());
-  };
-  std::for_each(basis.begin(), basis.end(), print_vector_to_debug);
+  }
 #endif
 
   SPDLOG_DEBUG("Constructing basis matrix...");
@@ -87,12 +86,10 @@ Eigen::Vector3d System::electricFieldAt(const Eigen::Vector3d& position) const {
   constexpr double PERM_SPACE = 0.0055263495;
   constexpr double TO_V_PER_ANG = (1.0 / (4.0 * M_PI * PERM_SPACE));
 
-  Eigen::Vector3d d;
-  double dNorm = static_cast<double>(NAN);
   /* If we can speed this up, we should!! */
   for (const auto& pc : pointCharges_) {
-    d = (position - pc.coordinate);
-    dNorm = d.norm();
+    const Eigen::Vector3d d = (position - pc.coordinate);
+    const auto dNorm = d.norm();
     result += ((pc.charge * d) / (dNorm * dNorm * dNorm));
   }
   result *= TO_V_PER_ANG;

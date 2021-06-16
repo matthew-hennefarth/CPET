@@ -16,7 +16,7 @@ struct PathSample {
     os << ps.distance << ',' << ps.curvature;
     return os;
   }
-};
+} __attribute__((aligned(16)));
 }  // namespace cpet
 
 #endif  // CPET_PATHSAMPLE_H

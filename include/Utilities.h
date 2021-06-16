@@ -16,8 +16,7 @@
 
 /* CPET HEADER FILES */
 #include "Exceptions.h"
-namespace cpet {
-namespace util {
+namespace cpet::util {
 
 [[nodiscard]] inline std::unique_ptr<std::mt19937>&
 randomNumberGenerator() noexcept {
@@ -63,7 +62,7 @@ randomNumberGenerator() noexcept {
 void forEachLineIn(const std::string& file,
                    const std::function<void(const std::string&)>& func);
 
-std::vector<std::string> split(const std::string_view str, char delim);
+std::vector<std::string> split(std::string_view str, char delim);
 
 [[nodiscard]] bool isDouble(std::string str) noexcept;
 
@@ -79,8 +78,8 @@ InputIt find_if_ex(const InputIt first, const InputIt last,
 constexpr unsigned int countSetBits(unsigned int n) {
   unsigned int count = 0;
   while (n != 0) {
-    count += n & 1;
-    n >>= 1;
+    count += n & 1U;
+    n >>= 1U;
   }
   return count;
 }
@@ -92,6 +91,5 @@ inline std::string tolower(const std::string_view str) {
                  [](const char& c) { return std::tolower(c); });
   return result;
 }
-}  // namespace util
-}  // namespace cpet
+}  // namespace cpet::util
 #endif  // UTILITIES_H

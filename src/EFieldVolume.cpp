@@ -38,7 +38,7 @@ EFieldVolume EFieldVolume::fromSimple(const std::vector<std::string>& options) {
         "Invalid Option: plot3d expects density as numerics");
   }
 
-  std::array<int, DENSITY_PARAMETERS> density;
+  std::array<int, DENSITY_PARAMETERS> density{};
   constexpr auto to_int = [](const std::string& str) -> int {
     return std::stoi(str);
   };

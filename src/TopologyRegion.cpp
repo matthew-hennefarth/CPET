@@ -25,22 +25,21 @@ void TopologyRegion::computeTopologyWith(const std::vector<System>& systems,
   SPDLOG_INFO("[Threads]   ==>> {}", numberOfThreads);
   SPDLOG_INFO("[STEP SIZE] ==>> {}", stepSize_);
 
-  std::for_each(systems.begin(), systems.end(),
-                [&, index = 0](const auto& system) mutable {
-                  SPDLOG_INFO("=~=~=~=~[Trajectory {}]=~=~=~=~", index);
-                  std::vector<PathSample> results;
-                  {
-                    Timer t;
-                    results =
-                        system.electricFieldTopologyIn(numberOfThreads, *this);
-                  }
+  int index = 0;
+  for (const auto& system : systems) {
+    SPDLOG_INFO("=~=~=~=~[Trajectory {}]=~=~=~=~", index);
+    std::vector<PathSample> results;
+    {
+      Timer t;
+      results = system.electricFieldTopologyIn(numberOfThreads, *this);
+    }
 
-                  if (sampleOutput_) {
-                    writeSampleOutput_(results, index);
-                  }
+    if (sampleOutput_) {
+      writeSampleOutput_(results, index);
+    }
 
-                  ++index;
-                });
+    ++index;
+  }
 }
 
 TopologyRegion cpet::TopologyRegion::fromSimple(

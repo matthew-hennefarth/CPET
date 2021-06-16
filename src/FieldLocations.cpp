@@ -63,16 +63,15 @@ void FieldLocations::computeEFieldsWith(
     SPDLOG_INFO("=~=~=~=~[Field at {}]=~=~=~=~", point.ID());
     std::vector<Eigen::Vector3d> fieldTrajectoryAtPoint;
 
-    for (size_t i = 0; i < systems.size(); i++) {
+    for (const auto& system : systems) {
       Eigen::Vector3d location;
-
       if (point.position()) {
         location = *(point.position());
       } else {
-        location = systems[i].frame().find(point)->coordinate;
+        location = system.frame().find(point)->coordinate;
       }
 
-      Eigen::Vector3d field = systems[i].electricFieldAt(location);
+      Eigen::Vector3d field = system.electricFieldAt(location);
       SPDLOG_INFO("{} [{}]", field.transpose(), field.norm());
       fieldTrajectoryAtPoint.emplace_back(field);
     }

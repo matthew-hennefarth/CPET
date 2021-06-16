@@ -48,7 +48,10 @@ class Timer {
     } else {
       logger_->info("Timer: {} sec", sec);
     }
-    func_(sec);
+    try {
+      func_(sec);
+    } catch (...) {
+    }
   }
 
   inline void Start() noexcept { start_ = std::chrono::steady_clock::now(); }

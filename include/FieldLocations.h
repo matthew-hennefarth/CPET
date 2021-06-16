@@ -60,7 +60,7 @@ class FieldLocations {
   [[nodiscard]] inline const PlotStyles& plotStyle() const noexcept {
     return plotStyle_;
   }
-  void plotStyle(const std::vector<std::string>& tokens) {
+  [[maybe_unused]] void plotStyle(const std::vector<std::string>& tokens) {
     plotStyle_ = decodePlotStyle_(tokens);
   }
 

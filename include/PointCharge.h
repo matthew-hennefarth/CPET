@@ -13,6 +13,7 @@
 /* CPET HEADER FILES */
 #include "AtomID.h"
 #include "Utilities.h"
+
 namespace cpet {
 
 struct PointCharge {
@@ -29,6 +30,6 @@ struct PointCharge {
     return (coordinate == pc.coordinate) && (charge == pc.charge) &&
            (id == pc.id);
   }
-};
+} __attribute__((aligned(128)));
 }  // namespace cpet
 #endif  // POINTCHARGE_H

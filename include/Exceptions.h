@@ -5,7 +5,6 @@
 #define EXCEPTIONS_H
 
 /* C++ STL HEADER FILES */
-#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -18,7 +17,8 @@ class exception : public std::runtime_error {
             typename = typename std::enable_if<
                 std::is_convertible_v<StringType, std::string>>>
   explicit exception(StringType&& what_arg)
-      : std::runtime_error(std::forward<StringType>(what_arg)) {}
+      : std::runtime_error(std::forward<StringType>(what_arg)) {
+  }  // NOLINT(hicpp-no-array-decay,cppcoreguidelines-pro-bounds-array-to-pointer-decay)
 };
 
 class value_error : public cpet::exception {

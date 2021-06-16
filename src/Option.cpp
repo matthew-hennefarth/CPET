@@ -24,10 +24,10 @@ void Option::loadOptionsDataFromFile_(const std::string& optionFile) {
   bool inBlock = false;
   std::vector<std::string> blocktmp;
   std::string currentBlockKey{};
-  int line_number = 0; /* Only need this for printing error to user */
 
   SPDLOG_DEBUG("Reading in options from {}", optionFile);
-  util::forEachLineIn(optionFile, [&, this](const std::string& orig_line) {
+  util::forEachLineIn(optionFile, [&, this, line_number = 0](
+                                      const std::string& orig_line) mutable {
     ++line_number;
     SPDLOG_DEBUG("{}...{}", line_number, orig_line);
     auto line = util::removeAfter(util::lstrip(orig_line), "#");
@@ -91,14 +91,15 @@ void Option::loadOptionsDataFromFile_(const std::string& optionFile) {
 #if SPDLOG_ACTIVE_LEVEL == SPDLOG_LEVEL_DEBUG
   SPDLOG_DEBUG("Options parsed into");
   SPDLOG_DEBUG("Simple:\n");
-  constexpr auto to_debugger = [](const std::string_view str) {
+  for (const auto& str : simpleOptions_) {
     SPDLOG_DEBUG(str);
-  };
-  std::for_each(simpleOptions_.begin(), simpleOptions_.end(), to_debugger);
+  }
   SPDLOG_DEBUG("\nBlock:\n");
   for (const auto& [key, value] : blockOptions_) {
     SPDLOG_DEBUG("key: {}", key);
-    std::for_each(value.begin(), value.end(), to_debugger);
+    for (const auto& str : value) {
+      SPDLOG_DEBUG(str);
+    }
   }
 #endif
 }
@@ -143,7 +144,7 @@ void Option::parseBlockOptions_() {
   for (const auto& [key, lines] : blockOptions_) {
     if (const auto func = parseBlockOptionsMap.find(util::tolower(key));
         func == parseBlockOptionsMap.end()) {
-      SPDLOG_WARN("Unknown key in block options {}", key);
+      SPDLOG_WARN("Unknown block key: {}", key);
     } else {
       (this->*(func->second))(lines);
     }

@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
             cxxopts::value<std::string>()->default_value(""))(
             "t,threads", "Number of threads",
             cxxopts::value<int>()->default_value("1"))(
-            "O,out", "Output file",
+            "O,out", "[DEPRECATED!] Output file",
             cxxopts::value<std::string>()->default_value(""))("h,help",
                                                               "Print usage")(
             "v,verbose", "Verbose output",
@@ -140,7 +140,9 @@ int main(int argc, char** argv) {
     cpet::Calculator c(proteinFile.value(), optionFile.value(),
                        chargesFile.value(), numberOfThreads.value());
     if (!result["out"].as<std::string>().empty()) {
-      c.setOutputFilePrefix(result["out"].as<std::string>());
+      SPDLOG_WARN(
+          "DEPRECATION WARNING: -O is deprecated and does not do anything! Use "
+          "block sections to define output");
     }
     c.compute();
   } catch (const cpet::exception& exc) {

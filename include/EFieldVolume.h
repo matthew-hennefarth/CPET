@@ -13,7 +13,6 @@
 #include <optional>
 #include <unordered_map>
 #include <numeric>
-#include <cassert>
 
 /* EXTERNAL LIBRARY HEADER FILES */
 #include <Eigen/Dense>
@@ -38,8 +37,6 @@ class EFieldVolume {
   }
 
   [[nodiscard]] inline std::string name() const {
-    assert(!sampleDensity_.empty());
-
     constexpr auto append_density = [](const std::string& res,
                                        const int density) -> std::string {
       return res + std::to_string(density) + '-';

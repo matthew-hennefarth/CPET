@@ -48,7 +48,7 @@ class AtomID {
     }
   }
 
-  explicit inline AtomID(AtomID&&) = default;
+  inline AtomID(AtomID&&) = default;
   inline AtomID(const AtomID&) = default;
   inline ~AtomID() = default;
   inline AtomID& operator=(const AtomID&) = default;

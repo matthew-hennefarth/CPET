@@ -28,7 +28,6 @@ constexpr int PDB_CHARGE_WIDTH = 8;
 Calculator::Calculator(std::string proteinFile, const std::string& optionFile,
                        std::string chargesFile, int nThreads)
     : proteinFile_(std::move(proteinFile)),
-      outputPrefix_(proteinFile_),
       option_(optionFile),
       chargeFile_(std::move(chargesFile)),
       numberOfThreads_(nThreads) {

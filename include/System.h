@@ -29,13 +29,13 @@ namespace cpet {
 
 class System {
  public:
-  System(const Frame& frame, const Option& options);
+  System(Frame frame, const Option& options);
 
   [[nodiscard]] Eigen::Vector3d electricFieldAt(
       const Eigen::Vector3d& position) const;
 
   [[nodiscard]] std::vector<PathSample> electricFieldTopologyIn(
-      const int numOfThreads, const TopologyRegion& topologicalRegion) const;
+      int numOfThreads, const TopologyRegion& topologicalRegion) const;
 
   inline void transformToUserSpace() {
     translateSystemToCenter_();
@@ -77,10 +77,10 @@ class System {
   }
 
   [[nodiscard]] double curvatureAt_(const Eigen::Vector3d& alpha_0,
-                                    const double stepSize) const noexcept;
+                                    double stepSize) const noexcept;
 
   [[nodiscard]] PathSample sampleElectricFieldTopologyIn_(
-      const Volume& region, const double stepSize) const noexcept;
+      const Volume& region, double stepSize) const noexcept;
 
   inline void forEachPointCharge_(
       const std::function<void(PointCharge&)>& func) {

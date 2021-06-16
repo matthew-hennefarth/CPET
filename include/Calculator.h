@@ -28,23 +28,12 @@ class Calculator {
 
   void compute();
 
-  inline void setOutputFilePrefix(const std::string& prefix) {
-    outputPrefix_ = prefix;
-  }
-
  private:
   std::string proteinFile_;
-
-  std::string outputPrefix_;
-
   Option option_;
-
   std::string chargeFile_;
-
   int numberOfThreads_;
-
   std::vector<Frame> frameTrajectory_;
-
   std::vector<System> systems_;
 
   void fixCharges_();
