@@ -356,14 +356,14 @@ TEST(Option, TopologyBlockValid) {
   EXPECT_FLOAT_EQ(vol.maxDim(), 2.0);
 }
 
-TEST(Option, TopologyBlockNoVolume){
+TEST(Option, TopologyBlockNoVolume) {
   std::string options_file = "Data/invalid_options/topo_block_novolume";
   ASSERT_TRUE(std::filesystem::exists(options_file));
 
   cpet::Option option;
   ASSERT_THROW(option = cpet::Option{options_file}, cpet::invalid_option);
 }
-TEST(Option, TopologyBlockNoSamples){
+TEST(Option, TopologyBlockNoSamples) {
   std::string options_file = "Data/invalid_options/topo_block_nosamples";
   ASSERT_TRUE(std::filesystem::exists(options_file));
 
