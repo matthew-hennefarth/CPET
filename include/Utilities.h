@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <algorithm>
 
 /* CPET HEADER FILES */
 #include "Exceptions.h"

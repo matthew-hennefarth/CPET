@@ -8,6 +8,8 @@
 #include <memory>
 #include <string>
 #include <optional>
+#include <utility>
+#include <vector>
 
 /* CPET HEADER FILES */
 #include "Volume.h"

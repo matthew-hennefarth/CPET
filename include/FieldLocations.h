@@ -9,6 +9,7 @@
 #include <string>
 #include <unordered_map>
 #include <optional>
+#include <utility>
 
 /* CPET HEADER FILES */
 #include "AtomID.h"
@@ -93,7 +94,7 @@ class FieldLocations {
 
   [[nodiscard]] inline static PlotStyles decodePlotStyle_(
       const std::vector<std::string>& tokens) {
-    const static std::unordered_map<std::string, PlotStyles> plotHash = {
+    static const std::unordered_map<std::string, PlotStyles> plotHash = {
         {"x", PlotStyles::x},
         {"y", PlotStyles::y},
         {"z", PlotStyles::z},

@@ -4,6 +4,9 @@
 #ifndef CPET_PATHSAMPLE_H
 #define CPET_PATHSAMPLE_H
 
+/* C++ STL HEADER FILES */
+#include <ostream>
+
 namespace cpet {
 struct PathSample {
   double distance;

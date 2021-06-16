@@ -11,6 +11,7 @@
 
 /* EXTERNAL LIBRARY HEADER FILES */
 #include <Eigen/Dense>
+
 namespace cpet {
 class Volume {
  public:

@@ -3,10 +3,10 @@
 
 /* C++ STL HEADER FILES */
 #include <array>
+#include <cmath>
 
 /* EXTERNAL LIBRARY HEADER FILES */
 #include <cs_plain_guarded.h>
-#include <math.h>
 #include <spdlog/fmt/ostr.h>
 #include <spdlog/sinks/stdout_sinks.h>
 
