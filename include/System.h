@@ -23,31 +23,19 @@
 #include "Utilities.h"
 #include "Volume.h"
 #include "Frame.h"
-
-// TODO maybe make this an option?
-#define STEP_SIZE 0.001
+#include "PathSample.h"
 
 namespace cpet {
 
-struct PathSample {
-  double distance;
-  double curvature;
-
-  friend std::ostream& operator<<(std::ostream& os, const PathSample& ps) {
-    os << ps.distance << ',' << ps.curvature;
-    return os;
-  }
-};
-
 class System {
  public:
-  System(const Frame& frame, const Option& options);
+  System(Frame frame, const Option& options);
 
   [[nodiscard]] Eigen::Vector3d electricFieldAt(
       const Eigen::Vector3d& position) const;
 
   [[nodiscard]] std::vector<PathSample> electricFieldTopologyIn(
-      const int numOfThreads, const TopologyRegion& topologicalRegion) const;
+      int numOfThreads, const TopologyRegion& topologicalRegion) const;
 
   inline void transformToUserSpace() {
     translateSystemToCenter_();
@@ -88,11 +76,11 @@ class System {
     basis[1] = basis[1] / basis[1].norm();
   }
 
-  [[nodiscard]] double curvatureAt_(
-      const Eigen::Vector3d& alpha_0) const noexcept;
+  [[nodiscard]] double curvatureAt_(const Eigen::Vector3d& alpha_0,
+                                    double stepSize) const noexcept;
 
   [[nodiscard]] PathSample sampleElectricFieldTopologyIn_(
-      const Volume& region) const noexcept;
+      const Volume& region, double stepSize) const noexcept;
 
   inline void forEachPointCharge_(
       const std::function<void(PointCharge&)>& func) {
@@ -135,10 +123,10 @@ class System {
   }
 
   [[nodiscard]] inline Eigen::Vector3d nextPoint_(
-      const Eigen::Vector3d& pos) const noexcept {
+      const Eigen::Vector3d& pos, const double stepSize) const noexcept {
     Eigen::Vector3d f = electricFieldAt(pos);
     f /= f.norm();
-    return (pos + STEP_SIZE * f);
+    return (pos + stepSize * f);
   }
 
   Frame frame_;

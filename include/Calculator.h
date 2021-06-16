@@ -28,23 +28,12 @@ class Calculator {
 
   void compute();
 
-  inline void setOutputFilePrefix(const std::string& prefix) {
-    outputPrefix_ = prefix;
-  }
-
  private:
   std::string proteinFile_;
-
-  std::string outputPrefix_;
-
   Option option_;
-
   std::string chargeFile_;
-
   int numberOfThreads_;
-
   std::vector<Frame> frameTrajectory_;
-
   std::vector<System> systems_;
 
   void fixCharges_();
@@ -77,9 +66,6 @@ class Calculator {
   }
 
   [[nodiscard]] std::vector<double> loadChargesFile_() const;
-
-  void writeTopologyResults_(const std::vector<PathSample>& data,
-                             const TopologyRegion& region, int i) const;
 };
 }  // namespace cpet
 #endif  // CALCULATOR_H

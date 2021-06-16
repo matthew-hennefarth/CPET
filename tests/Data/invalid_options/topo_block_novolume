@@ -1,0 +1,4 @@
+%topology
+  samples 50
+  stepsize 0.1
+end

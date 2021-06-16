@@ -1,0 +1,8 @@
+align 0:1:1
+%topology
+  volume box 1.5 2 1.5
+  stepSize 0.1
+  samples 150
+  sampleOutput topo_prefix
+end
+  

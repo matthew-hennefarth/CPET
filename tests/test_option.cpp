@@ -128,10 +128,10 @@ TEST(Option, ValidTopoBox) {
   ASSERT_EQ(option.calculateEFieldTopology().size(), 1);
   const auto* tr1 = &option.calculateEFieldTopology()[0];
 
-  EXPECT_EQ(tr1->numberOfSamples, 10);
-  EXPECT_EQ(tr1->volume->type(), "box");
-  EXPECT_TRUE(tr1->volume->isInside(Eigen::Vector3d{0.5, 0.5, 0.5}));
-  EXPECT_FLOAT_EQ(tr1->volume->maxDim(), 1.0);
+  EXPECT_EQ(tr1->numberOfSamples(), 10);
+  EXPECT_EQ(tr1->volume().type(), "box");
+  EXPECT_TRUE(tr1->volume().isInside(Eigen::Vector3d{0.5, 0.5, 0.5}));
+  EXPECT_FLOAT_EQ(tr1->volume().maxDim(), 1.0);
 }
 
 TEST(Option, ValidTopoBoxAlign) {
@@ -156,10 +156,10 @@ TEST(Option, ValidTopoBoxAlign) {
   ASSERT_EQ(option.calculateEFieldTopology().size(), 1);
   const auto* tr1 = &option.calculateEFieldTopology()[0];
 
-  EXPECT_EQ(tr1->numberOfSamples, 100000);
-  EXPECT_EQ(tr1->volume->type(), "box");
-  EXPECT_TRUE(tr1->volume->isInside(Eigen::Vector3d{0.5, -21, 0.7}));
-  EXPECT_FLOAT_EQ(tr1->volume->maxDim(), 22.0);
+  EXPECT_EQ(tr1->numberOfSamples(), 100000);
+  EXPECT_EQ(tr1->volume().type(), "box");
+  EXPECT_TRUE(tr1->volume().isInside(Eigen::Vector3d{0.5, -21, 0.7}));
+  EXPECT_FLOAT_EQ(tr1->volume().maxDim(), 22.0);
 }
 
 TEST(Option, TopoNegativeBox) {
@@ -331,6 +331,40 @@ TEST(Option, FieldBlockNoLocations) {
 
 TEST(Option, FieldBlockInvalidPlot) {
   std::string options_file = "Data/invalid_options/field_block_invalidplot";
+  ASSERT_TRUE(std::filesystem::exists(options_file));
+
+  cpet::Option option;
+  ASSERT_THROW(option = cpet::Option{options_file}, cpet::invalid_option);
+}
+
+TEST(Option, TopologyBlockValid) {
+  std::string options_file = "Data/valid_options/topology_block_valid";
+  ASSERT_TRUE(std::filesystem::exists(options_file));
+
+  cpet::Option option;
+  ASSERT_NO_THROW(option = cpet::Option{options_file});
+  ASSERT_FALSE(option.calculateEFieldTopology().empty());
+
+  const auto& tr = option.calculateEFieldTopology()[0];
+  EXPECT_EQ(tr.stepSize(), 0.1);
+  EXPECT_EQ(tr.numberOfSamples(), 150);
+  EXPECT_EQ(tr.sampleOutput(), "topo_prefix");
+
+  const auto& vol = tr.volume();
+  EXPECT_EQ(vol.type(), "box");
+  EXPECT_TRUE(vol.isInside(Eigen::Vector3d{0.5, 0.5, 0.5}));
+  EXPECT_FLOAT_EQ(vol.maxDim(), 2.0);
+}
+
+TEST(Option, TopologyBlockNoVolume) {
+  std::string options_file = "Data/invalid_options/topo_block_novolume";
+  ASSERT_TRUE(std::filesystem::exists(options_file));
+
+  cpet::Option option;
+  ASSERT_THROW(option = cpet::Option{options_file}, cpet::invalid_option);
+}
+TEST(Option, TopologyBlockNoSamples) {
+  std::string options_file = "Data/invalid_options/topo_block_nosamples";
   ASSERT_TRUE(std::filesystem::exists(options_file));
 
   cpet::Option option;

@@ -12,8 +12,7 @@
 /* CPET HEADER FILES */
 #include "Utilities.h"
 
-namespace cpet {
-namespace util {
+namespace cpet::util {
 void forEachLineIn(const std::string& file,
                    const std::function<void(const std::string&)>& func) {
   std::fstream inFile(file);
@@ -54,5 +53,4 @@ bool isDouble(std::string str) noexcept {
   i >> result;
   return !i.fail() && i.eof();
 }
-}  // namespace util
-}  // namespace cpet
+}  // namespace cpet::util

@@ -12,6 +12,7 @@
 #include <utility>
 #include <sstream>
 
+/* EXTERNAL LIBRARY HEADER FILES */
 #include <Eigen/Dense>
 
 /* CPET HEADER FILES */
@@ -47,8 +48,7 @@ class AtomID {
     }
   }
 
-  explicit inline AtomID(AtomID&&) = default;
-
+  inline AtomID(AtomID&&) = default;
   inline AtomID(const AtomID&) = default;
   inline ~AtomID() = default;
   inline AtomID& operator=(const AtomID&) = default;

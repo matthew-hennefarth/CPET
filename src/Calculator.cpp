@@ -28,7 +28,6 @@ constexpr int PDB_CHARGE_WIDTH = 8;
 Calculator::Calculator(std::string proteinFile, const std::string& optionFile,
                        std::string chargesFile, int nThreads)
     : proteinFile_(std::move(proteinFile)),
-      outputPrefix_(proteinFile_),
       option_(optionFile),
       chargeFile_(std::move(chargesFile)),
       numberOfThreads_(nThreads) {
@@ -55,36 +54,10 @@ void Calculator::compute() {
 }
 
 void Calculator::computeTopology_() const {
-  const auto print_header = [&](const TopologyRegion& region) {
-    SPDLOG_INFO("======[Sampling topology]======");
-    SPDLOG_INFO("[Volume ]   ==>> {}", region.volume->description());
-    SPDLOG_INFO("[Npoints]   ==>> {}", region.numberOfSamples);
-    SPDLOG_INFO("[Threads]   ==>> {}", numberOfThreads_);
-    SPDLOG_INFO("[STEP SIZE] ==>> {}", STEP_SIZE);
-  };
-
-  const auto compute_topology = [this](const System& system,
-                                       const TopologyRegion& region,
-                                       const int index) {
-    std::vector<PathSample> results;
-    {
-      Timer t;
-      results = system.electricFieldTopologyIn(numberOfThreads_, region);
-    }
-    writeTopologyResults_(results, region, static_cast<int>(index));
-  };
-
-  std::for_each(systems_.begin(), systems_.end(),
-                [&, index = 0](const auto& system) mutable {
-                  SPDLOG_INFO("=~=~=~=~[Trajectory {}]=~=~=~=~", index);
-                  system.printCenterAndBasis();
-                  std::for_each(option_.calculateEFieldTopology().begin(),
-                                option_.calculateEFieldTopology().end(),
-                                [&](const auto& region) {
-                                  print_header(region);
-                                  compute_topology(system, region, index);
-                                });
-                  ++index;
+  std::for_each(option_.calculateEFieldTopology().begin(),
+                option_.calculateEFieldTopology().end(),
+                [&](const auto& region) {
+                  region.computeTopologyWith(systems_, numberOfThreads_);
                 });
 }
 
@@ -143,25 +116,5 @@ void Calculator::fixCharges_() {
   std::for_each(
       frameTrajectory_.begin(), frameTrajectory_.end(),
       [&realCharges](auto& frame) { frame.updateCharges(realCharges); });
-}
-
-void Calculator::writeTopologyResults_(const std::vector<PathSample>& data,
-                                       const TopologyRegion& region,
-                                       int i) const {
-  SPDLOG_DEBUG("Writing topology results...");
-  const std::string file = outputPrefix_ + '_' + std::to_string(i) + '_' +
-                           region.volume->type() + ".top";
-  std::ofstream outFile(file, std::ios::out);
-  if (outFile.is_open()) {
-    outFile << '#' << proteinFile_ << ' ' << i << '\n';
-    outFile << '#' << region.details() << '\n';
-    /* TODO add options writing to this file...*/
-    std::for_each(data.begin(), data.end(),
-                  [&outFile](const auto& line) { outFile << line << '\n'; });
-    outFile << std::flush;
-  } else {
-    SPDLOG_ERROR("Could not open file {}", file);
-    throw cpet::io_error("Could not open file " + file);
-  }
 }
 }  // namespace cpet

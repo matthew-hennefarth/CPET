@@ -5,8 +5,10 @@
 #define FRAME_H
 
 /* C++ STL HEADER FILES */
+#include <utility>
 #include <vector>
 #include <algorithm>
+#include <utility>
 
 /* EXTERNAL LIBRARY HEADER FILES */
 #include <spdlog/spdlog.h>
@@ -19,7 +21,14 @@ namespace cpet {
 
 class Frame {
  public:
-  Frame(const std::vector<PointCharge>& pcs) : pointCharges_(pcs) {}
+  using const_iterator = std::vector<PointCharge>::const_iterator;
+  using iterator = std::vector<PointCharge>::iterator;
+  using const_reverse_iterator =
+      std::vector<PointCharge>::const_reverse_iterator;
+  using reverse_iterator = std::vector<PointCharge>::reverse_iterator;
+
+  explicit Frame(std::vector<PointCharge> pcs)
+      : pointCharges_(std::move(pcs)) {}
 
   [[nodiscard]] inline std::vector<PointCharge>::const_iterator find(
       const AtomID& id) const {
@@ -27,41 +36,33 @@ class Frame {
                             [&id](const auto& pc) { return pc.id == id; });
   }
 
-  [[nodiscard]] inline std::vector<PointCharge>::const_iterator begin()
-      const noexcept {
+  [[nodiscard]] inline const_iterator begin() const noexcept {
     return pointCharges_.begin();
   }
 
-  [[nodiscard]] inline std::vector<PointCharge>::const_iterator end()
-      const noexcept {
+  [[nodiscard]] inline const_iterator end() const noexcept {
     return pointCharges_.end();
   }
 
-  [[nodiscard]] inline std::vector<PointCharge>::iterator begin() noexcept {
+  [[nodiscard]] inline iterator begin() noexcept {
     return pointCharges_.begin();
   }
 
-  [[nodiscard]] inline std::vector<PointCharge>::iterator end() noexcept {
-    return pointCharges_.end();
-  }
+  [[nodiscard]] inline iterator end() noexcept { return pointCharges_.end(); }
 
-  [[nodiscard]] inline std::vector<PointCharge>::const_reverse_iterator rbegin()
-      const noexcept {
+  [[nodiscard]] inline const_reverse_iterator rbegin() const noexcept {
     return pointCharges_.rbegin();
   }
 
-  [[nodiscard]] inline std::vector<PointCharge>::const_reverse_iterator rend()
-      const noexcept {
+  [[nodiscard]] inline const_reverse_iterator rend() const noexcept {
     return pointCharges_.rend();
   }
 
-  [[nodiscard]] inline std::vector<PointCharge>::reverse_iterator
-  rbegin() noexcept {
+  [[nodiscard]] inline reverse_iterator rbegin() noexcept {
     return pointCharges_.rbegin();
   }
 
-  [[nodiscard]] inline std::vector<PointCharge>::reverse_iterator
-  rend() noexcept {
+  [[nodiscard]] inline reverse_iterator rend() noexcept {
     return pointCharges_.rend();
   }
 
@@ -76,6 +77,14 @@ class Frame {
     for (size_t i = 0; i < pointCharges_.size(); i++) {
       pointCharges_[i].charge = charges[i];
     }
+  }
+
+  inline void push_back(const PointCharge& value) {
+    pointCharges_.push_back(value);
+  }
+
+  inline void push_Back(PointCharge&& value) {
+    pointCharges_.push_back(std::move(value));
   }
 
  private:
