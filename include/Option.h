@@ -109,34 +109,39 @@ class Option {
     }
   }
 
-  inline void parseCoordinateStartSimple_(const std::vector<std::string>& options) {
-    if (options.empty()){
+  inline void parseCoordinateStartSimple_(
+      const std::vector<std::string>& options) {
+    if (options.empty()) {
       SPDLOG_WARN("No parameters specified for coordinateStart!");
       return;
     }
     if (!util::isDouble(*options.begin())) {
-      throw cpet::invalid_option("Invalid Option: coordinateStart option should be numeric");
+      throw cpet::invalid_option(
+          "Invalid Option: coordinateStart option should be numeric");
     }
     coordinatesStartIndex_ = std::stoi(*options.begin());
     if (coordinatesStartIndex_ < 0) {
-      throw cpet::invalid_option("Invalid Option: coordinateStart option should be >= 0");
+      throw cpet::invalid_option(
+          "Invalid Option: coordinateStart option should be >= 0");
     }
   }
 
-  inline void parseCoordinateSkipSimple_(const std::vector<std::string>& options) {
-    if (options.empty()){
+  inline void parseCoordinateSkipSimple_(
+      const std::vector<std::string>& options) {
+    if (options.empty()) {
       SPDLOG_WARN("No parameters specified for coordinateSkip!");
       return;
     }
     if (!util::isDouble(*options.begin())) {
-      throw cpet::invalid_option("Invalid Option: coordinateSkip option should be numeric");
+      throw cpet::invalid_option(
+          "Invalid Option: coordinateSkip option should be numeric");
     }
     coordinatesStepSize_ = std::stoi(*options.begin());
     if (coordinatesStepSize_ <= 0) {
-      throw cpet::invalid_option("Invalid Option: coordinateSkip option should be > 0");
+      throw cpet::invalid_option(
+          "Invalid Option: coordinateSkip option should be > 0");
     }
   }
-
 
   inline void parseTopologySimple_(const std::vector<std::string>& options) {
     calculateEFieldTopology_.emplace_back(TopologyRegion::fromSimple(options));

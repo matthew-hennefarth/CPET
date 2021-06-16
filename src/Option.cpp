@@ -107,12 +107,13 @@ void Option::loadOptionsDataFromFile_(const std::string& optionFile) {
 void Option::parseSimpleOptions_() {
   const std::unordered_map<std::string,
                            void (Option::*)(const std::vector<std::string>&)>
-      parseSimpleOptionsMap = {{ALIGN_KEY, &Option::parseAlignSimple_},
-                               {TOPOLOGY_KEY, &Option::parseTopologySimple_},
-                               {FIELD_KEY, &Option::parseFieldSimple_},
-                               {PLOT_3D_KEY, &Option::parsePlot3dSimple_},
-                               {COORDINATE_START_INDEX_KEY, &Option::parseCoordinateStartSimple_},
-                               {COORDINATE_SKIP_INDEX_KEY, &Option::parseCoordinateSkipSimple_}};
+      parseSimpleOptionsMap = {
+          {ALIGN_KEY, &Option::parseAlignSimple_},
+          {TOPOLOGY_KEY, &Option::parseTopologySimple_},
+          {FIELD_KEY, &Option::parseFieldSimple_},
+          {PLOT_3D_KEY, &Option::parsePlot3dSimple_},
+          {COORDINATE_START_INDEX_KEY, &Option::parseCoordinateStartSimple_},
+          {COORDINATE_SKIP_INDEX_KEY, &Option::parseCoordinateSkipSimple_}};
 
   SPDLOG_DEBUG("Parsing simple options");
 
