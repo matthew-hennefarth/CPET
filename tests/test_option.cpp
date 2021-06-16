@@ -33,6 +33,9 @@ TEST(Option, SimpleField) {
   auto fl = option.calculateFieldLocations()[0];
   ASSERT_EQ(fl.locations().size(), 1);
   EXPECT_EQ(fl.locations()[0], "0:0:0");
+
+  EXPECT_EQ(option.coordinatesStartIndex(), 0);
+  EXPECT_EQ(option.coordinatesStepSize(), 1);
 }
 
 TEST(Option, AlignZero) {
@@ -66,6 +69,9 @@ TEST(Option, AlignSingle) {
   auto fl = option.calculateFieldLocations()[0];
   ASSERT_EQ(fl.locations().size(), 1);
   EXPECT_EQ(fl.locations()[0], "5:4:2");
+
+  EXPECT_EQ(option.coordinatesStartIndex(), 0);
+  EXPECT_EQ(option.coordinatesStepSize(), 1);
 }
 
 TEST(Option, AlignDouble) {
@@ -132,6 +138,9 @@ TEST(Option, ValidTopoBox) {
   EXPECT_EQ(tr1->volume().type(), "box");
   EXPECT_TRUE(tr1->volume().isInside(Eigen::Vector3d{0.5, 0.5, 0.5}));
   EXPECT_FLOAT_EQ(tr1->volume().maxDim(), 1.0);
+
+  EXPECT_EQ(option.coordinatesStartIndex(), 0);
+  EXPECT_EQ(option.coordinatesStepSize(), 1);
 }
 
 TEST(Option, ValidTopoBoxAlign) {
@@ -160,6 +169,9 @@ TEST(Option, ValidTopoBoxAlign) {
   EXPECT_EQ(tr1->volume().type(), "box");
   EXPECT_TRUE(tr1->volume().isInside(Eigen::Vector3d{0.5, -21, 0.7}));
   EXPECT_FLOAT_EQ(tr1->volume().maxDim(), 22.0);
+
+  EXPECT_EQ(option.coordinatesStartIndex(), 0);
+  EXPECT_EQ(option.coordinatesStepSize(), 1);
 }
 
 TEST(Option, TopoNegativeBox) {
@@ -363,10 +375,51 @@ TEST(Option, TopologyBlockNoVolume) {
   cpet::Option option;
   ASSERT_THROW(option = cpet::Option{options_file}, cpet::invalid_option);
 }
+
 TEST(Option, TopologyBlockNoSamples) {
   std::string options_file = "Data/invalid_options/topo_block_nosamples";
   ASSERT_TRUE(std::filesystem::exists(options_file));
 
   cpet::Option option;
   ASSERT_THROW(option = cpet::Option{options_file}, cpet::invalid_option);
+}
+
+TEST(Option, StartStepValid) {
+  std::string options_file = "Data/valid_options/start_step_valid";
+  ASSERT_TRUE(std::filesystem::exists(options_file));
+
+  cpet::Option option;
+  ASSERT_NO_THROW(option = cpet::Option{options_file});
+  ASSERT_FALSE(option.calculateFieldLocations().empty());
+
+  EXPECT_EQ(option.coordinatesStartIndex(), 50);
+  EXPECT_EQ(option.coordinatesStepSize(), 4);
+}
+
+TEST(Option, StartNonNumericInvalid) {
+  std::string options_file = "Data/invalid_options/start_nonnumeric";
+  ASSERT_TRUE(std::filesystem::exists(options_file));
+
+  cpet::Option option;
+  ASSERT_THROW(option = cpet::Option{options_file}, cpet::invalid_option);
+}
+
+TEST(Option, Skip0Invalid) {
+  std::string options_file = "Data/invalid_options/skip_0";
+  ASSERT_TRUE(std::filesystem::exists(options_file));
+
+  cpet::Option option;
+  ASSERT_THROW(option = cpet::Option{options_file}, cpet::invalid_option);
+}
+
+TEST(Option, StartStepEmptyValid) {
+  std::string options_file = "Data/valid_options/start_step_empty_valid";
+  ASSERT_TRUE(std::filesystem::exists(options_file));
+
+  cpet::Option option;
+  ASSERT_NO_THROW(option = cpet::Option{options_file});
+  ASSERT_FALSE(option.calculateFieldLocations().empty());
+
+  EXPECT_EQ(option.coordinatesStartIndex(), 0);
+  EXPECT_EQ(option.coordinatesStepSize(), 1);
 }
