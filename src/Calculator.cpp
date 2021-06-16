@@ -78,10 +78,17 @@ void Calculator::loadPointChargeTrajectory_() {
   SPDLOG_DEBUG("Loading point charge trajectory from {} ...", proteinFile_);
   std::vector<PointCharge> tmpHolder;
   util::forEachLineIn(
-      proteinFile_, [this, &tmpHolder](const std::string& line) {
-        if (util::startswith(line, "ENDMDL")) {
+      proteinFile_, [&, structureIndex=0](const std::string& line) mutable {
+        if (structureIndex < option_.structureStartIndex() ||
+           (option_.structureStartIndex() - structureIndex) % option_.structureStepSize() != 0) {
+          /* No need to collect frames */
+          if (util::startswith(line, "ENDMDL")) {
+            ++structureIndex;
+          }
+        } else if (util::startswith(line, "ENDMDL")) {
           frameTrajectory_.emplace_back(tmpHolder);
           tmpHolder.clear();
+          ++structureIndex;
         } else if (util::startswith(line, "ATOM") ||
                    util::startswith(line, "HETATM")) {
           tmpHolder.emplace_back(

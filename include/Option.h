@@ -69,6 +69,14 @@ class Option {
     return direction2ID_;
   }
 
+  [[nodiscard]] constexpr const int& structureStartIndex() const noexcept {
+    return structureStartIndex_;
+  }
+
+  [[nodiscard]] constexpr const int& structureStepSize() const noexcept {
+    return structureStepSize_;
+  }
+
  private:
   std::vector<FieldLocations> calculateFieldLocations_;
   std::vector<EFieldVolume> calculateEFieldVolumes_;
@@ -76,6 +84,8 @@ class Option {
   AtomID centerID_{AtomID::Constants::origin};
   AtomID direction1ID_{AtomID::Constants::e1};
   AtomID direction2ID_{AtomID::Constants::e2};
+  int structureStartIndex_{0};
+  int structureStepSize_{3};
   std::vector<std::string> simpleOptions_;
   std::vector<std::pair<std::string, std::vector<std::string>>> blockOptions_;
 
