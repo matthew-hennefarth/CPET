@@ -132,15 +132,17 @@ TEST(Option, ValidTopoBox) {
   EXPECT_TRUE(option.calculateEFieldVolumes().empty());
 
   ASSERT_EQ(option.calculateEFieldTopology().size(), 1);
+  EXPECT_EQ(option.coordinatesStartIndex(), 0);
+  EXPECT_EQ(option.coordinatesStepSize(), 1);
+
   const auto* tr1 = &option.calculateEFieldTopology()[0];
 
   EXPECT_EQ(tr1->numberOfSamples(), 10);
-  EXPECT_EQ(tr1->volume().type(), "box");
-  EXPECT_TRUE(tr1->volume().isInside(Eigen::Vector3d{0.5, 0.5, 0.5}));
-  EXPECT_FLOAT_EQ(tr1->volume().maxDim(), 1.0);
 
-  EXPECT_EQ(option.coordinatesStartIndex(), 0);
-  EXPECT_EQ(option.coordinatesStepSize(), 1);
+  EXPECT_FALSE(tr1->sampleInput());
+  EXPECT_FALSE(tr1->bins());
+  EXPECT_FALSE(tr1->computeMatrix());
+  EXPECT_EQ(tr1->sampleOutput(),  "topology_sample");
 }
 
 TEST(Option, ValidTopoBoxAlign) {
@@ -166,12 +168,15 @@ TEST(Option, ValidTopoBoxAlign) {
   const auto* tr1 = &option.calculateEFieldTopology()[0];
 
   EXPECT_EQ(tr1->numberOfSamples(), 100000);
-  EXPECT_EQ(tr1->volume().type(), "box");
-  EXPECT_TRUE(tr1->volume().isInside(Eigen::Vector3d{0.5, -21, 0.7}));
-  EXPECT_FLOAT_EQ(tr1->volume().maxDim(), 22.0);
+
+  EXPECT_FALSE(tr1->sampleInput());
+  EXPECT_FALSE(tr1->bins());
+  EXPECT_EQ(tr1->sampleOutput(),  "topology_sample");
+  EXPECT_FALSE(tr1->computeMatrix());
 
   EXPECT_EQ(option.coordinatesStartIndex(), 0);
   EXPECT_EQ(option.coordinatesStepSize(), 1);
+
 }
 
 TEST(Option, TopoNegativeBox) {
@@ -361,11 +366,10 @@ TEST(Option, TopologyBlockValid) {
   EXPECT_EQ(tr.stepSize(), 0.1);
   EXPECT_EQ(tr.numberOfSamples(), 150);
   EXPECT_EQ(tr.sampleOutput(), "topo_prefix");
-
-  const auto& vol = tr.volume();
-  EXPECT_EQ(vol.type(), "box");
-  EXPECT_TRUE(vol.isInside(Eigen::Vector3d{0.5, 0.5, 0.5}));
-  EXPECT_FLOAT_EQ(vol.maxDim(), 2.0);
+  EXPECT_FALSE(tr.sampleInput());
+  EXPECT_FALSE(tr.bins());
+  EXPECT_FALSE(tr.computeMatrix());
+  EXPECT_FALSE(tr.analysisOnly());
 }
 
 TEST(Option, TopologyBlockNoVolume) {
@@ -382,6 +386,72 @@ TEST(Option, TopologyBlockNoSamples) {
 
   cpet::Option option;
   ASSERT_THROW(option = cpet::Option{options_file}, cpet::invalid_option);
+}
+
+TEST(Option, TopologyBlockHistogramSingleBin) {
+  std::string options_file = "Data/valid_options/topology_block_histo_single_bin";
+  ASSERT_TRUE(std::filesystem::exists(options_file));
+
+  cpet::Option option;
+  ASSERT_NO_THROW(option = cpet::Option{options_file});
+  ASSERT_FALSE(option.calculateEFieldTopology().empty());
+
+  const auto& tr = option.calculateEFieldTopology()[0];
+  EXPECT_EQ(tr.numberOfSamples(), 23);
+  EXPECT_EQ(tr.stepSize(), 0.001);
+
+  std::array<int, 2> expectedBins = {50, 50};
+  ASSERT_TRUE(tr.bins());
+  EXPECT_EQ(*tr.bins(), expectedBins);
+
+  EXPECT_FALSE(tr.sampleOutput());
+  EXPECT_FALSE(tr.sampleInput());
+  EXPECT_TRUE(tr.computeMatrix());
+  EXPECT_FALSE(tr.analysisOnly());
+}
+
+TEST(Option, TopologyBlockHistogram) {
+  std::string options_file = "Data/valid_options/topology_block_histo";
+  ASSERT_TRUE(std::filesystem::exists(options_file));
+
+  cpet::Option option;
+  ASSERT_NO_THROW(option = cpet::Option{options_file});
+  ASSERT_FALSE(option.calculateEFieldTopology().empty());
+
+  const auto& tr = option.calculateEFieldTopology()[0];
+  EXPECT_EQ(tr.numberOfSamples(), 100);
+  EXPECT_EQ(tr.stepSize(), 0.00001);
+
+  std::array<int, 2> expectedBins = {200, 200};
+  ASSERT_TRUE(tr.bins());
+  EXPECT_EQ(*tr.bins(), expectedBins);
+
+  EXPECT_FALSE(tr.sampleOutput());
+  EXPECT_FALSE(tr.sampleInput());
+  EXPECT_TRUE(tr.computeMatrix());
+  EXPECT_FALSE(tr.analysisOnly());
+}
+
+TEST(Option, TopologyBlockHistoSampleInput) {
+  std::string options_file = "Data/valid_options/topology_block_histo_sampleinput";
+  ASSERT_TRUE(std::filesystem::exists(options_file));
+
+  cpet::Option option;
+  ASSERT_NO_THROW(option = cpet::Option{options_file});
+  ASSERT_FALSE(option.calculateEFieldTopology().empty());
+
+  const auto& tr = option.calculateEFieldTopology()[0];
+  ASSERT_TRUE(tr.analysisOnly());
+  EXPECT_EQ(tr.stepSize(), 0.001);
+
+  std::array<int, 2> expectedBins = {75, 100};
+  ASSERT_TRUE(tr.bins());
+  EXPECT_EQ(*tr.bins(), expectedBins);
+
+  EXPECT_FALSE(tr.sampleOutput());
+  EXPECT_TRUE(tr.sampleInput());
+  EXPECT_TRUE(tr.computeMatrix());
+
 }
 
 TEST(Option, StartStepValid) {
