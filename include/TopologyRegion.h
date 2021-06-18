@@ -70,11 +70,12 @@ class TopologyRegion {
   }
 
   [[nodiscard]] constexpr const std::optional<std::string>& sampleInput()
-  const noexcept {
+      const noexcept {
     return sampleInput_;
   }
 
-  [[nodiscard]] constexpr const std::optional<std::array<int, 2>>& bins() const noexcept {
+  [[nodiscard]] constexpr const std::optional<std::array<int, 2>>& bins()
+      const noexcept {
     return bins_;
   }
 
@@ -94,8 +95,10 @@ class TopologyRegion {
 
   void writeSampleOutput_(const std::vector<PathSample>& data, int index) const;
 
-  //[[nodiscard]] std::vector<std::vector<PathSample>> loadSampleData_() const;
+  [[nodiscard]] std::vector<std::vector<PathSample>> loadSampleData_() const;
 
+  //[[nodiscard]] std::vector<> constructHistograms_(const
+  //std::vector<std::vector<PathSample>>& sampleData) const;
 };
 }  // namespace cpet
 #endif  // TOPOLOGYREGION_H

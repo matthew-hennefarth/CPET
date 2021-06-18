@@ -34,7 +34,9 @@ class System {
   [[nodiscard]] Eigen::Vector3d electricFieldAt(
       const Eigen::Vector3d& position) const;
 
-  [[nodiscard]] std::vector<PathSample> electricFieldTopologyIn(int numOfThreads, const Volume& volume, const double stepsize, const int numberOfSamples) const;
+  [[nodiscard]] std::vector<PathSample> electricFieldTopologyIn(
+      int numOfThreads, const Volume& volume, const double stepsize,
+      const int numberOfSamples) const;
 
   inline void transformToUserSpace() {
     translateSystemToCenter_();

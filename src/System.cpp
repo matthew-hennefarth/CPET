@@ -97,10 +97,10 @@ Eigen::Vector3d System::electricFieldAt(const Eigen::Vector3d& position) const {
 }
 
 std::vector<PathSample> System::electricFieldTopologyIn(
-    int numOfThreads, const Volume& volume, const double stepsize, const int numberOfSamples) const {
+    int numOfThreads, const Volume& volume, const double stepsize,
+    const int numberOfSamples) const {
   std::vector<PathSample> sampleResults;
-  sampleResults.reserve(
-      static_cast<size_t>(numberOfSamples));
+  sampleResults.reserve(static_cast<size_t>(numberOfSamples));
 
   std::shared_ptr<spdlog::logger> thread_logger;
   if (!(thread_logger = spdlog::get("Thread"))) {
@@ -111,8 +111,8 @@ std::vector<PathSample> System::electricFieldTopologyIn(
     SPDLOG_DEBUG("Single thread...");
     int samples = numberOfSamples;
     while (samples-- > 0) {
-      sampleResults.emplace_back(sampleElectricFieldTopologyIn_(
-          volume, stepsize));
+      sampleResults.emplace_back(
+          sampleElectricFieldTopologyIn_(volume, stepsize));
     }
     SPDLOG_INFO("{} Points calculated", numberOfSamples);
   } else {
@@ -129,8 +129,7 @@ std::vector<PathSample> System::electricFieldTopologyIn(
     libguarded::plain_guarded<std::vector<PathSample>> shared_vector;
     {
       auto sharedVectorHandle = shared_vector.lock();
-      sharedVectorHandle->reserve(
-          static_cast<size_t>(numberOfSamples));
+      sharedVectorHandle->reserve(static_cast<size_t>(numberOfSamples));
     }
 
     SPDLOG_INFO("====[Initializing threads]====");

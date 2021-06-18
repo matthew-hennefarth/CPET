@@ -14,18 +14,19 @@ namespace cpet {
 class exception : public std::runtime_error {
  public:
   template <typename StringType,
-      typename = std::enable_if_t<
-          std::is_convertible_v<StringType, std::string>>>
+            typename = std::enable_if_t<
+                std::is_convertible_v<StringType, std::string>>>
   explicit exception(StringType&& what_arg)
-      : std::runtime_error(std::forward<StringType>(what_arg)) {// NOLINT(hicpp-no-array-decay,cppcoreguidelines-pro-bounds-array-to-pointer-decay)
+      : std::runtime_error(std::forward<StringType>(
+            what_arg)) {  // NOLINT(hicpp-no-array-decay,cppcoreguidelines-pro-bounds-array-to-pointer-decay)
   }
 };
 
 class value_error : public cpet::exception {
  public:
   template <typename StringType,
-      typename = std::enable_if_t<
-          std::is_convertible_v<StringType, std::string>>>
+            typename = std::enable_if_t<
+                std::is_convertible_v<StringType, std::string>>>
   explicit value_error(StringType&& what_arg)
       : cpet::exception(std::forward<StringType>(what_arg)) {}
 };
@@ -33,8 +34,8 @@ class value_error : public cpet::exception {
 class value_not_found : public cpet::exception {
  public:
   template <typename StringType,
-      typename = std::enable_if_t<
-          std::is_convertible_v<StringType, std::string>>>
+            typename = std::enable_if_t<
+                std::is_convertible_v<StringType, std::string>>>
   explicit value_not_found(StringType&& what_arg)
       : cpet::exception(std::forward<StringType>(what_arg)) {}
 };
@@ -51,8 +52,8 @@ class io_error : public cpet::exception {
 class invalid_option : public cpet::exception {
  public:
   template <typename StringType,
-      typename = std::enable_if_t<
-          std::is_convertible_v<StringType, std::string>>>
+            typename = std::enable_if_t<
+                std::is_convertible_v<StringType, std::string>>>
   explicit invalid_option(StringType&& what_arg)
       : cpet::exception(std::forward<StringType>(what_arg)) {}
 };

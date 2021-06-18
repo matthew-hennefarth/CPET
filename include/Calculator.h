@@ -45,7 +45,9 @@ class Calculator {
   void computeVolume_() const;
 
   inline void loadPointChargeTrajectory_() {
-    frameTrajectory_ = Frame::loadFramesFromFile(proteinFile_, option_.coordinatesStartIndex(), option_.coordinatesStepSize());
+    frameTrajectory_ =
+        Frame::loadFramesFromFile(proteinFile_, option_.coordinatesStartIndex(),
+                                  option_.coordinatesStepSize());
   }
 
   inline void createSystems_() {

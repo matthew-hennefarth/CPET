@@ -48,11 +48,11 @@ class AtomID {
     }
   }
 
-  inline AtomID(AtomID&&) = default;
+  inline AtomID(AtomID&&) noexcept = default;
   inline AtomID(const AtomID&) = default;
   inline ~AtomID() = default;
   inline AtomID& operator=(const AtomID&) = default;
-  inline AtomID& operator=(AtomID&&) = default;
+  inline AtomID& operator=(AtomID&&) noexcept = default;
 
   template <typename S1>
   inline AtomID& operator=(S1&& rhs) {

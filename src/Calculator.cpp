@@ -73,8 +73,8 @@ std::vector<double> Calculator::loadChargesFile_() const {
   std::vector<double> realCharges;
   util::forEachLineIn(chargeFile_, [&realCharges](const std::string& line) {
     if (util::startswith(line, "ATOM") || util::startswith(line, "HETATM")) {
-      realCharges.emplace_back(
-          std::stod(line.substr(constants::PDB_CHARGE_START, constants::PDB_CHARGE_WIDTH)));
+      realCharges.emplace_back(std::stod(line.substr(
+          constants::PDB_CHARGE_START, constants::PDB_CHARGE_WIDTH)));
     }
   });
   return realCharges;

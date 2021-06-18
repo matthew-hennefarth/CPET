@@ -5,6 +5,7 @@
 
 /* C++ STL HEADER FILES */
 #include <utility>
+#include <filesystem>
 
 /* EXTERNAL LIBRARY HEADER FILES */
 #include <spdlog/spdlog.h>
@@ -19,10 +20,10 @@ namespace cpet {
 
 void TopologyRegion::computeTopologyWith(const std::vector<System>& systems,
                                          int numberOfThreads) const {
-
   std::vector<std::vector<PathSample>> sampleResults;
 
-  if (!analysisOnly()){
+  if (!analysisOnly()) {
+    assert(volume_ != nullptr);
     SPDLOG_INFO("======[Sampling topology]======");
     SPDLOG_INFO("[Volume ]   ==>> {}", volume_->description());
     SPDLOG_INFO("[Npoints]   ==>> {}", numberOfSamples_);
@@ -35,7 +36,8 @@ void TopologyRegion::computeTopologyWith(const std::vector<System>& systems,
       std::vector<PathSample> results;
       {
         Timer t;
-        results = system.electricFieldTopologyIn(numberOfThreads, *volume_, stepSize_, numberOfSamples_);
+        results = system.electricFieldTopologyIn(numberOfThreads, *volume_,
+                                                 stepSize_, numberOfSamples_);
       }
 
       if (sampleOutput_) {
@@ -46,16 +48,15 @@ void TopologyRegion::computeTopologyWith(const std::vector<System>& systems,
     }
   }
 
-  /* Check to see if we need to be here */
   if (computeMatrix()) {
+    assert(static_cast<bool>(bins_));
+    SPDLOG_INFO("==[Computing Distance Matrix]==");
+    SPDLOG_INFO("[Bins] ==>> {} x {}", (*bins_)[0], (*bins_)[1]);
     if (sampleInput_) {
-      //sampleResults = loadSampleData_();
-      /* Load the data from disk */
+      sampleResults = loadSampleData_();
     }
+    // constructHistograms_(sampleResults);
   }
-
-
-
 }
 
 TopologyRegion cpet::TopologyRegion::fromSimple(
@@ -82,7 +83,7 @@ TopologyRegion cpet::TopologyRegion::fromSimple(
 }
 TopologyRegion TopologyRegion::fromBlock(
     const std::vector<std::string>& options) {
-  bool analysisOnly{false};                      // Determines what is required
+  bool analysisOnly{false};  // Determines what is required
 
   std::unique_ptr<Volume> vol{nullptr};
   std::optional<int> samples{std::nullopt};
@@ -90,7 +91,6 @@ TopologyRegion TopologyRegion::fromBlock(
   double stepsize = DEFAULT_STEP_SIZE;
   std::optional<std::string> sampleInput{std::nullopt};
   std::optional<std::array<int, 2>> bins{std::nullopt};
-
 
   constexpr const char* VOLUME_KEY = "volume";
   constexpr const char* SAMPLES_KEY = "samples";
@@ -129,18 +129,22 @@ TopologyRegion TopologyRegion::fromBlock(
       sampleInput = *key_options.begin();
       analysisOnly = true;
     } else if (key == BINS_KEY) {
-        if (key_options.size() < 2) {
-          if (!util::isDouble(*key_options.begin())){
-            throw cpet::invalid_option("Invalid Option: topology requires bin to be numeric");
-          }
-          bins = {std::stoi(*key_options.begin()), std::stoi(*key_options.begin())};
-        } else {
-          if (!util::isDouble(*key_options.begin()) || !util::isDouble(*(key_options.begin() + 1))) {
-            throw cpet::invalid_option(
-                "Invalid Option: topology requires bin to be numeric");
-          }
-          bins = {std::stoi(*key_options.begin()), std::stoi(*(key_options.begin()+1))};
+      if (key_options.size() < 2) {
+        if (!util::isDouble(*key_options.begin())) {
+          throw cpet::invalid_option(
+              "Invalid Option: topology requires bin to be numeric");
         }
+        bins = {std::stoi(*key_options.begin()),
+                std::stoi(*key_options.begin())};
+      } else {
+        if (!util::isDouble(*key_options.begin()) ||
+            !util::isDouble(*(key_options.begin() + 1))) {
+          throw cpet::invalid_option(
+              "Invalid Option: topology requires bin to be numeric");
+        }
+        bins = {std::stoi(*key_options.begin()),
+                std::stoi(*(key_options.begin() + 1))};
+      }
     } else {
       SPDLOG_WARN("Unknown key specified in block topology: {}", key);
     }
@@ -159,8 +163,7 @@ TopologyRegion TopologyRegion::fromBlock(
           "Invalid Option: No volume specified for topology sampling");
     }
     result.volume_ = std::move(vol);
-    result.stepSize_ = stepsize
-        ;
+    result.stepSize_ = stepsize;
     if (sampleOutput) {
       result.sampleOutput(*sampleOutput);
     }
@@ -169,7 +172,8 @@ TopologyRegion TopologyRegion::fromBlock(
   if (sampleInput) {
     result.sampleInput(*sampleInput);
     if (!bins) {
-      throw cpet::invalid_option("Invalid Option: sampleInput specified but no bins specified!");
+      throw cpet::invalid_option(
+          "Invalid Option: sampleInput specified but no bins specified!");
     }
   }
   result.bins_ = bins;
@@ -197,6 +201,42 @@ void TopologyRegion::writeSampleOutput_(const std::vector<PathSample>& data,
     SPDLOG_ERROR("Could not open file {}", file);
     throw cpet::io_error("Could not open file " + file);
   }
+}
+std::vector<std::vector<PathSample>> TopologyRegion::loadSampleData_() const {
+  SPDLOG_INFO("Loading in already-sampled data");
+  std::vector<std::vector<PathSample>> data;
+  auto nextFileName = [&, index = 0]() mutable {
+    return *sampleInput_ + '_' + std::to_string(index++) + ".top";
+  };
+  std::string filename;
+  while (std::filesystem::exists(filename = nextFileName())) {
+    SPDLOG_DEBUG("Loading in data from file {}", filename);
+    std::vector<PathSample> tmpData;
+    util::forEachLineIn(filename, [&,
+                                   linenumber = 0](const auto& line) mutable {
+      if (!line.empty() && !util::startswith(line, "#")) {
+        const auto tokens = util::split(line, ',');
+        if (tokens.size() != 2) {
+          SPDLOG_WARN(
+              "topology data file {} contains invalid number of entries on "
+              "line {}",
+              filename, linenumber);
+        } else if (std::all_of(tokens.begin(), tokens.end(), util::isDouble)) {
+          tmpData.emplace_back(
+              PathSample{std::stod(tokens.at(0)), std::stod(tokens.at(1))});
+        } else {
+          SPDLOG_WARN(
+              "topology data file {} has non-numeric types in data section in "
+              "line {}",
+              filename, linenumber);
+        }
+      }
+      ++linenumber;
+    });
+    data.emplace_back(std::move(tmpData));
+  }
+  SPDLOG_INFO("Loaded in {} topology sample files", data.size());
+  return data;
 }
 
 }  // namespace cpet
