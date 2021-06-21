@@ -233,3 +233,21 @@ TEST(tolower, substrings) {
   std::string str = "LETS' try THIS 1 chumpsss";
   EXPECT_EQ(cpet::util::tolower(str.substr(0, 4)), "lets");
 }
+
+TEST(flatten, standard) {
+  std::vector<std::vector<int>> data = {
+      {0, 1, 2},
+      {0,1},
+      {1,2,1},
+      {3, 4, 5, 5}
+  };
+  std::vector<int> expected_result = {0, 1, 2,
+                                            0,1,
+                                            1,2,1,
+                                            3, 4, 5, 5};
+  auto result = cpet::util::flatten(data);
+  ASSERT_EQ(result.size(), 12);
+
+  EXPECT_EQ(result, expected_result);
+
+}

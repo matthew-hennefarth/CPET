@@ -1,4 +1,5 @@
-set( SOURCE_FILES main.cpp Utilities.cpp System.cpp Option.cpp Calculator.cpp EFieldVolume.cpp Volume.cpp FieldLocations.cpp TopologyRegion.cpp)
+set( SOURCE_FILES main.cpp Utilities.cpp System.cpp Option.cpp Calculator.cpp EFieldVolume.cpp
+    Volume.cpp FieldLocations.cpp TopologyRegion.cpp Histogram2D.cpp)
 include_directories( ${PROJECT_SOURCE_DIR}/include )
 
 #---------------------------------------------------[Main Executable]---------------------------------------------------

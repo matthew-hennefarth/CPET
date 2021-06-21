@@ -9,12 +9,14 @@
 
 /* EXTERNAL LIBRARY HEADER FILES */
 #include <spdlog/spdlog.h>
+#include <matplot/matplot.h>
 
 /* CPET HEADER FILES */
 #include "Exceptions.h"
 #include "Utilities.h"
 #include "System.h"
 #include "Instrumentation.h"
+#include "Histogram2D.h"
 
 namespace cpet {
 
@@ -55,7 +57,7 @@ void TopologyRegion::computeTopologyWith(const std::vector<System>& systems,
     if (sampleInput_) {
       sampleResults = loadSampleData_();
     }
-    // constructHistograms_(sampleResults);
+    auto histograms = constructHistograms_(sampleResults);
   }
 }
 
@@ -237,6 +239,28 @@ std::vector<std::vector<PathSample>> TopologyRegion::loadSampleData_() const {
   }
   SPDLOG_INFO("Loaded in {} topology sample files", data.size());
   return data;
+}
+std::vector<std::vector<double>> TopologyRegion::constructHistograms_(
+    const std::vector<std::vector<PathSample>>& sampleData) const {
+  std::vector<std::vector<double>> histograms;
+
+  std::array<double, 2> xlim = {0,1.5};
+  std::array<double, 2> ylim = {0,10.0};
+
+  for (const auto& samples : sampleData) {
+    std::vector<double> curvatures; // y
+    std::vector<double> distances; // x
+
+    std::for_each(samples.begin(), samples.end(), [&]( const PathSample& sample){
+      curvatures.emplace_back(sample.curvature);
+      distances.emplace_back(sample.distance);
+    });
+
+    auto temp_histo = construct2DHistogram(distances, curvatures, *bins_, xlim, ylim);
+
+  }
+
+  return histograms;
 }
 
 }  // namespace cpet
