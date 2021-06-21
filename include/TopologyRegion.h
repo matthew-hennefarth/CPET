@@ -97,7 +97,8 @@ class TopologyRegion {
 
   [[nodiscard]] std::vector<std::vector<PathSample>> loadSampleData_() const;
 
-  [[nodiscard]] std::vector<std::vector<double>> constructHistograms_(const std::vector<std::vector<PathSample>>& sampleData) const;
+  [[nodiscard]] std::vector<std::vector<double>> constructHistograms_(
+      const std::vector<std::vector<PathSample>>& sampleData) const;
 };
 }  // namespace cpet
 #endif  // TOPOLOGYREGION_H

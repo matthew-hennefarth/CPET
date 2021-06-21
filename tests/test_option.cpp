@@ -142,7 +142,7 @@ TEST(Option, ValidTopoBox) {
   EXPECT_FALSE(tr1->sampleInput());
   EXPECT_FALSE(tr1->bins());
   EXPECT_FALSE(tr1->computeMatrix());
-  EXPECT_EQ(tr1->sampleOutput(),  "topology_sample");
+  EXPECT_EQ(tr1->sampleOutput(), "topology_sample");
 }
 
 TEST(Option, ValidTopoBoxAlign) {
@@ -171,12 +171,11 @@ TEST(Option, ValidTopoBoxAlign) {
 
   EXPECT_FALSE(tr1->sampleInput());
   EXPECT_FALSE(tr1->bins());
-  EXPECT_EQ(tr1->sampleOutput(),  "topology_sample");
+  EXPECT_EQ(tr1->sampleOutput(), "topology_sample");
   EXPECT_FALSE(tr1->computeMatrix());
 
   EXPECT_EQ(option.coordinatesStartIndex(), 0);
   EXPECT_EQ(option.coordinatesStepSize(), 1);
-
 }
 
 TEST(Option, TopoNegativeBox) {
@@ -389,7 +388,8 @@ TEST(Option, TopologyBlockNoSamples) {
 }
 
 TEST(Option, TopologyBlockHistogramSingleBin) {
-  std::string options_file = "Data/valid_options/topology_block_histo_single_bin";
+  std::string options_file =
+      "Data/valid_options/topology_block_histo_single_bin";
   ASSERT_TRUE(std::filesystem::exists(options_file));
 
   cpet::Option option;
@@ -433,7 +433,8 @@ TEST(Option, TopologyBlockHistogram) {
 }
 
 TEST(Option, TopologyBlockHistoSampleInput) {
-  std::string options_file = "Data/valid_options/topology_block_histo_sampleinput";
+  std::string options_file =
+      "Data/valid_options/topology_block_histo_sampleinput";
   ASSERT_TRUE(std::filesystem::exists(options_file));
 
   cpet::Option option;
@@ -451,7 +452,6 @@ TEST(Option, TopologyBlockHistoSampleInput) {
   EXPECT_FALSE(tr.sampleOutput());
   EXPECT_TRUE(tr.sampleInput());
   EXPECT_TRUE(tr.computeMatrix());
-
 }
 
 TEST(Option, StartStepValid) {

@@ -13,11 +13,11 @@ TEST(Histogram2D, edges) {
     EXPECT_EQ(edges[1], 1.0);
   }
   {
-    auto edges = constructEdges(0,1, 3);
+    auto edges = constructEdges(0, 1, 3);
     ASSERT_FALSE(edges.empty());
     ASSERT_EQ(edges.size(), 3);
 
-    EXPECT_NEAR(edges[0],0.3333333, 0.00001);
+    EXPECT_NEAR(edges[0], 0.3333333, 0.00001);
     EXPECT_NEAR(edges[1], 0.666666666, 0.0001);
     EXPECT_NEAR(edges[2], 1.0, 0.00000001);
   }

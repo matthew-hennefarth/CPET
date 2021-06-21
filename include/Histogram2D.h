@@ -12,7 +12,9 @@
     const std::array<int, 2>& bins, const std::array<double, 2>& xlim,
     const std::array<double, 2>& ylim) noexcept;
 
-[[nodiscard]] inline std::vector<double> constructEdges(const double min, const double max, const int bins) {
+[[nodiscard]] inline std::vector<double> constructEdges(const double min,
+                                                        const double max,
+                                                        const int bins) {
   std::vector<double> edges;
   if (bins <= 0 || max < min) {
     return edges;
@@ -20,9 +22,10 @@
 
   edges.reserve(bins);
 
-  const double bin_width = static_cast<double>(max-min)/static_cast<double>(bins);
+  const double bin_width =
+      static_cast<double>(max - min) / static_cast<double>(bins);
   double current_edge = min;
-  while((current_edge += bin_width) <= max) {
+  while ((current_edge += bin_width) <= max) {
     edges.emplace_back(current_edge);
   }
   return edges;

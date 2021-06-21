@@ -92,10 +92,10 @@ inline std::string tolower(const std::string_view str) {
   return result;
 }
 
-template<class vector>
+template <class vector>
 inline vector flatten(const std::vector<vector>& list) {
   vector result;
-  for(const auto& subList: list) {
+  for (const auto& subList : list) {
     result.insert(result.end(), subList.begin(), subList.end());
   }
   return result;
