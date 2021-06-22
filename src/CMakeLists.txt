@@ -9,6 +9,7 @@ if( CMAKE_BUILD_TYPE STREQUAL "Debug" )
   target_compile_definitions(cpet PRIVATE -DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG)
 else()
   target_compile_definitions(cpet PRIVATE -DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_INFO)
+  target_compile_definitions(cpet PRIVATE -DNDEBUG)
 endif()
 
 if(ENABLE_STATIC_LINKING)
