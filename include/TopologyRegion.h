@@ -74,7 +74,7 @@ class TopologyRegion {
     return sampleInput_;
   }
 
-  [[nodiscard]] inline void matrixOutput(const std::string& str) noexcept {
+  inline void matrixOutput(const std::string& str) noexcept {
     if (!str.empty()) {
       matrixOutput_ = str;
     }
