@@ -3,6 +3,8 @@
 #ifndef HISTOGRAM2D_H
 #define HISTOGRAM2D_H
 
+#include <math.h>
+
 #include <array>
 #include <vector>
 #include <cassert>
@@ -32,7 +34,7 @@ namespace cpet::histo {
   while ((current_edge += bin_width) <= max) {
     edges.emplace_back(current_edge);
   }
-  if (edges.size() < bins) {
+  if (static_cast<int>(edges.size()) < bins) {
     edges.emplace_back(max);
   }
   return edges;
@@ -48,6 +50,25 @@ namespace cpet::histo {
       [&](const auto& element) { return static_cast<double>(element) / sum; });
 
   return result;
+}
+
+[[nodiscard]] inline double chiDistance(
+    const std::vector<double>& normHist1,
+    const std::vector<double>& normHist2) noexcept {
+  double result = 0.0;
+  const size_t min_index = std::min(normHist1.size(), normHist2.size());
+
+  for (size_t i = 0; i < min_index; ++i) {
+    const auto f = normHist1[i];
+    const auto g = normHist2[i];
+
+    const double error = 0.0001;
+    if ((f + g) > error) {
+      const auto diff = f - g;
+      result += (diff * diff) / (f + g);
+    }
+  }
+  return result / 2.0;
 }
 }  // namespace cpet::histo
 #endif  // HISTOGRAM2D_H

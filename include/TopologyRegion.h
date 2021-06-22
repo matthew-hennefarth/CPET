@@ -91,14 +91,20 @@ class TopologyRegion {
   double stepSize_{DEFAULT_STEP_SIZE};
   std::optional<std::string> sampleOutput_{std::nullopt};
   std::optional<std::string> sampleInput_{std::nullopt};
+  std::optional<std::string> matrixOutput_{std::nullopt};
   std::optional<std::array<int, 2>> bins_{std::nullopt};
 
   void writeSampleOutput_(const std::vector<PathSample>& data, int index) const;
+
+  void writeMatrixOutput_(const std::vector<std::vector<double>>& matrix) const;
 
   [[nodiscard]] std::vector<std::vector<PathSample>> loadSampleData_() const;
 
   [[nodiscard]] std::vector<std::vector<double>> constructHistograms_(
       const std::vector<std::vector<PathSample>>& sampleData) const;
+
+  [[nodiscard]] static std::vector<std::vector<double>> constructMatrix_(
+      const std::vector<std::vector<double>>& histograms);
 };
 }  // namespace cpet
 #endif  // TOPOLOGYREGION_H

@@ -6,6 +6,7 @@
 /* C++ STL HEADER FILES */
 #include <utility>
 #include <filesystem>
+#include <iomanip>
 
 /* EXTERNAL LIBRARY HEADER FILES */
 #include <spdlog/spdlog.h>
@@ -52,11 +53,24 @@ void TopologyRegion::computeTopologyWith(const std::vector<System>& systems,
 
   if (computeMatrix()) {
     assert(static_cast<bool>(bins_));
-    SPDLOG_INFO("==[Computing Distance Matrix]==");
     if (sampleInput_) {
       sampleResults = loadSampleData_();
     }
     const auto histograms = constructHistograms_(sampleResults);
+
+    SPDLOG_INFO("==[Computing Distance Matrix]==");
+    const auto matrix = constructMatrix_(histograms);
+    SPDLOG_INFO("Distance matrix:");
+    for (const auto& row : matrix) {
+      std::stringstream output;
+      for (const auto& col : row) {
+        output << col << ' ';
+      }
+      SPDLOG_INFO(output.str());
+    }
+    if (matrixOutput_) {
+      writeMatrixOutput_(matrix);
+    }
   }
 }
 
@@ -92,6 +106,7 @@ TopologyRegion TopologyRegion::fromBlock(
   double stepsize = DEFAULT_STEP_SIZE;
   std::optional<std::string> sampleInput{std::nullopt};
   std::optional<std::array<int, 2>> bins{std::nullopt};
+  std::optional<std::string> matrixOutput{std::nullopt};
 
   constexpr const char* VOLUME_KEY = "volume";
   constexpr const char* SAMPLES_KEY = "samples";
@@ -99,6 +114,7 @@ TopologyRegion TopologyRegion::fromBlock(
   constexpr const char* SAMPLE_OUTPUT_KEY = "sampleoutput";
   constexpr const char* SAMPLE_INPUT_KEY = "sampleinput";
   constexpr const char* BINS_KEY = "bins";
+  constexpr const char* MATRIX_OUTPUT_KEY = "matrixoutput";
 
   for (const auto& line : options) {
     const auto tokens = util::split(line, ' ');
@@ -146,6 +162,8 @@ TopologyRegion TopologyRegion::fromBlock(
         bins = {std::stoi(*key_options.begin()),
                 std::stoi(*(key_options.begin() + 1))};
       }
+    } else if (key == MATRIX_OUTPUT_KEY) {
+      matrixOutput = *key_options.begin();
     } else {
       SPDLOG_WARN("Unknown key specified in block topology: {}", key);
     }
@@ -178,12 +196,14 @@ TopologyRegion TopologyRegion::fromBlock(
     }
   }
   result.bins_ = bins;
+  result.matrixOutput_ = matrixOutput;
 
   return result;
 }
 
 void TopologyRegion::writeSampleOutput_(const std::vector<PathSample>& data,
                                         int index) const {
+  assert(static_cast<bool>(sampleOutput_));
   if (!sampleOutput_) {
     return;
   }
@@ -204,7 +224,9 @@ void TopologyRegion::writeSampleOutput_(const std::vector<PathSample>& data,
   }
 }
 std::vector<std::vector<PathSample>> TopologyRegion::loadSampleData_() const {
-  SPDLOG_INFO("Loading in already-sampled data");
+  assert(static_cast<bool>(sampleInput_));
+
+  SPDLOG_INFO("Loading in pre-sampled data with prefix {}", *sampleInput_);
   std::vector<std::vector<PathSample>> data;
   auto nextFileName = [&, index = 0]() mutable {
     return *sampleInput_ + '_' + std::to_string(index++) + ".top";
@@ -241,6 +263,7 @@ std::vector<std::vector<PathSample>> TopologyRegion::loadSampleData_() const {
 }
 std::vector<std::vector<double>> TopologyRegion::constructHistograms_(
     const std::vector<std::vector<PathSample>>& sampleData) const {
+  Timer t;
   std::vector<std::vector<double>> histograms;
 
   const auto sampleDataFlatten = util::flatten(sampleData);
@@ -282,6 +305,59 @@ std::vector<std::vector<double>> TopologyRegion::constructHistograms_(
   }
 
   return histograms;
+}
+std::vector<std::vector<double>> TopologyRegion::constructMatrix_(
+    const std::vector<std::vector<double>>& histograms) {
+  Timer t;
+  std::vector<std::vector<double>> result;
+  result.reserve(histograms.size());
+
+  //  for(const auto& row : histograms){
+  //    std::vector<double> tempRow;
+  //    tempRow.reserve(histograms.size());
+  //    for(const auto& col : histograms) {
+  //      tempRow.emplace_back(histo::chiDistance(row, col));
+  //    }
+  //    result.emplace_back(std::move(tempRow));
+  //  }
+
+  std::transform(
+      histograms.begin(), histograms.end(), std::back_inserter(result),
+      [&](const auto& h1) {
+        std::vector<double> tempRow;
+        tempRow.reserve(histograms.size());
+        std::transform(
+            histograms.begin(), histograms.end(), std::back_inserter(tempRow),
+            [&](const auto& h2) { return histo::chiDistance(h1, h2); });
+        return tempRow;
+      });
+
+  return result;
+}
+void TopologyRegion::writeMatrixOutput_(
+    const std::vector<std::vector<double>>& matrix) const {
+  assert(static_cast<bool>(matrixOutput_));
+  if (!matrixOutput_) {
+    return;
+  }
+  SPDLOG_DEBUG("Writing matrix results");
+
+  const auto file = *matrixOutput_;
+  std::ofstream outFile(file, std::ios::out);
+  if (outFile.is_open()) {
+    outFile << "#Bins: " << (*bins_)[0] << 'x' << (*bins_)[1] << '\n';
+    outFile << std::fixed << std::setprecision(4);
+    for (const auto& row : matrix) {
+      for (const auto& col : row) {
+        outFile << col << ' ';
+      }
+      outFile << '\n';
+    }
+    outFile << std::flush;
+  } else {
+    SPDLOG_ERROR("Could not open file {}", file);
+    throw cpet::io_error("Could not open file " + file);
+  }
 }
 
 }  // namespace cpet
