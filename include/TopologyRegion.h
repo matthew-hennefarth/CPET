@@ -74,6 +74,12 @@ class TopologyRegion {
     return sampleInput_;
   }
 
+  [[nodiscard]] inline void matrixOutput(const std::string& str) noexcept {
+    if (!str.empty()) {
+      matrixOutput_ = str;
+    }
+  }
+
   [[nodiscard]] constexpr const std::optional<std::array<int, 2>>& bins()
       const noexcept {
     return bins_;

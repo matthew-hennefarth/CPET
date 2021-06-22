@@ -196,8 +196,9 @@ TopologyRegion TopologyRegion::fromBlock(
     }
   }
   result.bins_ = bins;
-  result.matrixOutput_ = matrixOutput;
-
+  if (matrixOutput) {
+    result.matrixOutput(*matrixOutput)
+  }
   return result;
 }
 
