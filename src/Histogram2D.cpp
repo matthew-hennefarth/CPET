@@ -5,12 +5,14 @@
 
 #include "Histogram2D.h"
 
-namespace cpet::histo{
+namespace cpet::histo {
 std::vector<std::vector<int>> construct2DHistogram(
     const std::vector<double>& x, const std::vector<double>& y,
     const std::array<int, 2>& bins, const std::array<double, 2>& xlim,
     const std::array<double, 2>& ylim) noexcept {
-  std::vector<std::vector<int>> result(static_cast<size_t>(bins[1]), std::vector<int>(static_cast<size_t>(bins[0]), 0));
+  std::vector<std::vector<int>> result(
+      static_cast<size_t>(bins[1]),
+      std::vector<int>(static_cast<size_t>(bins[0]), 0));
 
   auto xEdges = constructEdges(xlim[0], xlim[1], bins[0]);
   auto yEdges = constructEdges(ylim[0], ylim[1], bins[0]);
@@ -49,4 +51,4 @@ std::vector<std::vector<int>> construct2DHistogram(
   return result;
 }
 
-}
+}  // namespace cpet::histo

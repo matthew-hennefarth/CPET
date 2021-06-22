@@ -245,15 +245,21 @@ std::vector<std::vector<double>> TopologyRegion::constructHistograms_(
 
   const auto sampleDataFlatten = util::flatten(sampleData);
 
-  const auto [xmin, xmax] = std::minmax_element(sampleDataFlatten.begin(), sampleDataFlatten.end(), [](const auto& ps1, const auto& ps2){
-    return ps1.distance < ps2.distance;
-  });
-  const auto [ymin, ymax] = std::minmax_element(sampleDataFlatten.begin(), sampleDataFlatten.end(), [](const auto& ps1, const auto& ps2){
-    return ps1.curvature < ps2.curvature;
-  });
+  const auto [xmin, xmax] =
+      std::minmax_element(sampleDataFlatten.begin(), sampleDataFlatten.end(),
+                          [](const auto& ps1, const auto& ps2) {
+                            return ps1.distance < ps2.distance;
+                          });
+  const auto [ymin, ymax] =
+      std::minmax_element(sampleDataFlatten.begin(), sampleDataFlatten.end(),
+                          [](const auto& ps1, const auto& ps2) {
+                            return ps1.curvature < ps2.curvature;
+                          });
 
-  const std::array xlim = {round(xmin->distance*1000.0)/1000.0, round(xmax->distance*1000.0)/1000.0};
-  std::array ylim = {round(ymin->distance*1000.0)/1000.0, round(ymax->distance*1000.0)/1000.0};
+  const std::array xlim = {round(xmin->distance * 1000.0) / 1000.0,
+                           round(xmax->distance * 1000.0) / 1000.0};
+  std::array ylim = {round(ymin->distance * 1000.0) / 1000.0,
+                     round(ymax->distance * 1000.0) / 1000.0};
 
   SPDLOG_INFO("====[Computing  Histograms]====");
   SPDLOG_INFO("[Bins] ==>> {} x {}", (*bins_)[0], (*bins_)[1]);

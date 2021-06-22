@@ -79,7 +79,8 @@ TEST(Histogram2D, histogram2DSimple) {
     std::vector<double> x_data = {0, 1, 1, 2};
     std::vector<double> y_data = {0, 1, 1, 2};
 
-    auto result = cpet::histo::construct2DHistogram(x_data, y_data, {2, 2}, {0, 2}, {0, 2});
+    auto result = cpet::histo::construct2DHistogram(x_data, y_data, {2, 2},
+                                                    {0, 2}, {0, 2});
 
     ASSERT_FALSE(result.empty());
     ASSERT_EQ(result.size(), 2);
@@ -96,7 +97,8 @@ TEST(Histogram2D, histogram2DSimple) {
     std::vector<double> x_data = {0, 1, 1, 1.5, 2, 1.5, -1};
     std::vector<double> y_data = {0, 1, 1.5, 0, 2, 2.1, 1.4};
 
-    auto result = cpet::histo::construct2DHistogram(x_data, y_data, {2, 2}, {0, 2}, {0, 2});
+    auto result = cpet::histo::construct2DHistogram(x_data, y_data, {2, 2},
+                                                    {0, 2}, {0, 2});
 
     ASSERT_FALSE(result.empty());
     ASSERT_EQ(result.size(), 2);

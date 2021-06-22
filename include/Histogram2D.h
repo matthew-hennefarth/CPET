@@ -26,14 +26,13 @@ namespace cpet::histo {
 
   edges.reserve(static_cast<size_t>(bins));
 
-  const double bin_width =
-      (max - min) / static_cast<double>(bins);
+  const double bin_width = (max - min) / static_cast<double>(bins);
   double current_edge = min;
 
   while ((current_edge += bin_width) <= max) {
     edges.emplace_back(current_edge);
   }
-  if(edges.size() < bins) {
+  if (edges.size() < bins) {
     edges.emplace_back(max);
   }
   return edges;
@@ -50,5 +49,5 @@ namespace cpet::histo {
 
   return result;
 }
-}
+}  // namespace cpet::histo
 #endif  // HISTOGRAM2D_H
