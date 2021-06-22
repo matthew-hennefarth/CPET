@@ -45,7 +45,7 @@ void TopologyRegion::computeTopologyWith(const std::vector<System>& systems,
       if (sampleOutput_) {
         writeSampleOutput_(results, index);
       }
-      sampleResults.emplace_back(results);
+      sampleResults.emplace_back(std::move(results));
       ++index;
     }
   }
@@ -53,11 +53,10 @@ void TopologyRegion::computeTopologyWith(const std::vector<System>& systems,
   if (computeMatrix()) {
     assert(static_cast<bool>(bins_));
     SPDLOG_INFO("==[Computing Distance Matrix]==");
-    SPDLOG_INFO("[Bins] ==>> {} x {}", (*bins_)[0], (*bins_)[1]);
     if (sampleInput_) {
       sampleResults = loadSampleData_();
     }
-    auto histograms = constructHistograms_(sampleResults);
+    const auto histograms = constructHistograms_(sampleResults);
   }
 }
 
@@ -244,8 +243,22 @@ std::vector<std::vector<double>> TopologyRegion::constructHistograms_(
     const std::vector<std::vector<PathSample>>& sampleData) const {
   std::vector<std::vector<double>> histograms;
 
-  std::array<double, 2> xlim = {0, 1.5};
-  std::array<double, 2> ylim = {0, 10.0};
+  const auto sampleDataFlatten = util::flatten(sampleData);
+
+  const auto [xmin, xmax] = std::minmax_element(sampleDataFlatten.begin(), sampleDataFlatten.end(), [](const auto& ps1, const auto& ps2){
+    return ps1.distance < ps2.distance;
+  });
+  const auto [ymin, ymax] = std::minmax_element(sampleDataFlatten.begin(), sampleDataFlatten.end(), [](const auto& ps1, const auto& ps2){
+    return ps1.curvature < ps2.curvature;
+  });
+
+  const std::array xlim = {round(xmin->distance*1000.0)/1000.0, round(xmax->distance*1000.0)/1000.0};
+  std::array ylim = {round(ymin->distance*1000.0)/1000.0, round(ymax->distance*1000.0)/1000.0};
+
+  SPDLOG_INFO("====[Computing  Histograms]====");
+  SPDLOG_INFO("[Bins] ==>> {} x {}", (*bins_)[0], (*bins_)[1]);
+  SPDLOG_INFO("[XLim] ==>> [{}, {}]", xlim[0], xlim[1]);
+  SPDLOG_INFO("[YLim] ==>> [{}, {}]", ylim[0], ylim[1]);
 
   for (const auto& samples : sampleData) {
     std::vector<double> curvatures;  // y
@@ -257,8 +270,9 @@ std::vector<std::vector<double>> TopologyRegion::constructHistograms_(
                     distances.emplace_back(sample.distance);
                   });
 
-    auto temp_histo =
-        construct2DHistogram(distances, curvatures, *bins_, xlim, ylim);
+    const auto temp_histo =
+        histo::construct2DHistogram(distances, curvatures, *bins_, xlim, ylim);
+    histograms.emplace_back(histo::normalize(util::flatten(temp_histo)));
   }
 
   return histograms;

@@ -1,13 +1,16 @@
 // Copyright(c) 2020-Present, Matthew R. Hennefarth
 // Distributed under the MIT License (http://opensource.org/licenses/MIT)
 
+#include <spdlog/spdlog.h>
+
 #include "Histogram2D.h"
 
+namespace cpet::histo{
 std::vector<std::vector<int>> construct2DHistogram(
     const std::vector<double>& x, const std::vector<double>& y,
     const std::array<int, 2>& bins, const std::array<double, 2>& xlim,
     const std::array<double, 2>& ylim) noexcept {
-  std::vector<std::vector<int>> result(bins[1], std::vector<int>(bins[0], 0));
+  std::vector<std::vector<int>> result(static_cast<size_t>(bins[1]), std::vector<int>(static_cast<size_t>(bins[0]), 0));
 
   auto xEdges = constructEdges(xlim[0], xlim[1], bins[0]);
   auto yEdges = constructEdges(ylim[0], ylim[1], bins[0]);
@@ -21,7 +24,7 @@ std::vector<std::vector<int>> construct2DHistogram(
     return value < ylim[0] || value > ylim[1];
   };
 
-  for (int i = 0; i < numberOfElements; i++) {
+  for (size_t i = 0; i < numberOfElements; i++) {
     const double x_value = x[i];
     const double y_value = y[i];
 
@@ -38,10 +41,12 @@ std::vector<std::vector<int>> construct2DHistogram(
                      [&](const auto& edge) { return y_value <= edge; });
     assert(yEdge != yEdges.end());
 
-    const auto xIndex = xEdge - xEdges.begin();
-    const auto yIndex = yEdge - yEdges.begin();
+    const auto xIndex = static_cast<size_t>(xEdge - xEdges.begin());
+    const auto yIndex = static_cast<size_t>(yEdge - yEdges.begin());
     ++result[yIndex][xIndex];
   }
 
   return result;
+}
+
 }
