@@ -257,6 +257,7 @@ std::vector<std::vector<PathSample>> TopologyRegion::loadSampleData_() const {
       }
       ++linenumber;
     });
+    SPDLOG_INFO("Loaded file: {}", filename);
     data.emplace_back(std::move(tmpData));
   }
   SPDLOG_INFO("Loaded in {} topology sample files", data.size());
@@ -312,15 +313,6 @@ std::vector<std::vector<double>> TopologyRegion::constructMatrix_(
   Timer t;
   std::vector<std::vector<double>> result;
   result.reserve(histograms.size());
-
-  //  for(const auto& row : histograms){
-  //    std::vector<double> tempRow;
-  //    tempRow.reserve(histograms.size());
-  //    for(const auto& col : histograms) {
-  //      tempRow.emplace_back(histo::chiDistance(row, col));
-  //    }
-  //    result.emplace_back(std::move(tempRow));
-  //  }
 
   std::transform(
       histograms.begin(), histograms.end(), std::back_inserter(result),
