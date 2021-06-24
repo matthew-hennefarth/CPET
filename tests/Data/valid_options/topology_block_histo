@@ -1,0 +1,6 @@
+%topology
+  volume box 1 1 1 
+  samples 100
+  stepSize 0.00001
+  bins 200 200
+end

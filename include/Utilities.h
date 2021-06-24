@@ -91,5 +91,15 @@ inline std::string tolower(const std::string_view str) {
                  [](const char& c) { return std::tolower(c); });
   return result;
 }
+
+template <class vector>
+inline vector flatten(const std::vector<vector>& list) {
+  vector result;
+  for (const auto& subList : list) {
+    result.insert(result.end(), subList.begin(), subList.end());
+  }
+  return result;
+}
+
 }  // namespace cpet::util
 #endif  // UTILITIES_H

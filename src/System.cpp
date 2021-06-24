@@ -97,10 +97,10 @@ Eigen::Vector3d System::electricFieldAt(const Eigen::Vector3d& position) const {
 }
 
 std::vector<PathSample> System::electricFieldTopologyIn(
-    int numOfThreads, const TopologyRegion& topologicalRegion) const {
+    int numOfThreads, const Volume& volume, const double stepsize,
+    const int numberOfSamples) const {
   std::vector<PathSample> sampleResults;
-  sampleResults.reserve(
-      static_cast<size_t>(topologicalRegion.numberOfSamples()));
+  sampleResults.reserve(static_cast<size_t>(numberOfSamples));
 
   std::shared_ptr<spdlog::logger> thread_logger;
   if (!(thread_logger = spdlog::get("Thread"))) {
@@ -109,12 +109,12 @@ std::vector<PathSample> System::electricFieldTopologyIn(
 
   if (numOfThreads == 1) {
     SPDLOG_DEBUG("Single thread...");
-    int samples = topologicalRegion.numberOfSamples();
+    int samples = numberOfSamples;
     while (samples-- > 0) {
-      sampleResults.emplace_back(sampleElectricFieldTopologyIn_(
-          topologicalRegion.volume(), topologicalRegion.stepSize()));
+      sampleResults.emplace_back(
+          sampleElectricFieldTopologyIn_(volume, stepsize));
     }
-    SPDLOG_INFO("{} Points calculated", topologicalRegion.numberOfSamples());
+    SPDLOG_INFO("{} Points calculated", numberOfSamples);
   } else {
     SPDLOG_DEBUG("Multi-threads: {}", numOfThreads);
 #if SPDLOG_ACTIVE_LEVEL == SPDLOG_LEVEL_DEBUG
@@ -125,24 +125,21 @@ std::vector<PathSample> System::electricFieldTopologyIn(
 
     /* Initialize thread-safe data types */
     SPDLOG_DEBUG("Initializing data structures...");
-    std::atomic_int samples = topologicalRegion.numberOfSamples();
+    std::atomic_int samples = numberOfSamples;
     libguarded::plain_guarded<std::vector<PathSample>> shared_vector;
     {
       auto sharedVectorHandle = shared_vector.lock();
-      sharedVectorHandle->reserve(
-          static_cast<size_t>(topologicalRegion.numberOfSamples()));
+      sharedVectorHandle->reserve(static_cast<size_t>(numberOfSamples));
     }
 
     SPDLOG_INFO("====[Initializing threads]====");
     {
-      const auto thread_work = [&samples, &shared_vector, &topologicalRegion,
-                                this]() {
+      const auto thread_work = [&, this]() {
         auto this_thread_logger = spdlog::get("Thread");
         this_thread_logger->info("Spinning up...");
         int completed = 0;
         while (samples-- > 0) {
-          auto s = sampleElectricFieldTopologyIn_(topologicalRegion.volume(),
-                                                  topologicalRegion.stepSize());
+          auto s = sampleElectricFieldTopologyIn_(volume, stepsize);
           {
             auto vector_handler = shared_vector.lock();
             vector_handler->push_back(s);

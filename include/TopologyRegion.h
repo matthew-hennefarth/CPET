@@ -23,6 +23,7 @@ class System;
 
 class TopologyRegion {
  public:
+  TopologyRegion() = default;
   inline TopologyRegion(std::unique_ptr<Volume> vol, const int samples,
                         const double stepSize) noexcept
       : volume_(std::move(vol)),
@@ -37,8 +38,12 @@ class TopologyRegion {
   void computeTopologyWith(const std::vector<System>& systems,
                            int numberOfThreads) const;
 
-  [[nodiscard]] inline const Volume& volume() const noexcept {
-    return *volume_;
+  [[nodiscard]] constexpr bool computeMatrix() const noexcept {
+    return static_cast<bool>(bins_);
+  }
+
+  [[nodiscard]] constexpr bool analysisOnly() const noexcept {
+    return static_cast<bool>(sampleInput_);
   }
 
   [[nodiscard]] constexpr int numberOfSamples() const noexcept {
@@ -58,6 +63,28 @@ class TopologyRegion {
     return sampleOutput_;
   }
 
+  inline void sampleInput(const std::string& str) noexcept {
+    if (!str.empty()) {
+      sampleInput_ = str;
+    }
+  }
+
+  [[nodiscard]] constexpr const std::optional<std::string>& sampleInput()
+      const noexcept {
+    return sampleInput_;
+  }
+
+  inline void matrixOutput(const std::string& str) noexcept {
+    if (!str.empty()) {
+      matrixOutput_ = str;
+    }
+  }
+
+  [[nodiscard]] constexpr const std::optional<std::array<int, 2>>& bins()
+      const noexcept {
+    return bins_;
+  }
+
   [[nodiscard]] static TopologyRegion fromSimple(
       const std::vector<std::string>& options);
 
@@ -65,12 +92,25 @@ class TopologyRegion {
       const std::vector<std::string>& options);
 
  private:
-  std::unique_ptr<Volume> volume_;
+  std::unique_ptr<Volume> volume_{nullptr};
   int numberOfSamples_;
   double stepSize_{DEFAULT_STEP_SIZE};
   std::optional<std::string> sampleOutput_{std::nullopt};
+  std::optional<std::string> sampleInput_{std::nullopt};
+  std::optional<std::string> matrixOutput_{std::nullopt};
+  std::optional<std::array<int, 2>> bins_{std::nullopt};
 
   void writeSampleOutput_(const std::vector<PathSample>& data, int index) const;
+
+  void writeMatrixOutput_(const std::vector<std::vector<double>>& matrix) const;
+
+  [[nodiscard]] std::vector<std::vector<PathSample>> loadSampleData_() const;
+
+  [[nodiscard]] std::vector<std::vector<double>> constructHistograms_(
+      const std::vector<std::vector<PathSample>>& sampleData) const;
+
+  [[nodiscard]] static std::vector<std::vector<double>> constructMatrix_(
+      const std::vector<std::vector<double>>& histograms);
 };
 }  // namespace cpet
 #endif  // TOPOLOGYREGION_H

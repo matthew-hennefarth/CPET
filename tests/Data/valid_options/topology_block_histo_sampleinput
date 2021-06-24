@@ -1,0 +1,4 @@
+%topology
+  sampleInput mdata
+  bins 75 100
+  end

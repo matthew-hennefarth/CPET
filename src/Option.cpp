@@ -11,9 +11,6 @@
 
 namespace cpet {
 
-constexpr char BLOCK_START_IDENTIFIER = '%';
-constexpr const char* BLOCK_END_SEQUENCE = "end";
-
 Option::Option(const std::string& optionFile) {
   loadOptionsDataFromFile_(optionFile);
   parseSimpleOptions_();
@@ -21,6 +18,9 @@ Option::Option(const std::string& optionFile) {
 }
 
 void Option::loadOptionsDataFromFile_(const std::string& optionFile) {
+  constexpr char BLOCK_START_IDENTIFIER = '%';
+  constexpr const char* BLOCK_END_SEQUENCE = "end";
+
   bool inBlock = false;
   std::vector<std::string> blocktmp;
   std::string currentBlockKey{};
@@ -90,15 +90,15 @@ void Option::loadOptionsDataFromFile_(const std::string& optionFile) {
   }
 #if SPDLOG_ACTIVE_LEVEL == SPDLOG_LEVEL_DEBUG
   SPDLOG_DEBUG("Options parsed into");
-  SPDLOG_DEBUG("Simple:\n");
+  SPDLOG_DEBUG("Simple:");
   for (const auto& str : simpleOptions_) {
-    SPDLOG_DEBUG(str);
+    SPDLOG_DEBUG("\t{}", str);
   }
-  SPDLOG_DEBUG("\nBlock:\n");
+  SPDLOG_DEBUG("\nBlock:");
   for (const auto& [key, value] : blockOptions_) {
-    SPDLOG_DEBUG("key: {}", key);
+    SPDLOG_DEBUG("\tkey: {}", key);
     for (const auto& str : value) {
-      SPDLOG_DEBUG(str);
+      SPDLOG_DEBUG("\t\t{}", str);
     }
   }
 #endif
@@ -107,10 +107,13 @@ void Option::loadOptionsDataFromFile_(const std::string& optionFile) {
 void Option::parseSimpleOptions_() {
   const std::unordered_map<std::string,
                            void (Option::*)(const std::vector<std::string>&)>
-      parseSimpleOptionsMap = {{ALIGN_KEY, &Option::parseAlignSimple_},
-                               {TOPOLOGY_KEY, &Option::parseTopologySimple_},
-                               {FIELD_KEY, &Option::parseFieldSimple_},
-                               {PLOT_3D_KEY, &Option::parsePlot3dSimple_}};
+      parseSimpleOptionsMap = {
+          {ALIGN_KEY, &Option::parseAlignSimple_},
+          {TOPOLOGY_KEY, &Option::parseTopologySimple_},
+          {FIELD_KEY, &Option::parseFieldSimple_},
+          {PLOT_3D_KEY, &Option::parsePlot3dSimple_},
+          {COORDINATE_START_INDEX_KEY, &Option::parseCoordinateStartSimple_},
+          {COORDINATE_SKIP_INDEX_KEY, &Option::parseCoordinateSkipSimple_}};
 
   SPDLOG_DEBUG("Parsing simple options");
 

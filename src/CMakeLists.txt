@@ -1,4 +1,5 @@
-set( SOURCE_FILES main.cpp Utilities.cpp System.cpp Option.cpp Calculator.cpp EFieldVolume.cpp Volume.cpp FieldLocations.cpp TopologyRegion.cpp)
+set( SOURCE_FILES main.cpp Utilities.cpp System.cpp Option.cpp Calculator.cpp EFieldVolume.cpp
+    Volume.cpp FieldLocations.cpp TopologyRegion.cpp Histogram2D.cpp)
 include_directories( ${PROJECT_SOURCE_DIR}/include )
 
 #---------------------------------------------------[Main Executable]---------------------------------------------------
@@ -8,6 +9,7 @@ if( CMAKE_BUILD_TYPE STREQUAL "Debug" )
   target_compile_definitions(cpet PRIVATE -DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG)
 else()
   target_compile_definitions(cpet PRIVATE -DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_INFO)
+  target_compile_definitions(cpet PRIVATE -DNDEBUG)
 endif()
 
 if(ENABLE_STATIC_LINKING)

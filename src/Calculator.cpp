@@ -15,15 +15,9 @@
 #include "Instrumentation.h"
 #include "System.h"
 #include "Utilities.h"
+#include "Constants.h"
 
 namespace cpet {
-
-constexpr int PDB_XCOORD_START = 31;
-constexpr int PDB_YCOORD_START = 39;
-constexpr int PDB_ZCOORD_START = 47;
-constexpr int PDB_CHARGE_START = 55;
-constexpr int PDB_COORD_WIDTH = 8;
-constexpr int PDB_CHARGE_WIDTH = 8;
 
 Calculator::Calculator(std::string proteinFile, const std::string& optionFile,
                        std::string chargesFile, int nThreads)
@@ -74,37 +68,13 @@ void Calculator::computeVolume_() const {
       [this](const auto& volume) { volume.computeVolumeWith(systems_); });
 }
 
-void Calculator::loadPointChargeTrajectory_() {
-  SPDLOG_DEBUG("Loading point charge trajectory from {} ...", proteinFile_);
-  std::vector<PointCharge> tmpHolder;
-  util::forEachLineIn(
-      proteinFile_, [this, &tmpHolder](const std::string& line) {
-        if (util::startswith(line, "ENDMDL")) {
-          frameTrajectory_.emplace_back(tmpHolder);
-          tmpHolder.clear();
-        } else if (util::startswith(line, "ATOM") ||
-                   util::startswith(line, "HETATM")) {
-          tmpHolder.emplace_back(
-              Eigen::Vector3d(
-                  {std::stod(line.substr(PDB_XCOORD_START, PDB_COORD_WIDTH)),
-                   std::stod(line.substr(PDB_YCOORD_START, PDB_COORD_WIDTH)),
-                   std::stod(line.substr(PDB_ZCOORD_START, PDB_COORD_WIDTH))}),
-              std::stod(line.substr(PDB_CHARGE_START, PDB_CHARGE_WIDTH)),
-              AtomID::generateID(line));
-        }
-      });
-  if (!tmpHolder.empty()) {
-    frameTrajectory_.emplace_back(tmpHolder);
-  }
-}
-
 std::vector<double> Calculator::loadChargesFile_() const {
   SPDLOG_DEBUG("Loading charges from external file {} ...", chargeFile_);
   std::vector<double> realCharges;
   util::forEachLineIn(chargeFile_, [&realCharges](const std::string& line) {
     if (util::startswith(line, "ATOM") || util::startswith(line, "HETATM")) {
-      realCharges.emplace_back(
-          std::stod(line.substr(PDB_CHARGE_START, PDB_CHARGE_WIDTH)));
+      realCharges.emplace_back(std::stod(line.substr(
+          constants::PDB_CHARGE_START, constants::PDB_CHARGE_WIDTH)));
     }
   });
   return realCharges;

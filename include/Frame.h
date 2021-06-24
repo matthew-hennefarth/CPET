@@ -16,6 +16,7 @@
 /* CPET HEADER FILES */
 #include "PointCharge.h"
 #include "Utilities.h"
+#include "Constants.h"
 
 namespace cpet {
 
@@ -85,6 +86,43 @@ class Frame {
 
   inline void push_Back(PointCharge&& value) {
     pointCharges_.push_back(std::move(value));
+  }
+
+  [[nodiscard]] inline static std::vector<Frame> loadFramesFromFile(
+      const std::string& file, const int start, const int skip) {
+    SPDLOG_DEBUG("Loading point charge trajectory from {} ...", file);
+    std::vector<PointCharge> tmpHolder;
+    std::vector<Frame> frameTrajectory;
+    util::forEachLineIn(
+        file, [&, structureIndex = 0](const std::string& line) mutable {
+          if (structureIndex < start || (start - structureIndex) % skip != 0) {
+            /* No need to collect frames */
+            if (util::startswith(line, "ENDMDL")) {
+              ++structureIndex;
+            }
+          } else if (util::startswith(line, "ENDMDL")) {
+            frameTrajectory.emplace_back(tmpHolder);
+            tmpHolder.clear();
+            ++structureIndex;
+          } else if (util::startswith(line, "ATOM") ||
+                     util::startswith(line, "HETATM")) {
+            tmpHolder.emplace_back(
+                Eigen::Vector3d(
+                    {std::stod(line.substr(constants::PDB_XCOORD_START,
+                                           constants::PDB_COORD_WIDTH)),
+                     std::stod(line.substr(constants::PDB_YCOORD_START,
+                                           constants::PDB_COORD_WIDTH)),
+                     std::stod(line.substr(constants::PDB_ZCOORD_START,
+                                           constants::PDB_COORD_WIDTH))}),
+                std::stod(line.substr(constants::PDB_CHARGE_START,
+                                      constants::PDB_CHARGE_WIDTH)),
+                AtomID::generateID(line));
+          }
+        });
+    if (!tmpHolder.empty()) {
+      frameTrajectory.emplace_back(tmpHolder);
+    }
+    return frameTrajectory;
   }
 
  private:

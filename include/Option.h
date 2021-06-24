@@ -27,6 +27,8 @@ constexpr const char* ALIGN_KEY = "align";
 constexpr const char* TOPOLOGY_KEY = "topology";
 constexpr const char* FIELD_KEY = "field";
 constexpr const char* PLOT_3D_KEY = "plot3d";
+constexpr const char* COORDINATE_START_INDEX_KEY = "coordinatesstart";
+constexpr const char* COORDINATE_SKIP_INDEX_KEY = "coordinatesskip";
 
 class Option {
  public:
@@ -69,6 +71,14 @@ class Option {
     return direction2ID_;
   }
 
+  [[nodiscard]] constexpr const int& coordinatesStartIndex() const noexcept {
+    return coordinatesStartIndex_;
+  }
+
+  [[nodiscard]] constexpr const int& coordinatesStepSize() const noexcept {
+    return coordinatesStepSize_;
+  }
+
  private:
   std::vector<FieldLocations> calculateFieldLocations_;
   std::vector<EFieldVolume> calculateEFieldVolumes_;
@@ -76,6 +86,8 @@ class Option {
   AtomID centerID_{AtomID::Constants::origin};
   AtomID direction1ID_{AtomID::Constants::e1};
   AtomID direction2ID_{AtomID::Constants::e2};
+  int coordinatesStartIndex_{0};
+  int coordinatesStepSize_{1};
   std::vector<std::string> simpleOptions_;
   std::vector<std::pair<std::string, std::vector<std::string>>> blockOptions_;
 
@@ -94,6 +106,40 @@ class Option {
     if (options.size() > 1) {
       direction1ID_ = options.at(1);
       direction2ID_ = options.at(2);
+    }
+  }
+
+  inline void parseCoordinateStartSimple_(
+      const std::vector<std::string>& options) {
+    if (options.empty()) {
+      SPDLOG_WARN("No parameters specified for coordinateStart!");
+      return;
+    }
+    if (!util::isDouble(*options.begin())) {
+      throw cpet::invalid_option(
+          "Invalid Option: coordinateStart option should be numeric");
+    }
+    coordinatesStartIndex_ = std::stoi(*options.begin());
+    if (coordinatesStartIndex_ < 0) {
+      throw cpet::invalid_option(
+          "Invalid Option: coordinateStart option should be >= 0");
+    }
+  }
+
+  inline void parseCoordinateSkipSimple_(
+      const std::vector<std::string>& options) {
+    if (options.empty()) {
+      SPDLOG_WARN("No parameters specified for coordinateSkip!");
+      return;
+    }
+    if (!util::isDouble(*options.begin())) {
+      throw cpet::invalid_option(
+          "Invalid Option: coordinateSkip option should be numeric");
+    }
+    coordinatesStepSize_ = std::stoi(*options.begin());
+    if (coordinatesStepSize_ <= 0) {
+      throw cpet::invalid_option(
+          "Invalid Option: coordinateSkip option should be > 0");
     }
   }
 
