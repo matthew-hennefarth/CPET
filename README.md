@@ -15,7 +15,7 @@ On Linux, gnuplot should be in your package manager repo's already. For example 
 
 ## Installation
 ### Download Binaries
-Binaries (version 0.3.1) are available for [Linux](https://github.com/matthew-hennefarth/CPET/releases/download/v0.3.1/cpet_Linux-x86_64) (x86_64 architecture) and [MacOSX](https://github.com/matthew-hennefarth/CPET/releases/download/v0.3.1/cpet_MacOSX-ARM64) (ARM 64, 'Apple Silicon'). Linux binaries are fully statically linked; however, MacOS binaries are still dynamically linked to system libraries. If you receive an error such as 
+Binaries (version 0.4.0) are available for [Linux](https://github.com/matthew-hennefarth/CPET/releases/download/v0.4.0/cpet_Linux-x86_64) (x86_64 architecture) and [MacOSX](https://github.com/matthew-hennefarth/CPET/releases/download/v0.4.0/cpet_MacOSX-ARM64) (ARM 64, 'Apple Silicon'). Linux binaries are fully statically linked; however, MacOS binaries are still dynamically linked to system libraries. If you receive an error such as 
 
     /usr/lib64/libstdc++.so.6: version `GLIBCXX_3.4.26' not found
 
