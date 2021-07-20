@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(CPET VERSION 0.4.0)
+project(CPET VERSION 0.4.1)
 if( NOT CMAKE_BUILD_TYPE )
   message("Setting to CMAKE_BUILD_TYPE to Release")
   set(CMAKE_BUILD_TYPE Release)
