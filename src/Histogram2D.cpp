@@ -15,7 +15,7 @@ std::vector<std::vector<int>> construct2DHistogram(
       std::vector<int>(static_cast<size_t>(bins[0]), 0));
 
   auto xEdges = constructEdges(xlim[0], xlim[1], bins[0]);
-  auto yEdges = constructEdges(ylim[0], ylim[1], bins[0]);
+  auto yEdges = constructEdges(ylim[0], ylim[1], bins[1]);
 
   const auto numberOfElements = std::min(x.size(), y.size());
 
