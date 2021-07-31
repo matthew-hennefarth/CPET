@@ -243,3 +243,12 @@ TEST(flatten, standard) {
 
   EXPECT_EQ(result, expected_result);
 }
+
+TEST(endswith, normal) {
+  EXPECT_TRUE(cpet::util::endswith("hello", "o"));
+  EXPECT_TRUE(cpet::util::endswith("hello", "ello"));
+  EXPECT_TRUE(cpet::util::endswith("hello", "hello"));
+  EXPECT_FALSE(cpet::util::endswith("hello", "hhello"));
+  EXPECT_TRUE(cpet::util::endswith("something", ""));
+  EXPECT_FALSE(cpet::util::endswith("", "something"));
+}

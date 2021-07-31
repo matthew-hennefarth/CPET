@@ -18,16 +18,9 @@
 /* CPET HEADER FILES */
 #include "Exceptions.h"
 #include "Utilities.h"
+#include "Constants.h"
 
 namespace cpet {
-
-constexpr int MIN_PDB_LINE_LENGTH = 26;
-constexpr int PDB_CHAIN_START = 21;
-constexpr int PDB_CHAIN_WIDTH = 2;
-constexpr int PDB_RESNUM_START = 22;
-constexpr int PDB_RESNUM_WIDTH = 4;
-constexpr int PDB_ATOMID_START = 12;
-constexpr int PDB_ATOMID_WIDTH = 4;
 
 class AtomID {
  public:
@@ -113,17 +106,36 @@ class AtomID {
     }
   }
 
-  [[nodiscard]] static inline AtomID generateID(
-      const std::string_view pdbLine) {
-    if (pdbLine.size() < MIN_PDB_LINE_LENGTH) {
-      throw cpet::value_error("pdb line to short: " +
-                              static_cast<std::string>(pdbLine));
-    }
-
+  [[nodiscard]] static inline AtomID generateID(const std::string_view line,
+                                                const constants::FileType ft) {
     std::stringstream result_stream;
-    result_stream << pdbLine.substr(PDB_CHAIN_START, PDB_CHAIN_WIDTH) << ':'
-                  << pdbLine.substr(PDB_RESNUM_START, PDB_RESNUM_WIDTH) << ':'
-                  << pdbLine.substr(PDB_ATOMID_START, PDB_ATOMID_WIDTH);
+    switch (ft) {
+      case constants::FileType::pqr: {
+        const auto tokens = util::split(line, ' ');
+        if (tokens.size() <= constants::PQR_MIN_INDEX) {
+          throw cpet::value_error("pqr line too short: " +
+                                  static_cast<std::string>(line));
+        }
+        result_stream << tokens[constants::PQR_CHAIN_INDEX] << ':'
+                      << tokens[constants::PQR_RESNUM_INDEX] << ':'
+                      << tokens[constants::PQR_ATOMID_INDEX];
+      } break;
+      case constants::FileType::pdb:
+      default:
+        if (line.size() < constants::PDB_MIN_LINE_LENGTH) {
+          throw cpet::value_error("pdb line too short: " +
+                                  static_cast<std::string>(line));
+        }
+        result_stream << line.substr(constants::PDB_CHAIN_START,
+                                     constants::PDB_CHAIN_WIDTH)
+                      << ':'
+                      << line.substr(constants::PDB_RESNUM_START,
+                                     constants::PDB_RESNUM_WIDTH)
+                      << ':'
+                      << line.substr(constants::PDB_ATOMID_START,
+                                     constants::PDB_ATOMID_WIDTH);
+    };
+
     auto result = result_stream.str();
     result.erase(remove(begin(result), end(result), ' '), end(result));
     return AtomID(result);

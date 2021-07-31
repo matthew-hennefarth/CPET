@@ -59,6 +59,11 @@ randomNumberGenerator() noexcept {
   return str.rfind(str2, 0) != std::string::npos;
 }
 
+[[nodiscard]] constexpr bool endswith(const std::string_view str,
+                                      const std::string_view str2) noexcept {
+  return str.find(str2, str.size() - str2.size()) != std::string::npos;
+}
+
 void forEachLineIn(const std::string& file,
                    const std::function<void(const std::string&)>& func);
 

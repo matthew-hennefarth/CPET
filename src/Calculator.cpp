@@ -71,12 +71,27 @@ void Calculator::computeVolume_() const {
 std::vector<double> Calculator::loadChargesFile_() const {
   SPDLOG_DEBUG("Loading charges from external file {} ...", chargeFile_);
   std::vector<double> realCharges;
-  util::forEachLineIn(chargeFile_, [&realCharges](const std::string& line) {
-    if (util::startswith(line, "ATOM") || util::startswith(line, "HETATM")) {
-      realCharges.emplace_back(std::stod(line.substr(
-          constants::PDB_CHARGE_START, constants::PDB_CHARGE_WIDTH)));
-    }
-  });
+  if (util::endswith(chargeFile_, ".pqr")) {
+    util::forEachLineIn(chargeFile_, [&realCharges](const std::string& line) {
+      if (util::startswith(line, "ATOM") || util::startswith(line, "HETATM")) {
+        const auto tokens = util::split(line, ' ');
+        if (tokens.size() <= constants::PQR_CHARGE_INDEX) {
+          SPDLOG_ERROR("Error reading in charges file");
+          throw cpet::value_error("pqr line too short: " + line);
+        }
+        realCharges.emplace_back(
+            std::stod(tokens[constants::PQR_CHARGE_INDEX]));
+      }
+    });
+  } else {
+    /* We assume we have a PDB file */
+    util::forEachLineIn(chargeFile_, [&realCharges](const std::string& line) {
+      if (util::startswith(line, "ATOM") || util::startswith(line, "HETATM")) {
+        realCharges.emplace_back(std::stod(line.substr(
+            constants::PDB_CHARGE_START, constants::PDB_CHARGE_WIDTH)));
+      }
+    });
+  }
   return realCharges;
 }
 

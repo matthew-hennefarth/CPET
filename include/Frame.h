@@ -19,7 +19,6 @@
 #include "Constants.h"
 
 namespace cpet {
-
 class Frame {
  public:
   using const_iterator = std::vector<PointCharge>::const_iterator;
@@ -93,6 +92,36 @@ class Frame {
     SPDLOG_DEBUG("Loading point charge trajectory from {} ...", file);
     std::vector<PointCharge> tmpHolder;
     std::vector<Frame> frameTrajectory;
+
+    std::function<void(const std::string& line)> addPointCharge;
+
+    if (util::endswith(file, ".pqr")) {
+      addPointCharge = [&](const std::string& line) {
+        const auto tokens = util::split(line, ' ');
+        tmpHolder.emplace_back(
+            Eigen::Vector3d({std::stod(tokens[constants::PQR_XCOORD_INDEX]),
+                             std::stod(tokens[constants::PQR_YCOORD_INDEX]),
+                             std::stod(tokens[constants::PQR_ZCOORD_INDEX])}),
+            std::stod(tokens[constants::PQR_CHARGE_INDEX]),
+            AtomID::generateID(line, constants::FileType::pqr));
+      };
+    } else {
+      /* Assume we have a pdb then */
+      addPointCharge = [&](const std::string& line) {
+        tmpHolder.emplace_back(
+            Eigen::Vector3d(
+                {std::stod(line.substr(constants::PDB_XCOORD_START,
+                                       constants::PDB_COORD_WIDTH)),
+                 std::stod(line.substr(constants::PDB_YCOORD_START,
+                                       constants::PDB_COORD_WIDTH)),
+                 std::stod(line.substr(constants::PDB_ZCOORD_START,
+                                       constants::PDB_COORD_WIDTH))}),
+            std::stod(line.substr(constants::PDB_CHARGE_START,
+                                  constants::PDB_CHARGE_WIDTH)),
+            AtomID::generateID(line, constants::FileType::pdb));
+      };
+    }
+
     util::forEachLineIn(
         file, [&, structureIndex = 0](const std::string& line) mutable {
           if (structureIndex < start || (start - structureIndex) % skip != 0) {
@@ -106,17 +135,7 @@ class Frame {
             ++structureIndex;
           } else if (util::startswith(line, "ATOM") ||
                      util::startswith(line, "HETATM")) {
-            tmpHolder.emplace_back(
-                Eigen::Vector3d(
-                    {std::stod(line.substr(constants::PDB_XCOORD_START,
-                                           constants::PDB_COORD_WIDTH)),
-                     std::stod(line.substr(constants::PDB_YCOORD_START,
-                                           constants::PDB_COORD_WIDTH)),
-                     std::stod(line.substr(constants::PDB_ZCOORD_START,
-                                           constants::PDB_COORD_WIDTH))}),
-                std::stod(line.substr(constants::PDB_CHARGE_START,
-                                      constants::PDB_CHARGE_WIDTH)),
-                AtomID::generateID(line));
+            addPointCharge(line);
           }
         });
     if (!tmpHolder.empty()) {

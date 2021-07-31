@@ -2,7 +2,6 @@
 
 #include <Eigen/Core>
 #include <exception>
-#include <iostream>
 #include <string>
 #include <vector>
 
@@ -30,7 +29,8 @@ TEST(AtomID, GenerateFromPDB) {
       "D:2:O110", "D:2:C111", "D:2:C112", "D:2:O113", "D:2:C114", "D:2:O115",
       "D:2:O116", "D:2:H117", "D:2:H118", "D:2:H119", "D:2:H120", "D:2:H121"};
   for (size_t i = 0; i < pdbLines.size(); i++) {
-    auto a = cpet::AtomID::generateID(pdbLines[i]);
+    auto a =
+        cpet::AtomID::generateID(pdbLines[i], cpet::constants::FileType::pdb);
     ASSERT_EQ(a.ID(), ids[i]);
     ASSERT_FALSE(a.isConstant())
         << "id " << a.ID() << " should not be a constant";
@@ -40,8 +40,46 @@ TEST(AtomID, GenerateFromPDB) {
   }
 
   EXPECT_NO_THROW(
-      auto a = cpet::AtomID::generateID("HETATM 5719 O110 PRE D   2 113.861"));
-  EXPECT_THROW(auto a = cpet::AtomID::generateID("HETATM 5719 O110 PRE D"),
+      auto a = cpet::AtomID::generateID("HETATM 5719 O110 PRE D   2 113.861",
+                                        cpet::constants::FileType::pdb));
+  EXPECT_THROW(auto a = cpet::AtomID::generateID(
+                   "HETATM 5719 O110 PRE D", cpet::constants::FileType::pdb),
+               cpet::value_error);
+}
+
+TEST(AtomID, ConstructFromPQR) {
+  const std::vector<std::string> pqrlines = {
+      "HETATM 4519 HMB3 HEM A 1300       9.944  13.041  -3.295  0.058  1.200"
+      "HETATM 4520 HMC1 HEM A 1300       2.780  17.583  -0.593  0.063  1.200"
+      "HETATM 4521 HMC2 HEM A 1300       3.872  16.247  -0.158  0.063  1.200"
+      "HETATM 4522 HMC3 HEM A 1300       3.314  17.385   1.093  0.063  1.200"
+      "HETATM 4523 HMD1 HEM A 1300       6.118  24.087  -0.950  0.070  1.200"
+      "HETATM 4524 HMD2 HEM A 1300       7.469  25.207  -1.249  0.065  1.200"
+      "HETATM 4525 HMD3 HEM A 1300       7.344  24.360   0.312  0.063  1.200"
+      "HETATM 4526 HMA1 HEM A 1300      12.245  17.272  -6.535  0.074  1.200"
+      "HETATM 4527 HMA2 HEM A 1300      13.575  18.410  -6.215  0.078  1.200"
+      "HETATM 4528 HMA3 HEM A 1300      13.337  16.999  -5.157  0.065  1.200"};
+  std::vector<std::string> ids = {"A:1300:HMB3", "A:1300:HMC1", "A:1300:HMC2",
+                                  "A:1300:HMC3", "A:1300:HMD1", "A:1300:HMD2",
+                                  "A:1300:HMD3", "A:1300:HMA1", "A:1300:HMA2",
+                                  "A:1300:HMA3"};
+
+  for (size_t i = 0; i < pqrlines.size(); i++) {
+    auto a =
+        cpet::AtomID::generateID(pqrlines[i], cpet::constants::FileType::pqr);
+    ASSERT_EQ(a.ID(), ids[i]);
+    ASSERT_FALSE(a.isConstant())
+        << "id " << a.ID() << " should not be a constant";
+    ASSERT_FALSE(a.position())
+        << "id " << a.ID() << " should not have a position";
+    ASSERT_FALSE(a.isVector()) << "id " << a.ID() << " should not be a vector";
+  }
+
+  EXPECT_NO_THROW(auto a = cpet::AtomID::generateID(
+                      "HETATM 4528 HMA3 HEM A 1300      13.337",
+                      cpet::constants::FileType::pdb));
+  EXPECT_THROW(auto a = cpet::AtomID::generateID(
+                   "HETATM 4528 HMA3 HEM A", cpet::constants::FileType::pdb),
                cpet::value_error);
 }
 

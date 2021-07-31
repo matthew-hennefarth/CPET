@@ -59,19 +59,19 @@ int main(int argc, char** argv) {
       std::string("Classical Protein Electric Field Topology, version ") +
           std::string(PROJECT_VER));
   options.add_options()(
-        "d,debug", "Enable debugging",
-        cxxopts::value<bool>()->default_value("false"))  // a bool parameter
-        ("p,protein", "PDB", cxxopts::value<std::string>())(
-            "o,options", "Option file", cxxopts::value<std::string>())(
-            "c,charges", "Partial atomic charge definitions",
-            cxxopts::value<std::string>()->default_value(""))(
-            "t,threads", "Number of threads",
-            cxxopts::value<int>()->default_value("1"))(
-            "O,out", "[DEPRECATED!] Output file",
-            cxxopts::value<std::string>()->default_value(""))("h,help",
-                                                              "Print usage")(
-            "v,verbose", "Verbose output",
-            cxxopts::value<bool>()->default_value("false"));
+      "d,debug", "Enable debugging",
+      cxxopts::value<bool>()->default_value("false"))  // a bool parameter
+      ("p,protein", "PDB", cxxopts::value<std::string>())(
+          "o,options", "Option file", cxxopts::value<std::string>())(
+          "c,charges", "Partial atomic charge definitions",
+          cxxopts::value<std::string>()->default_value(""))(
+          "t,threads", "Number of threads",
+          cxxopts::value<int>()->default_value("1"))(
+          "O,out", "[DEPRECATED!] Output file",
+          cxxopts::value<std::string>()->default_value(""))("h,help",
+                                                            "Print usage")(
+          "v,verbose", "Verbose output",
+          cxxopts::value<bool>()->default_value("false"));
 
   std::unique_ptr<cxxopts::ParseResult> tmp_result{nullptr};
   try {
