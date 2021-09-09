@@ -43,8 +43,8 @@ TEST(Box, BasicProperties) {
 
 TEST(Box, Displaced) {
   cpet::Box b({1, 1, 1}, {0, 1, 0});
-  ASSERT_TRUE(b.isInside({0,1,0}));
-  EXPECT_TRUE(b.isInside({0,.5,0}));
+  ASSERT_TRUE(b.isInside({0, 1, 0}));
+  EXPECT_TRUE(b.isInside({0, .5, 0}));
   EXPECT_FALSE(b.isInside({-0.5, -0.5, -0.5}));
   EXPECT_TRUE(b.isInside({0.5, 1.5, 0}));
 

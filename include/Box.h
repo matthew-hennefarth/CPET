@@ -34,12 +34,13 @@ class Box : public Volume {
     }
   }
 
-  inline Box(const std::array<double, 3>& sides, const Eigen::Vector3d& center) : sides_(sides) {
+  inline Box(const std::array<double, 3>& sides, const Eigen::Vector3d& center)
+      : sides_(sides) {
     constexpr auto is_less_than_zero = [](const double side) -> bool {
       return side < 0.0;
     };
     if (const auto& location =
-          std::find_if(sides_.begin(), sides_.end(), is_less_than_zero);
+            std::find_if(sides_.begin(), sides_.end(), is_less_than_zero);
         location != sides_.end()) {
       SPDLOG_ERROR("Invalid value for box side length {}", *location);
       throw cpet::value_error("Invalid value for box side length");
