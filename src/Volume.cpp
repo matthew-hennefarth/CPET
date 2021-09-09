@@ -11,23 +11,34 @@
 #include "Box.h"
 #include "Exceptions.h"
 #include "Utilities.h"
+#include "AtomID.h"
 
 namespace cpet {
 
 std::unique_ptr<Volume> makeBox(const std::vector<std::string>& options) {
-  constexpr int BOX_PARAMETERS = 3;
+  constexpr int MIN_BOX_PARAMETERS = 3;
+  constexpr int BOX_CENTER_INDEX = 4;
 
-  if (options.size() != BOX_PARAMETERS) {
+  if (options.size() < MIN_BOX_PARAMETERS) {
     throw cpet::invalid_option(
         "Invalid Option: Box requires 3 values: h, w, l");
   }
+
   if (!std::all_of(options.begin(), options.end(), util::isDouble)) {
     throw cpet::invalid_option(
         "Invalid Option: Box requires 3 doubles, received other");
   }
 
-  return std::make_unique<Box>(std::array<double, BOX_PARAMETERS>{
-      std::stod(options[0]), std::stod(options[1]), std::stod(options[2])});
+  Eigen::Vector3d center = {0,0,0};
+  if (options.size() >= BOX_CENTER_INDEX) {
+    if (!AtomID::isVector(options[BOX_CENTER_INDEX])){
+      throw cpet::invalid_option("Invalid Option: Box center is invalid position vector");
+    }
+    center = *AtomID(options[0]).position();
+  }
+
+  return std::make_unique<Box>(std::array<double, MIN_BOX_PARAMETERS>{
+      std::stod(options[0]), std::stod(options[1]), std::stod(options[2])}, center);
 }
 
 std::unique_ptr<Volume> Volume::generateVolume(
