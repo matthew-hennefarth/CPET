@@ -277,7 +277,8 @@ TEST(Option, Plot3dBlockBoxValidDisplacement) {
 }
 
 TEST(Option, Plot3dBlockBoxInValidDisplacement) {
-  std::string options_file = "Data/invalid_options/plot3d_block_invaliddisplacement";
+  std::string options_file =
+      "Data/invalid_options/plot3d_block_invaliddisplacement";
   ASSERT_TRUE(std::filesystem::exists(options_file));
 
   ASSERT_THROW(auto o = cpet::Option{options_file}, cpet::invalid_option);
