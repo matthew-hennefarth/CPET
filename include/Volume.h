@@ -45,6 +45,9 @@ class Volume {
 
   static std::unique_ptr<Volume> generateVolume(
       const std::vector<std::string> &options);
+
+ protected:
+  Eigen::Vector3d center_{0, 0, 0};
 };
 }  // namespace cpet
 #endif  // VOLUME_H

@@ -34,6 +34,20 @@ class Box : public Volume {
     }
   }
 
+  inline Box(const std::array<double, 3>& sides, const Eigen::Vector3d& center)
+      : sides_(sides) {
+    constexpr auto is_less_than_zero = [](const double side) -> bool {
+      return side < 0.0;
+    };
+    if (const auto& location =
+            std::find_if(sides_.begin(), sides_.end(), is_less_than_zero);
+        location != sides_.end()) {
+      SPDLOG_ERROR("Invalid value for box side length {}", *location);
+      throw cpet::value_error("Invalid value for box side length");
+    }
+    center_ = center;
+  }
+
   [[nodiscard]] inline const double& maxDim() const noexcept override {
     return *std::max_element(sides_.begin(), sides_.end());
   }
@@ -47,8 +61,9 @@ class Box : public Volume {
 
   [[nodiscard]] inline bool isInside(
       const Eigen::Vector3d& position) const override {
+    const Eigen::Vector3d displaced = position - center_;
     for (size_t i = 0; i < 3; i++) {
-      if (abs(position[static_cast<long>(i)]) >= sides_.at(i)) {
+      if (abs(displaced[static_cast<long>(i)]) >= sides_.at(i)) {
         return false;
       }
     }
@@ -66,7 +81,7 @@ class Box : public Volume {
     Eigen::Vector3d result;
     std::transform(distribution.begin(), distribution.end(), result.begin(),
                    getRandomNumber);
-    return result;
+    return result + center_;
   }
 
   [[nodiscard]] inline std::string description() const noexcept override {
@@ -108,8 +123,8 @@ class Box : public Volume {
       while (y <= sides_[1]) {
         double z = -1 * sides_[2];
         while (z <= sides_[2]) {
-          result.emplace_back(x, y, z);
-          z += sides_[2] / density[2];
+          result.emplace_back(x + center_[0], y + center_[1], z + center_[2]);
+          z += static_cast<double>(static_cast<float>(sides_[2] / density[2]));
         }
         y += (sides_[1] / density[1]);
       }

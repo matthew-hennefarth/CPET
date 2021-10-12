@@ -262,6 +262,28 @@ TEST(Option, Plot3dBlockBoxValid) {
   EXPECT_EQ(*efv0.output(), "my3dvolume.dat");
 }
 
+TEST(Option, Plot3dBlockBoxValidDisplacement) {
+  std::string options_file = "Data/valid_options/plot3d_block_displacement";
+  ASSERT_TRUE(std::filesystem::exists(options_file));
+
+  cpet::Option option;
+  ASSERT_NO_THROW(option = cpet::Option{options_file});
+
+  ASSERT_EQ(option.calculateEFieldVolumes().size(), 1);
+  const cpet::EFieldVolume& efv = option.calculateEFieldVolumes()[0];
+  const auto& box = efv.volume();
+  EXPECT_TRUE(box.isInside({1, 1.5, 0}));
+  EXPECT_TRUE(box.isInside({1.9, 2.2, -.9}));
+}
+
+TEST(Option, Plot3dBlockBoxInValidDisplacement) {
+  std::string options_file =
+      "Data/invalid_options/plot3d_block_invaliddisplacement";
+  ASSERT_TRUE(std::filesystem::exists(options_file));
+
+  ASSERT_THROW(auto o = cpet::Option{options_file}, cpet::invalid_option);
+}
+
 TEST(Option, InvalidPlot3dBlockBoxNoDensity) {
   std::string options_file = "Data/invalid_options/plot3d_block_box_nodens";
   ASSERT_TRUE(std::filesystem::exists(options_file));
